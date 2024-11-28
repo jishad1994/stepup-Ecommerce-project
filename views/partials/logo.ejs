@@ -1,0 +1,130 @@
+<div class="logo-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120">
+        <!-- Three ascending geometric steps -->
+        <rect x="40" y="60" width="40" height="20" fill="#2ecc71" />
+        <rect x="80" y="40" width="40" height="40" fill="#27ae60" />
+        <rect x="120" y="20" width="40" height="60" fill="#219a52" />
+
+        <!-- Company Name with custom letter spacing -->
+        <text x="120" y="100" font-family="Arial, sans-serif" font-size="28" font-weight="900" text-anchor="middle"
+            letter-spacing="4">
+            <tspan fill="#333333">STEP</tspan>
+            <tspan fill="#2ecc71">UP</tspan>
+        </text>
+
+        <!-- Subtle tagline -->
+        <text x="120" y="115" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" letter-spacing="2"
+            fill="#666666">FOOTWEAR</text>
+    </svg>
+
+</div>
+<style>
+    .logo-container {
+        margin-left: 60px;
+        margin-bottom: 20px;
+        max-width: 180px;
+        height: 60px;
+        transition: all 0.3s ease;
+    }
+
+    /* 2. Style specific SVG elements using classes */
+    .logo-step {
+        transition: fill 0.3s ease;
+    }
+
+    .logo-text {
+        transition: fill 0.3s ease;
+    }
+
+    /* 3. Different color themes */
+    /* Default theme */
+    .theme-default .logo-step-1 {
+        fill: #2ecc71;
+    }
+
+    .theme-default .logo-step-2 {
+        fill: #27ae60;
+    }
+
+    .theme-default .logo-step-3 {
+        fill: #219a52;
+    }
+
+    .theme-default .logo-text-step {
+        fill: #333333;
+    }
+
+    .theme-default .logo-text-up {
+        fill: #2ecc71;
+    }
+
+    /* Dark theme */
+    .theme-dark .logo-step-1 {
+        fill: #3498db;
+    }
+
+    .theme-dark .logo-step-2 {
+        fill: #2980b9;
+    }
+
+    .theme-dark .logo-step-3 {
+        fill: #1f618d;
+    }
+
+    .theme-dark .logo-text-step {
+        fill: #ffffff;
+    }
+
+    .theme-dark .logo-text-up {
+        fill: #3498db;
+    }
+
+    /* Modern theme */
+    .theme-modern .logo-step-1 {
+        fill: #9b59b6;
+    }
+
+    .theme-modern .logo-step-2 {
+        fill: #8e44ad;
+    }
+
+    .theme-modern .logo-step-3 {
+        fill: #6c3483;
+    }
+
+    .theme-modern .logo-text-step {
+        fill: #333333;
+    }
+
+    .theme-modern .logo-text-up {
+        fill: #9b59b6;
+    }
+
+    /* 4. Hover effects */
+    .logo-container:hover .logo-step-1 {
+        transform: translateY(-2px);
+    }
+
+    .logo-container:hover .logo-step-2 {
+        transform: translateY(-4px);
+    }
+
+    .logo-container:hover .logo-step-3 {
+        transform: translateY(-6px);
+    }
+
+    /* 5. Responsive sizes */
+    @media (max-width: 768px) {
+        .logo-container {
+            max-width: 180px;
+            height: 45px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .logo-container {
+            max-width: 120px;
+            height: 30px;
+        }
+    }
+</style>

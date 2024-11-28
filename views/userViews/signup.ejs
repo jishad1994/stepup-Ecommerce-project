@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/css/signup.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="signup-container">
+            <div class="signup-form">
+                <div class="logo">step<span>Up</span></div>
+                <h2>Create your account</h2>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                        <div class="error-message" id="usernameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="error-message" id="emailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required>
+                        <div class="error-message" id="phoneError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="password" name="password" required>
+                            <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
+                        </div>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            <i class="fas fa-eye password-toggle" id="passwordToggle2"></i>
+                        </div>
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                    <button type="submit" class="btn">Create Account</button>
+                    <div class="social-signup">
+                        <p>Or sign up with</p>
+                        <div class="social-buttons">
+                            <a href="/signup/googleAuth" class="social-btn" style="text-decoration: none;">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+                        </div>
+                    </div>
+                    <div class="login-link">
+                        Already have an account? <a href="/login">Log in</a>
+                    </div>
+                </form>
+            </div>
+            <div class="signup-image">
+                <img src="images/signup_hero.webp" alt="signup_heor_image" id="signup_hero">
+                <h2>Welcome to stepUp!</h2>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("signupForm");
+
+        // Utility function for toggling password visibility
+        function togglePasswordVisibility(inputId, toggleIconId) {
+            const input = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(toggleIconId);
+
+            toggleIcon.addEventListener("click", () => {
+                const type = input.getAttribute("type") === "password" ? "text" : "password";
+                input.setAttribute("type", type);
+                toggleIcon.classList.toggle("fa-eye");
+                toggleIcon.classList.toggle("fa-eye-slash");
+            });
+        }
+
+        // Attach password visibility toggles
+        togglePasswordVisibility("password", "passwordToggle");
+        togglePasswordVisibility("confirmPassword", "passwordToggle2");
+
+        // Form validation functions
+        const validators = {
+            username: (value) => value.length >= 3 || "Username must be at least 3 characters.",
+            email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || "Enter a valid email address.",
+            phone: (value) => /^\d{10}$/.test(value) || "Enter a valid 10-digit phone number.",
+            password: (value) =>
+                value.length >= 8 &&
+                /[A-Z]/.test(value) &&
+                /[a-z]/.test(value) &&
+                /\d/.test(value) &&
+                /[!@#$%^&*]/.test(value) ||
+                "Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.",
+            confirmPassword: (value, formData) =>
+                value === formData.password || "Passwords do not match.",
+        };
+
+        // Validate a single field
+        function validateField(field, value, formData) {
+            const errorElement = document.getElementById(`${field}Error`);
+            const validator = validators[field];
+            const isValid = validator(value, formData);
+
+            if (isValid === true) {
+                errorElement.style.display = "none";
+                return true;
+            } else {
+                errorElement.textContent = isValid;
+                errorElement.style.display = "block";
+                return false;
+            }
+        }
+
+        // Form submission
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                username: document.getElementById("username").value,
+                email: document.getElementById("email").value,
+                phone: document.getElementById("phone").value,
+                password: document.getElementById("password").value,
+                confirmPassword: document.getElementById("confirmPassword").value,
+            };
+
+            let isValid = true;
+            for (const field in formData) {
+                if (!validateField(field, formData[field], formData)) {
+                    isValid = false;
+                }
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch("/signup", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(formData),
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+
+                        form.reset();
+
+                        setTimeout(() => {
+                            window.location.href = "/signup/verifyOTP";
+                        }, 1000);
+                    } else if (data.errors) {
+                        Object.entries(data.errors).forEach(([field, error]) => {
+                            const errorElement = document.getElementById(`${field}Error`);
+                            errorElement.textContent = error;
+                            errorElement.style.display = "block";
+                        });
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Please check your input and try again.",
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Something went wrong. Please try again later.",
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+</html>

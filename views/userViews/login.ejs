@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/css/login.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-form">
+                <div class="logo">step<span>Up</span></div>
+                <h2>Login to your account</h2>
+
+                <div class="error-message" id="loginError">
+
+                </div>
+
+                <form id="loginForm" method="post" action="/login">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="error-message" id="emailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="password" name="password" required>
+                            <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
+                        </div>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+
+                    <div class="social-login">
+                        <p>Or log in with</p>
+                        <div class="social-buttons">
+                            <a href="/signup/googleAuth" style="text-decoration: none;" class="social-btn">
+                                <i class="fab fa-google"></i> Google
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <div class="signup-link">
+                        Don't have an account? <a href="/signup">Sign up</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="login-image">
+                <h2>Welcome Back to stepUp!</h2>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+<!-- script -->
+<script>document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('loginForm');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const passwordInput = document.getElementById('password');
+
+        // Password visibility toggle
+        passwordToggle.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggle.classList.toggle('fa-eye');
+            passwordToggle.classList.toggle('fa-eye-slash');
+        });
+
+        // Validation functions
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 8; // Simplified password validation for login
+        }
+
+        // Real-time validation
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', function () {
+                const errorElement = document.getElementById(`${input.id}Error`);
+
+                switch (input.id) {
+                    case 'email':
+                        if (!validateEmail(input.value)) {
+                            errorElement.textContent = 'Please enter a valid email address';
+                            errorElement.style.display = 'block';
+                        } else {
+                            errorElement.style.display = 'none';
+                        }
+                        break;
+
+                    case 'password':
+                        if (!validatePassword(input.value)) {
+                            errorElement.textContent = 'Password must be at least 8 characters long';
+                            errorElement.style.display = 'block';
+                        } else {
+                            errorElement.style.display = 'none';
+                        }
+                        break;
+                }
+            });
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Validate all fields
+            let isValid = true;
+
+            if (!validateEmail(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!validatePassword(password)) {
+                document.getElementById('passwordError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Redirect to dashboard or desired page
+                        window.location.href = '/';
+                    } else {
+                        // Handle login errors
+                        if (data.errors) {
+                            if (data.errors.email) {
+                                const emailError = document.getElementById('emailError');
+                                emailError.textContent = data.errors.email;
+                                emailError.style.display = 'block';
+                            }
+
+                            if (data.errors.password) {
+                                const passwordError = document.getElementById('passwordError');
+                                passwordError.textContent = data.errors.password;
+                                passwordError.style.display = 'block';
+                            }
+                        } else {
+                            alert('Invalid login credentials. Please try again.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again later.');
+                }
+            }
+        });
+    });
+</script>
+
+</html>

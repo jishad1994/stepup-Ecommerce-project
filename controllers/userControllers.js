@@ -8,9 +8,10 @@ const env = require("dotenv").config();
 //load home apge
 const loadHomePage = async (req, res) => {
     try {
-        const user =req.session?.userdata;
-        
-        res.render("index", {user});
+        const user = req.session?.userdata;
+        console.log(`current user is ${user}`)
+        console.log(`current session  is ${req.session}`)
+        res.render("index", { user });
     } catch (err) {
         console.log("error while loading the home page ", err.message);
     }
@@ -50,6 +51,7 @@ const logout = async (req, res) => {
                     });
                 }
                 console.log("User logout successful");
+                
                 return res.redirect("/"); // Redirect after successful logout
             });
         } else {
@@ -71,7 +73,7 @@ const logout = async (req, res) => {
 //post signup
 const signup = async (req, res) => {
     try {
-        const { username, password, email, phone } = req.body;
+        const { name, password, email, phone } = req.body;
         console.log(req.body);
 
         const emailTaken = await User.findOne({ email });
@@ -98,7 +100,7 @@ const signup = async (req, res) => {
             console.log(`The generated OTP is: ${OTP}`);
 
             // Store OTP and expiry in session
-            req.session.userdata = { username, email, password, phone, OTP, expiry };
+            req.session.userdata = { name, email, password, phone, OTP, expiry };
 
             // Send the OTP
             await sendOTP(email, OTP);
@@ -163,10 +165,10 @@ const loadOtpPage = async (req, res) => {
 //otp verification page
 const verifyOTP = async (req, res) => {
     try {
-        console.log("request reached verify otp");
+        console.log("request reached verify otp controller");
         const { OTP } = req.body;
-        console.log(OTP)
-        console.log(req.session.userdata)
+        console.log(OTP);
+        console.log(" he current session data is :", req.session.userdata);
 
         if (!req.session.userdata) {
             return res.status(400).json({
@@ -175,8 +177,7 @@ const verifyOTP = async (req, res) => {
             });
         }
 
-        
-        const isExpired = Date.now() >req.session.userdata.expiry;
+        const isExpired = Date.now() > req.session.userdata.expiry;
 
         if (isExpired) {
             return res.status(400).json({
@@ -188,16 +189,16 @@ const verifyOTP = async (req, res) => {
         if (OTP == req.session.userdata?.OTP) {
             console.log("OTP matches and verification successful");
 
-            // Clear session OTP after successful verification
-            // req.session.userdata.OTP = null;
-           
+            //Clear session OTP after successful verification
+            req.session.userdata.OTP = null;
+
             console.log("the session data is:", req.session.userdata);
             password = req.session.userdata.password;
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
             const user = await new User({
-                username: req.session.userdata.username,
+                name: req.session.userdata.name,
                 email: req.session.userdata.email,
                 password: hashedPassword,
                 phone: req.session.userdata.phone,
@@ -207,10 +208,9 @@ const verifyOTP = async (req, res) => {
 
             return res.status(200).json({
                 success: true,
-                message: "OTP verification is successful",
+                message: "OTP verification is successful and Data saved in DB",
             });
         } else {
-
             console.log("otp else case worked");
             res.status(400).json({
                 success: false,
@@ -229,8 +229,8 @@ const verifyOTP = async (req, res) => {
 //post login
 const postLogin = async (req, res) => {
     try {
-        const { username,email, password } = req.body;
-        console.log(req.body)
+        const { email, password } = req.body;
+        console.log(req.body);
 
         // Validate input (you can add custom validation using express-validator)
         if (!email || !password) {
@@ -267,7 +267,8 @@ const postLogin = async (req, res) => {
         // Successful login
         console.log("User logged in successfully");
         //creating user session
-        req.session.userdata = { username ,email};
+        req.session.userdata = { email };
+        console.log(`the session userdata is : ${req.session.userdata}`);
         return res.status(200).json({
             success: true,
             message: "User logged in successfully",
@@ -290,5 +291,5 @@ module.exports = {
     verifyOTP,
     loadHomePage,
     postLogin,
-    logout
+    logout,
 };

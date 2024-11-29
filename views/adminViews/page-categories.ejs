@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Nest Dashboard</title>
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="description" content="" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:title" content="" />
+  <meta property="og:type" content="" />
+  <meta property="og:url" content="" />
+  <meta property="og:image" content="" />
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+  <!-- Template CSS -->
+  <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <%- include('partials/header')%>
+
+    <section class="content-main">
+      <div class="content-header">
+        <div>
+          <h2 class="content-title card-title">Categories</h2>
+          <p>Add, edit or delete a category</p>
+        </div>
+        <div>
+          <input type="text" placeholder="Search Categories" class="form-control bg-white" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <form action="/admin/addCategory" method="post" onsubmit="return handleFormSubmit(event)">
+                <div class="mb-4">
+                  <label for="category_name" class="form-label">Name</label>
+                  <input type="text" placeholder="Type here" class="form-control" id="category_name" />
+                  <p id="nameError" class="text-danger"></p>
+                  <p id="numericError" class="text-danger"></p>
+                </div>
+
+                <!-- <div class="mb-4">
+                  <label class="form-label">Parent</label>
+                  <select class="form-select">
+                    <option>Fruit</option>
+                    <option>Snack</option>
+                  </select>
+                </div> -->
+                <div class="mb-4">
+                  <label class="form-label">Description</label>
+                  <textarea placeholder="Type here" id="description" class="form-control"></textarea>
+                  <p id="descriptionError" class="text-danger"></p>
+                </div>
+                <div class="d-grid">
+                  <button class="btn btn-primary" type="submit">Create category</button>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-9">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </th>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Slug</th>
+                      <th>Order</th>
+                      <th class="text-end">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>21</td>
+                      <td><b>Cake & Milk</b></td>
+                      <td>Cake & Milk</td>
+                      <td>/cake</td>
+                      <td>1</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>2</td>
+                      <td><b>Oganic Kiwi</b></td>
+                      <td>EU standard</td>
+                      <td>/kiwi</td>
+                      <td>2</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>3</td>
+                      <td><b>Peach</b></td>
+                      <td>Peach</td>
+                      <td>/peach</td>
+                      <td>3</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <i class="material-icons md-subdirectory_arrow_right text-muted"></i>
+                      </td>
+                      <td>4</td>
+                      <td><b>Red Apple</b></td>
+                      <td>Red Apple</td>
+                      <td>/apple</td>
+                      <td>4</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <i class="material-icons md-subdirectory_arrow_right text-muted"></i>
+                      </td>
+                      <td>5</td>
+                      <td><b>Snack</b></td>
+                      <td>Snack</td>
+                      <td>/snack</td>
+                      <td>5</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>6</td>
+                      <td><b>Vegetables</b></td>
+                      <td>Vegetables</td>
+                      <td>/vegetables</td>
+                      <td>6</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>7</td>
+                      <td><b>Strawberry</b></td>
+                      <td>Strawberry</td>
+                      <td>/strawberry</td>
+                      <td>7</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" />
+                        </div>
+                      </td>
+                      <td>8</td>
+                      <td><b>Black plum</b></td>
+                      <td>Black plum</td>
+                      <td>/plum</td>
+                      <td>8</td>
+                      <td class="text-end">
+                        <div class="dropdown">
+                          <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                            <i class="material-icons md-more_horiz"></i>
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">View detail</a>
+                            <a class="dropdown-item" href="#">Edit info</a>
+                            <a class="dropdown-item text-danger" href="#">Delete</a>
+                          </div>
+                        </div>
+                        <!-- dropdown //end -->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- .col// -->
+          </div>
+          <!-- .row // -->
+        </div>
+        <!-- card body .// -->
+      </div>
+      <!-- card .// -->
+    </section>
+    <!-- content-main end// -->
+
+    <!-- footer -->
+    <%- include('partials/footer')%>
+
+      <script>
+        function handleFormSubmit(event) {
+
+          event.preventDefault();
+
+          clearErrorMessage();
+          if (!validateForm) {
+
+
+
+          }
+
+
+
+
+
+        }
+
+
+        //validating form function
+        const validateForm = () => {
+
+          const name = document.getElementById("category_name").value.trim();
+          const description = document.getElementById("description").value.trim();
+
+
+          // Alphabetic validation regex (allows letters and spaces only)
+          const alphabeticRegex = /^[a-zA-Z\s]+$/;
+
+          // Validation logic
+          if (!name) {
+            errorMessage("nameError", "Name field should not be blank")
+            return false;
+          }
+
+          if (!alphabeticRegex.test(name)) {
+
+            errorMessage("numericError", "Category name must contain only letters and spaces!")
+            return false;
+          }
+
+          if (!description) {
+            errorMessage("descriptionError", "Description should be given..")
+            return false;
+          }
+
+
+
+          return true; // Validation passed
+
+
+
+        }
+
+
+        //error message function
+        function errorMessage(tagId, errorMessage) {
+          document.getElementById(tagId).innerText = errorMessage;
+        }
+
+
+        //clear error message
+        function clearErrorMessage() {
+          document.getElementById("nameError").innerText = "";
+          document.getElementById("descriptionError").innerText = "";
+          document.getElementById("numericError").innerText = "";
+        }
+
+
+      </script>
+</body>
+
+</html>

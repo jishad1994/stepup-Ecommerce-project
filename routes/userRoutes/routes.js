@@ -20,9 +20,22 @@ route.post("/signup/resendOTP", userController.resendOTP);
 route.get("/signup/googleAuth", passport.authenticate("google", { scope: ["profile", "email"] }));
 route.get("/signup/google/callback", passport.authenticate("google", { failureRedirect: "/signup" }), (req, res) => {
     console.log("Authentication successful, user:", req.user);
-    const { username, email, password}= req.body;
-    req.session.userdata = { username, email, password};
-    res.redirect("/");
+   
+    // Use data from req.user instead of req.body
+    const { name, email } = req.user;
+
+    console.log(`the req.user recieved from google auth is: ${req.user}`)
+    // Store authenticated user data in session
+    req.session.userdata = { name, email };
+    req.session.save((err) => {
+        if (err) {
+            console.error("Error saving session:", err);
+        }
+        console.log(`Current session is:`, req.session.userdata);
+        res.redirect("/");
+    });
+
+    
 });
 route.post("/login", userAuths.isUserAuthenticated, userController.postLogin);
 

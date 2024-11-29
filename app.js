@@ -3,7 +3,7 @@ const app = express();
 const path = require("path");
 const env = require("dotenv").config();
 const PORT = process.env.PORT;
-
+const SECTRET_KEY = process.env.SECTRET_KEY;
 const connectDB = require("./config/db.js");
 
 //routes
@@ -16,6 +16,18 @@ const nocache = require("nocache");
 
 app.set("view engine", "ejs");
 
+//session management
+app.use(
+    session({
+        secret: SECTRET_KEY,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+        },
+    })
+);
+
 //dynamic views setup
 app.use((req, res, next) => {
     if (req.path.startsWith("/admin")) {
@@ -24,21 +36,7 @@ app.use((req, res, next) => {
         app.set("views", path.join(__dirname, "/views/userViews"));
     }
     next();
-
-
-
 });
-
-
-
-//winston
-
-const winston = require("winston");
-const logger = winston.createLogger({
-    level: "error",
-    transports: [new winston.transports.File({ filename: "error.log" })],
-});
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -48,20 +46,6 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).render("error", { message: "Internal Server Error" });
 });
-
-
-//session management
-app.use(
-    session({
-        secret: process.env.SECTRET_KEY,
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            secure: false,
-            maxAge: 7 * 60 * 60 * 1000,
-        },
-    })
-);
 
 //initialize passport
 app.use(passport.initialize());

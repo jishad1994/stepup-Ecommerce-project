@@ -6,12 +6,17 @@ const User = require("../model/userModel");
 
 const env = require("dotenv");
 
+// const { google } = require("googleapis");
+
+
+
 passport.use(
     new GoogleStrategy(
         {
             clientID: process.env.GOOGLE_AUTH_ID,
             clientSecret: process.env.GOOGLE_AUTH_SECRET,
             callbackURL: "http://localhost:3000/signup/google/callback",
+            prompt: "select_account",
         },
         async (accessToken, refreshToken, profile, done) => {
             console.log("Google Access Token:", accessToken);
@@ -23,9 +28,9 @@ passport.use(
                     console.log("User already exists , logging in...", user);
                     return done(null, user);
                 } else {
-                    const username = `${profile.name.givenName} ${profile.name.familyName}`;
+                    const name = `${profile.name.givenName} ${profile.name.familyName}`;
                     const email = profile.emails?.[0]?.value || "NoEmailProvided";
-                    user = new User({ username, email, googleId: profile.id });
+                    user = new User({ name, email, googleId: profile.id });
 
                     await user.save();
                     console.log("New user saved:", user);

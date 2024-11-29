@@ -19,10 +19,10 @@ const loadAdminLogin = async (req, res) => {
 //post login
 const postAdminLogin = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { name, password } = req.body;
 
         // Validate input
-        if (!username || !password) {
+        if (!name || !password) {
             return res.status(400).json({
                 success: false,
                 message: "Username and password are required.",
@@ -30,8 +30,9 @@ const postAdminLogin = async (req, res) => {
         }
 
         // Check if admin exists
-        const isAdmin = await User.findOne({ username, isAdmin: true });
+        const isAdmin = await User.findOne({ name, isAdmin: true });
         if (!isAdmin) {
+            console.log("admin not find condition worked")
             return res.status(400).json({
                 success: false,
                 message: "Invalid credentials.",
@@ -50,7 +51,7 @@ const postAdminLogin = async (req, res) => {
         // Save session
         req.session.admin = {
             id: isAdmin._id,
-            username: isAdmin.username,
+            name: isAdmin.name,
             isLoggedIn: true,
         };
 
@@ -118,7 +119,7 @@ const userInfo = async (req, res) => {
         const query = {
             isAdmin: false,
             $or: [
-                { username: { $regex: ".*" + search + ".*", $options: "i" } },
+                { name: { $regex: ".*" + search + ".*", $options: "i" } },
                 { email: { $regex: ".*" + search + ".*", $options: "i" } },
             ],
         };

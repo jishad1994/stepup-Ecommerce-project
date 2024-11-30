@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>Shoppers &mdash; Colorlib e-Commerce Template</title>
+  <title>stepUp &mdash; </title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -51,6 +51,7 @@
   <div class="site-wrap">
     <!-- header partials -->
     <%- include('../partials/header')%>
+      <!-- ********* -->
       <div class="site-blocks-cover" style=" background-image: url(/images/homepage_images/main_hero_1.png);"
         data-aos="fade">
         <div class="container">
@@ -158,51 +159,83 @@
           <div class="row">
             <div class="col-md-12">
               <div class="nonloop-block-3 owl-carousel">
+
                 <div class="item">
                   <div class="block-4 text-center">
                     <figure class="block-4-image">
                       <img src="/images/products/nike-just-do-it_2.png" alt="Image placeholder" class="img-fluid">
                     </figure>
                     <div class="block-4-text p-4">
-                      <h3><a href="#">Pegasus 41</a></h3>
+                      <h3><a href="/product/:id">Pegasus 41</a></h3>
                       <p class="mb-0">soft jogging shoe</p>
-                      <p class="text-primary font-weight-bold">$50</p>
+                      <div class="price-container">
+                        <p class="original-price text-muted"><del>$70</del></p>
+                        <p class="offer-price text-primary font-weight-bold">$50</p>
+                      </div>
+                      <span class="discount-percentage text-success">(29% OFF)</span>
                     </div>
                   </div>
                 </div>
+
+
+
+
                 <div class="item">
                   <div class="block-4 text-center">
                     <figure class="block-4-image">
                       <img src="/images/products/nike-just-do-it_4.png" alt="Image placeholder" class="img-fluid">
                     </figure>
                     <div class="block-4-text p-4">
-                      <h3><a href="#">Air Jordan 1</a></h3>
+                      <h3><a href="/product/:id">Air Jordan 1</a></h3>
                       <p class="mb-0">Perfect Sneaker</p>
-                      <p class="text-primary font-weight-bold">$50</p>
+                      <div class="price-container">
+                        <p class="original-price text-muted"><del>$70</del></p>
+                        <p class="offer-price text-primary font-weight-bold">$50</p>
+                      </div>
+                      <span class="discount-percentage text-success">(29% OFF)</span>
                     </div>
                   </div>
                 </div>
+
+
+
+
+
+
+
                 <div class="item">
                   <div class="block-4 text-center">
                     <figure class="block-4-image">
                       <img src="/images/products/nike-just-do-it_7.png" alt="Image placeholder" class="img-fluid">
                     </figure>
                     <div class="block-4-text p-4">
-                      <h3><a href="#">Vomero</a></h3>
+                      <h3><a href="/product/:id">Vomero</a></h3>
                       <p class="mb-0">perfect Running Shoe</p>
-                      <p class="text-primary font-weight-bold">$50</p>
+                      <div class="price-container">
+                        <p class="original-price text-muted"><del>$70</del></p>
+                        <p class="offer-price text-primary font-weight-bold">$50</p>
+                      </div>
+                      <span class="discount-percentage text-success">(29% OFF)</span>
                     </div>
                   </div>
                 </div>
+
+
+
+
                 <div class="item">
                   <div class="block-4 text-center">
                     <figure class="block-4-image">
                       <img src="/images/products/nike-just-do-it_9.png" alt="Image placeholder" class="img-fluid">
                     </figure>
                     <div class="block-4-text p-4">
-                      <h3><a href="#">Kill Shot</a></h3>
+                      <h3><a href="/product/:id">Kill Shot</a></h3>
                       <p class="mb-0">Best Converse</p>
-                      <p class="text-primary font-weight-bold">$50</p>
+                      <div class="price-container">
+                        <p class="original-price text-muted"><del>$70</del></p>
+                        <p class="offer-price text-primary font-weight-bold">$50</p>
+                      </div>
+                      <span class="discount-percentage text-success">(29% OFF)</span>
                     </div>
                   </div>
                 </div>
@@ -212,9 +245,13 @@
                       <img src="/images/products/nike-just-do-it_11.jpg" alt="Image placeholder" class="img-fluid">
                     </figure>
                     <div class="block-4-text p-4">
-                      <h3><a href="#">Air Force 1</a></h3>
+                      <h3><a href="/product/:id">Air Force 1</a></h3>
                       <p class="mb-0">Legendary Air Force1</p>
-                      <p class="text-primary font-weight-bold">$50</p>
+                      <div class="price-container">
+                        <p class="original-price text-muted"><del>$70</del></p>
+                        <p class="offer-price text-primary font-weight-bold">$50</p>
+                      </div>
+                      <span class="discount-percentage text-success">(29% OFF)</span>
                     </div>
                   </div>
                 </div>
@@ -247,8 +284,9 @@
           </div>
         </div>
       </div>
-
-      <%-include('../partials/footer')%>
+      <!-- footer partials -->
+      <%-include("../partials/footer")%>
+        <!-- ******** -->
   </div>
 
   <script src="scripts/jquery-3.3.1.min.js"></script>

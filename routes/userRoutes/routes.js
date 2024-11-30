@@ -14,17 +14,22 @@ route.get("/signup", userController.loadSignup);
 route.post("/signup", userController.signup);
 route.get("/login", userController.loadSignin);
 route.get("/logout", userController.logout);
+route.get("/shopall", userController.loadShopAll);
+route.get("/cart", userController.loadCart);
+route.get("/product/:id",userController.loadProduct);
+route.get("/wishlist",userController.loadWishlist);
+route.get("/checkout",userController.loadCheckOut);
 route.get("/signup/verifyOTP", userController.loadOtpPage);
 route.post("/signup/verifyOTP", userController.verifyOTP);
 route.post("/signup/resendOTP", userController.resendOTP);
 route.get("/signup/googleAuth", passport.authenticate("google", { scope: ["profile", "email"] }));
 route.get("/signup/google/callback", passport.authenticate("google", { failureRedirect: "/signup" }), (req, res) => {
     console.log("Authentication successful, user:", req.user);
-   
+
     // Use data from req.user instead of req.body
     const { name, email } = req.user;
 
-    console.log(`the req.user recieved from google auth is: ${req.user}`)
+    console.log(`the req.user recieved from google auth is: ${req.user}`);
     // Store authenticated user data in session
     req.session.userdata = { name, email };
     req.session.save((err) => {
@@ -34,8 +39,6 @@ route.get("/signup/google/callback", passport.authenticate("google", { failureRe
         console.log(`Current session is:`, req.session.userdata);
         res.redirect("/");
     });
-
-    
 });
 route.post("/login", userAuths.isUserAuthenticated, userController.postLogin);
 

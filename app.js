@@ -47,6 +47,10 @@ app.use((err, req, res, next) => {
     res.status(500).render("error", { message: "Internal Server Error" });
 });
 
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;  // Assuming the user info is stored in the session
+    next();
+  });
 //initialize passport
 app.use(passport.initialize());
 app.use(passport.session());

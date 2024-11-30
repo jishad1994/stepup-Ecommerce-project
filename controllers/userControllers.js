@@ -9,8 +9,8 @@ const env = require("dotenv").config();
 const loadHomePage = async (req, res) => {
     try {
         const user = req.session?.userdata;
-        console.log(`current user is ${user}`)
-        console.log(`current session  is ${req.session}`)
+        console.log(`current user is ${user}`);
+        console.log(`current session  is ${req.session}`);
         res.render("index", { user });
     } catch (err) {
         console.log("error while loading the home page ", err.message);
@@ -37,6 +37,64 @@ const loadSignin = async (req, res) => {
     }
 };
 
+//load shop all page
+
+const loadShopAll = async (req, res) => {
+    try {
+        console.log("entered shop all controller");
+
+        res.render("shopAll");
+    } catch (error) {
+        console.log("error while loading shopall age", error);
+        res.render("404");
+    }
+};
+
+//load cart
+
+const loadCart = async (req, res) => {
+    try {
+        console.log("cart contoller worked");
+        res.render("cart");
+    } catch (error) {
+        console.log("error occured while loading cart page");
+        res.render("404");
+    }
+};
+
+//load checkout
+
+const loadCheckOut = async (req, res) => {
+    try {
+        res.render("checkout");
+    } catch (error) {
+        console.log("error while loading checkout page");
+        res.render("404");
+    }
+};
+
+//load shop single
+
+const loadProduct = async (req, res) => {
+    try {
+        res.render("shop-single");
+    } catch (error) {
+        console.log("error while loading single product");
+        res.render("404");
+    }
+};
+
+//load wishlist
+
+const loadWishlist = async (req, res) => {
+    try {
+        res.render("wishlist");
+    } catch (error) {
+        console.log("error while loading wishlist", error);
+        res.render("404");
+    }
+};
+
 //logout
 
 const logout = async (req, res) => {
@@ -51,7 +109,7 @@ const logout = async (req, res) => {
                     });
                 }
                 console.log("User logout successful");
-                
+
                 return res.redirect("/"); // Redirect after successful logout
             });
         } else {
@@ -292,4 +350,9 @@ module.exports = {
     loadHomePage,
     postLogin,
     logout,
+    loadShopAll,
+    loadCart,
+    loadCheckOut,
+    loadProduct,
+    loadWishlist
 };

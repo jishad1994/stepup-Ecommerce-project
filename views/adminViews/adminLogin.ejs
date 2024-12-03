@@ -172,11 +172,11 @@
 
                 event.preventDefault();
 
-                const name = document.querySelector('input[placeholder="Username or email"]').value.trim();
+                const email = document.querySelector('input[placeholder="Username or email"]').value.trim();
                 const password = document.querySelector('input[placeholder="Password"]').value.trim();
 
                 // Validate input fields
-                if (!username) {
+                if (!email) {
                     Swal.fire({
                         icon: "warning",
                         title: "Validation Error",
@@ -203,7 +203,7 @@
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({name, password }),
+                        body: JSON.stringify({email, password }),
                     });
 
                     const data = await response.json();

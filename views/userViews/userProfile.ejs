@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - E-commerce</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+    <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
+    <link rel="stylesheet" href="styles/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/css/magnific-popup.css">
+    <link rel="stylesheet" href="styles/css/jquery-ui.css">
+    <link rel="stylesheet" href="styles/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="styles/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="styles/css/aos.css">
+    <link rel="stylesheet" href="styles/css/style.css">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .account-container {
+            max-width: 1000px;
+            margin: 50px auto;
+        }
+
+        .sidebar {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #f0f0f0;
+        }
+
+        .profile-header {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .content-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 0;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <%-include("../partials/header")%>
+    <div class="container account-container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <div class="text-center mb-4">
+                        <img src="/api/placeholder/100/100" alt="Profile Picture" class="profile-picture mb-3">
+                        <h4>John Doe</h4>
+                        <p class="text-muted">john.doe@example.com</p>
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#"><i class="bi bi-person me-2"></i>My Profile</a>
+                        <a class="nav-link" href="/orders"><i class="bi bi-box me-2"></i>My Orders</a>
+                        <a class="nav-link" href="/wishlist"><i class="bi bi-heart me-2"></i>Wishlist</a>
+                        <a class="nav-link" href="/addresses"><i class="bi bi-geo-alt me-2"></i>Addresses</a>
+                        <a class="nav-link" href="#"><i class="bi bi-credit-card me-2"></i>Payment Methods</a>
+                        <a class="nav-link" href="#"><i class="bi bi-shield-lock me-2"></i>Account Security</a>
+                        <a class="nav-link text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                    </nav>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="profile-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2>My Profile</h2>
+                            <p>Manage your profile information and settings</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary"><i class="bi bi-pencil me-2"></i>Edit Profile</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5>Personal Information</h5>
+                            <p><strong>Full Name:</strong> John Doe</p>
+                            <p><strong>Email:</strong> john.doe@example.com</p>
+                            <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Recent Orders</h5>
+                            <div class="order-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>Order #12345</span>
+                                    <span class="badge bg-success">Delivered</span>
+                                </div>
+                                <small class="text-muted">June 15, 2024 | $129.99</small>
+                            </div>
+                            <div class="order-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>Order #12344</span>
+                                    <span class="badge bg-warning">Processing</span>
+                                </div>
+                                <small class="text-muted">May 28, 2024 | $79.50</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/jquery-3.3.1.min.js"></script>
+    <script src="scripts/jquery-ui.js"></script>
+    <script src="scripts/popper.min.js"></script>
+    <script src="scripts/bootstrap.min.js"></script>
+    <script src="scripts/owl.carousel.min.js"></script>
+    <script src="scripts/jquery.magnific-popup.min.js"></script>
+    <script src="scripts/aos.js"></script>
+    <script src="scripts/main.js"></script>
+
+    <%-include("../partials/footer")%>
+</body>
+
+</html>

@@ -23,16 +23,17 @@
               <li><a href="#" id="user-icon"><span class="icon icon-person"></span></a>
                 <!-- Dropdown Menu -->
                 <div id="user-dropdown" class="dropdown-menu">
-                  <a href="#">My Profile</a>
-                  <a href="#">Order History</a>
+                  <a href="/userprofile">My Profile</a>
+                  <a href="/orders">Order History</a>
                   <a href="#">Settings</a>
-
-                  <% if(user ){%>
+                 
+                  <!-- <a href="/logout">Log Out</a>
+                  <a href="/login">Sign In</a> -->
+                  <% if (user) { %>
                     <a href="/logout">Log Out</a>
-                    <%} else{ %>
-                      <a href="/login">Sign In</a>
-
-                      <%}%>
+                  <% } else { %>
+                    <a href="/login">Sign In</a>
+                  <% } %>
                 </div>
               </li>
               <li><a href="/wishlist"><span class="icon icon-heart-o"></span></a></li>
@@ -59,7 +60,7 @@
 
         </li>
         <li class="has-children">
-          <a href="about.html">Categories</a>
+          <a href="#">Categories</a>
           <ul class="dropdown">
             <li><a href="#">Women</a></li>
             <li><a href="#">Children</a></li>
@@ -70,15 +71,36 @@
 
         <li><a href="#">New Arrivals</a></li>
         <li class="has-children">
-          <a href="about.html">Pages</a>
+          <a href="#">Pages</a>
           <ul class="dropdown">
-            <li><a href="#">Orders</a></li>
+            <li><a href="/orders">Orders</a></li>
             <li><a href="/cart">cart</a></li>
             <li><a href="/wishlist">Wishlist</a></li>
-            <li><a href="#">Wallet</a></li>
+            <li><a href="/wallet">Wallet</a></li>
           </ul>
         </li>
       </ul>
     </div>
   </nav>
 </header>
+<script>
+  const userIcon = document.getElementById('user-icon');
+  const dropdown = document.getElementById('user-dropdown');
+
+  userIcon.addEventListener('mouseover', function (event) {
+    event.preventDefault();
+    dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+  });
+
+  window.addEventListener('click', function (event) {
+    if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+
+
+
+
+
+</script>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+        .order-history-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .order-header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .order-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 0;
+            align-items: center;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .order-status {
+            font-weight: bold;
+        }
+        .order-status-delivered {
+            color: green;
+        }
+        .order-status-pending {
+            color: orange;
+        }
+        .order-status-cancelled {
+            color: red;
+        }
+        .product-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+     <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
+     <link rel="stylesheet" href="styles/css/bootstrap.min.css">
+     <link rel="stylesheet" href="styles/css/magnific-popup.css">
+     <link rel="stylesheet" href="styles/css/jquery-ui.css">
+     <link rel="stylesheet" href="styles/css/owl.carousel.min.css">
+     <link rel="stylesheet" href="styles/css/owl.theme.default.min.css">
+     <link rel="stylesheet" href="styles/css/aos.css">
+     <link rel="stylesheet" href="styles/css/style.css">
+     
+</head>
+<body>
+    <%-include("../partials/header")%>
+    <div class="container">
+        <div class="order-history-container">
+            <div class="order-header">
+                <h2 class="mb-0">Order History</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="order-item row">
+                    <div class="col-md-2">
+                        <img src="/api/placeholder/100/100" alt="Product Image" class="product-image">
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Order #12345</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <span>June 15, 2024</span>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="order-status order-status-delivered">Delivered</span>
+                    </div>
+                    <div class="col-md-2">
+                        <strong>$129.99</strong>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-sm btn-outline-primary">View Details</button>
+                    </div>
+                </div>
+
+                <div class="order-item row">
+                    <div class="col-md-2">
+                        <img src="/api/placeholder/100/100" alt="Product Image" class="product-image">
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Order #12344</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <span>May 28, 2024</span>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="order-status order-status-pending">Processing</span>
+                    </div>
+                    <div class="col-md-2">
+                        <strong>$79.50</strong>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-sm btn-outline-primary">View Details</button>
+                    </div>
+                </div>
+
+                <div class="order-item row">
+                    <div class="col-md-2">
+                        <img src="/api/placeholder/100/100" alt="Product Image" class="product-image">
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Order #12343</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <span>May 10, 2024</span>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="order-status order-status-cancelled">Cancelled</span>
+                    </div>
+                    <div class="col-md-2">
+                        <strong>$45.99</strong>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-sm btn-outline-primary">View Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%-include("../partials/footer")%>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/jquery-3.3.1.min.js"></script>
+    <script src="scripts/jquery-ui.js"></script>
+    <script src="scripts/popper.min.js"></script>
+    <script src="scripts/bootstrap.min.js"></script>
+    <script src="scripts/owl.carousel.min.js"></script>
+    <script src="scripts/jquery.magnific-popup.min.js"></script>
+    <script src="scripts/aos.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>

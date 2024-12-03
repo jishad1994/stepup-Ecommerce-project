@@ -19,11 +19,13 @@ app.set("view engine", "ejs");
 //session management
 app.use(
     session({
-        secret: SECTRET_KEY,
+        secret: process.env.SECTRET_KEY,
         resave: false,
         saveUninitialized: false,
         cookie: {
+            httpOnly:true,
             secure: false,
+            maxAge: 60* 1000 *60
         },
     })
 );

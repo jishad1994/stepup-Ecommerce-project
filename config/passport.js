@@ -8,8 +8,6 @@ const env = require("dotenv");
 
 // const { google } = require("googleapis");
 
-
-
 passport.use(
     new GoogleStrategy(
         {
@@ -17,6 +15,7 @@ passport.use(
             clientSecret: process.env.GOOGLE_AUTH_SECRET,
             callbackURL: "http://localhost:3000/signup/google/callback",
             prompt: "select_account",
+            scope: ["openid", "profile", "email"],
         },
         async (accessToken, refreshToken, profile, done) => {
             console.log("Google Access Token:", accessToken);

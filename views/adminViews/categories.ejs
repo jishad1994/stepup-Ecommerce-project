@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Nest Dashboard</title>
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="description" content="" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:title" content="" />
+  <meta property="og:type" content="" />
+  <meta property="og:url" content="" />
+  <meta property="og:image" content="" />
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+  <!-- Template CSS -->
+  <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <%- include('partials/header')%>
+
+    <section class="content-main">
+      <div class="content-header">
+        <div>
+          <h2 class="content-title card-title">Categories</h2>
+          <p>Add, edit or delete a category</p>
+        </div>
+
+        <div>
+          <input type="text" placeholder="Search Categories" class="form-control bg-white" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <form id="category_form">
+                <div class="mb-4">
+                  <label for="category_name" class="form-label">Name</label>
+                  <input type="text" placeholder="Type here" class="form-control" id="category_name" />
+                  <p id="nameError" class="text-danger error-message"></p>
+
+                </div>
+
+
+
+                <div class="mb-4">
+                  <label class="form-label">Description</label>
+                  <textarea placeholder="Type here" id="description" class="form-control"></textarea>
+                  <p id="descriptionError" class="text-danger error-message"></p>
+                </div>
+                <div class="d-grid">
+                  <button class="btn btn-primary" type="submit">Create category</button>
+                </div>
+              </form>
+            </div>
+
+
+
+
+
+            <div class="col-md-9">
+              <div class="table-responsive">
+                <table class="table table-hover">
+
+                  <!-- table head -->
+                  <thead>
+                    <tr>
+                      <th>Category Name</th>
+                      <th>Description</th>
+                      <th>Status</th>
+                      <th>isDeleted</th>
+                      <th class="text-end">Action</th>
+                    </tr>
+                  </thead>
+
+                  <!-- table body -->
+                  <tbody>
+                    <% cat.forEach((category)=> { %>
+                      <tr>
+                        <td><b>
+                            <%= category.name %>
+                          </b></td>
+                        <td>
+                          <%= category.description %>
+                        </td>
+
+                        <% if (category.isListed) { %>
+                          <td>Listed</td>
+                          <% } else { %>
+                            <td class="text-danger">Unlisted</td>
+                            <% } %>
+
+                            <% if (category.isDeleted) { %>
+                              <td class="text-danger">true</td>
+                              <% } else { %>
+                                <td >false</td>
+                                <% } %>
+                              
+
+                              <td class="text-end">
+                                <div class="dropdown">
+                                  <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                                    <i class="material-icons md-more_horiz"></i>
+                                  </a>
+                                  <div class="dropdown-menu">
+                                    <!-- <a class="dropdown-item" href="#">Details</a> -->
+                                    <a class="dropdown-item" href="/admin/loadUpdateCategory?name=<%=category.name%>">Edit</a>
+                                    <% if (category.isListed) { %>
+                                      <a class="dropdown-item text-danger" href="/admin/categoryUnlist?name=<%=category.name%>">Unlist</a>
+
+                                      <% } else { %>
+                                        <a class="dropdown-item" href="/admin/categoryList?name=<%=category.name%>">List</a>
+
+                                        <% } %>
+                                        <% if (category.isDeleted) { %>
+                                          <a class="dropdown-item " href="/admin/deleteOrUndoCategory?name=<%=category.name%>">Restore</a>
+    
+                                          <% } else { %>
+                                            <a class="dropdown-item text-danger" href="/admin/deleteOrUndoCategory?name=<%=category.name%>">SoftDelete</a>
+    
+                                            <% } %>
+
+                                  </div>
+                                </div>
+                              </td>
+                      </tr>
+                      <% }); %>
+                  </tbody>
+
+                </table>
+              </div>
+            </div>
+            <!-- .col// -->
+          </div>
+          <!-- .row // -->
+        </div>
+        <!-- card body .// -->
+      </div>
+      <!-- pagination -->
+      <div class="pagination-area mt-15 mb-50">
+        <nav aria-label="Page navigation example">
+          <ul class="pagination justify-content-start">
+            <% for(let i=1;i<=totalPages;i++){%>
+              <li class="page-item <%=(i===currentPage ) ? 'active' :'' %>"><a class="page-link" href="?page=<%= i %>">
+                  <%= i %>
+                </a></li>
+
+              <%}%>
+
+          </ul>
+        </nav>
+      </div>
+
+    </section>
+    <!-- content-main end// -->
+
+    <!-- footer -->
+    <%- include('partials/footer')%>
+
+      <script>
+        const form = document.getElementById("category_form")
+
+        form.addEventListener("submit", async (event) => {
+
+
+
+
+          event.preventDefault();
+          //clear all previous message
+          clearErrorMessage();
+
+          let isValid = validateForm();
+
+          if (!isValid) {
+
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Please check your input and try again.",
+            });
+
+
+          } else {
+
+            try {
+
+              const name = document.getElementById("category_name").value.trim();
+              const description = document.getElementById("description").value.trim();
+
+
+              const response = await fetch("/admin/addCategory", {
+
+                method: "POST",
+
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({ name, description })
+
+              })
+
+
+              if (response.ok) {
+
+                Swal.fire({
+                  icon: "success",
+                  title: "Success",
+                  text: "Category added successfully.",
+                });
+
+                form.reset();
+
+
+              } else {
+
+                const data = await response.json();
+
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: data.message || "An error occurred while adding the category.",
+                });
+
+              }
+
+
+            } catch (error) {
+
+              console.error("Error:", error);
+
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "An unexpected error occurred. Please try again later.",
+              });
+
+
+            }
+          }
+        })
+
+
+        //validating form function
+        const validateForm = () => {
+
+          const name = document.getElementById("category_name").value.trim();
+          const description = document.getElementById("description").value.trim();
+
+          // Alphabetic validation regex (allows letters and spaces only)
+          const alphabeticRegex = /^[a-zA-Z\s]+$/;
+
+          // Validation logic
+          if (!name) {
+            errorMessage("nameError", "Name field should not be blank")
+
+            return false;
+          }
+
+          if (!alphabeticRegex.test(name)) {
+
+            errorMessage("nameError", "Category name must contain only letters and spaces!")
+            return false;
+          }
+
+          if (!description) {
+            errorMessage("descriptionError", "Description should be given..")
+            return false;
+          }
+
+          return true;// Validation passed
+
+        }
+
+
+
+
+
+
+        //error message function
+        function errorMessage(tagId, errorMessage) {
+          document.getElementById(tagId).style.display = "block"
+          document.getElementById(tagId).innerText = errorMessage;
+        }
+
+
+        //clear error message
+        function clearErrorMessage() {
+          const errorElements = document.getElementsByClassName("error-message");
+          Array.from(errorElements).forEach((element) => {
+            element.innerText = "";
+            element.style.display = "none";
+          })
+        }
+
+
+
+
+
+
+      </script>
+</body>
+
+</html>

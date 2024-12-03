@@ -15,9 +15,8 @@ const isUserAuthenticated = async (req, res, next) => {
             }
 
             if (user.isBlocked) {
-                
                 console.warn("Blocked user tried to access the site.");
-                return res.render("login"); // Redirect if user is blocked
+                return res.redirect("/login"); // Redirect if user is blocked
             }
 
             // User is authenticated and not blocked
@@ -32,21 +31,4 @@ const isUserAuthenticated = async (req, res, next) => {
     }
 };
 
-// Middleware to restrict logged-in users from accessing login/signup pages
-const isLoggedIn = async (req, res, next) => {
-    try {
-        if (req.session?.userdata) {
-            console.info("Redirecting logged-in user to home page.");
-            return res.redirect("/");
-        }
-        next();
-    } catch (error) {
-        console.error("Error in login-check middleware:", error.message);
-        res.status(500).json({ success: false, message: "Server error occurred." });
-    }
-};
-
-module.exports = {
-    isLoggedIn,
-    isUserAuthenticated,
-};
+module.exports = isUserAuthenticated

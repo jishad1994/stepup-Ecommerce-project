@@ -19,10 +19,11 @@ const loadAdminLogin = async (req, res) => {
 //post login
 const postAdminLogin = async (req, res) => {
     try {
-        const { name, password } = req.body;
+        console.log("post login worked")
+        const { email, password } = req.body;
 
         // Validate input
-        if (!name || !password) {
+        if (!email || !password) {
             return res.status(400).json({
                 success: false,
                 message: "Username and password are required.",
@@ -30,7 +31,7 @@ const postAdminLogin = async (req, res) => {
         }
 
         // Check if admin exists
-        const isAdmin = await User.findOne({ name, isAdmin: true });
+        const isAdmin = await User.findOne({ email, isAdmin: true });
         if (!isAdmin) {
             console.log("admin not find condition worked")
             return res.status(400).json({
@@ -56,6 +57,7 @@ const postAdminLogin = async (req, res) => {
         };
 
         // Respond with success
+        console.log("admin login successfull");
         return res.status(200).json({
             success: true,
             message: "Admin login successful.",

@@ -8,14 +8,29 @@ const env = require("dotenv").config();
 //load home apge
 const loadHomePage = async (req, res) => {
     try {
-        const user = req.session?.userdata;
-        console.log(`current user is ${user}`);
-        console.log(`current session  is ${req.session}`);
-        res.render("index", { user });
+        if (req.user) {
+            console.log("req.user is present");
+
+            req.session.userdata = { email: req.user.email };
+            req.session.save(); // Ensure session data is saved
+            console.log("The user is", req.user.email);
+            return res.render("index", { user: req.user.email });
+        }
+
+        if (req.session?.userdata) {
+            console.log("req.session is present", req.session);
+            return res.render("index", { user: req.session.userdata.email });
+        }
+
+        console.log("No session or req.user present", req.session);
+        res.render("index");
     } catch (err) {
-        console.log("error while loading the home page ", err.message);
+        console.error("Error while loading the home page:", err.message);
+        res.status(500).render("error", { message: "An error occurred while loading the home page. Please try again later." });
     }
 };
+
+
 
 //signuip
 const loadSignup = async (req, res) => {
@@ -95,30 +110,102 @@ const loadWishlist = async (req, res) => {
     }
 };
 
+//order confirmation
+
+const orderConfirmed = async (req, res) => {
+    try {
+        res.render("thankyou");
+    } catch (error) {
+        console.log("error while confirming order", err);
+    }
+};
+
+//wallet
+
+const wallet = async (req, res) => {
+    try {
+        res.render("wallet");
+    } catch (error) {
+        console.log("error while loading wallet", error);
+    }
+};
+
+//orders
+
+const orders = async (req, res) => {
+    try {
+        res.render("orders");
+    } catch (error) {
+        console.log("error while loading orders page");
+    }
+};
+
+//user profile
+
+const userProfile = async (req, res) => {
+    try {
+        res.render("userProfile");
+    } catch (error) {
+        console.log("error while loading the use profile page", error);
+        res.render("404");
+    }
+};
+
+//add address
+
+const addAddress = async (req, res) => {
+    try {
+        res.render("addAddress");
+    } catch (error) {
+        console.log("error while rendering the add address page");
+        res.render("404");
+    }
+};
+
+//addresses display
+
+const addresses = async (req, res) => {
+    try {
+        res.render("addresses");
+    } catch (error) {
+        console.log("error while displeaying addresses page", error);
+        res.render("404");
+    }
+};
+
 //logout
 
 const logout = async (req, res) => {
     try {
-        if (req.session) {
-            await req.session.destroy((err) => {
-                if (err) {
-                    console.error("Error while destroying session:", err);
-                    return res.status(500).json({
-                        success: false,
-                        message: "Failed to logout. Please try again.",
-                    });
-                }
-                console.log("User logout successful");
+        req.logout(async (err) => {
+            if (err) {
+                console.log("error while logout");
+            }
+            if (req.session) {
+                await req.session.destroy((err) => {
+                    if (err) {
+                        console.error("Error while destroying session:", err);
+                        return res.status(500).json({
+                            success: false,
+                            message: "Failed to logout. Please try again.",
+                        });
+                    }
+                    console.log("User logout successful");
+                    console.log("the session after destroying is:", req.session);
 
-                return res.redirect("/"); // Redirect after successful logout
-            });
-        } else {
-            console.warn("No active session available to logout.");
-            return res.status(400).json({
-                success: false,
-                message: "No active session available to logout.",
-            });
-        }
+                    // Clear session cookie
+                    res.clearCookie("connect.sid");
+
+                    return res.redirect("/"); // Redirect after successful logout
+                });
+            } else {
+                console.warn("No active session available to logout.");
+                return res.status(400).json({
+                    success: false,
+                    message: "No active session available to logout.",
+                });
+            }
+        });
     } catch (error) {
         console.error("Error while logging out:", error);
         return res.status(500).json({
@@ -324,6 +411,7 @@ const postLogin = async (req, res) => {
 
         // Successful login
         console.log("User logged in successfully");
+
         //creating user session
         req.session.userdata = { email };
         console.log(`the session userdata is : ${req.session.userdata}`);
@@ -354,5 +442,11 @@ module.exports = {
     loadCart,
     loadCheckOut,
     loadProduct,
-    loadWishlist
+    loadWishlist,
+    orderConfirmed,
+    wallet,
+    orders,
+    userProfile,
+    addAddress,
+    addresses,
 };

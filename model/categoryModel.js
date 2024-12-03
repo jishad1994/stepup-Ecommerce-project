@@ -14,7 +14,13 @@ const categorySchema = new Schema(
         },
         isListed: {
             type: Boolean,
+            required:false,
             default: true,
+        },
+        isDeleted: {
+            type: Boolean,
+            required: false,
+            default: false,
         },
         categoryOffer: {
             type: Number,

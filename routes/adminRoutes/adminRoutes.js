@@ -20,6 +20,11 @@ adminRoute.get("/users/unblockUser", adminAuth, adminControllers.unblockUser);
 
 //category routes
 
-// adminRoute.get("/category", adminAuth, categoryControllers.categoryInfo);
-// adminRoute.post("/addCategory", adminAuth, categoryControllers.addCategory);
+adminRoute.get("/categories", adminAuth, categoryControllers.categoryInfo);
+adminRoute.post("/addCategory", adminAuth, categoryControllers.addCategory);
+adminRoute.get("/categoryList", adminAuth, categoryControllers.categoryList);
+adminRoute.get("/categoryUnlist", adminAuth, categoryControllers.categoryUnlist);
+adminRoute.get("/loadUpdateCategory",adminAuth,categoryControllers.loadUpdateCategory);
+adminRoute.post("/updateCategory",adminAuth,categoryControllers.updateCategory);
+adminRoute.get("/deleteOrUndoCategory",adminAuth,categoryControllers.deleteOrUndoCategory)
 module.exports = adminRoute;

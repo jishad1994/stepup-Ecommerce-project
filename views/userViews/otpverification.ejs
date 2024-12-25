@@ -33,10 +33,12 @@
         const resendOtpButton = document.getElementById("resendOtp");
         const countdownElement = document.getElementById("countdown");
 
-        let countdown = 60;
-        let timer;
+        // let countdown = 60;
+        // let timer;
 
         function startCountdown() {
+            let countdown = 60;
+            let timer;
             resendOtpButton.disabled = true;
             countdownElement.textContent = countdown;
 
@@ -76,7 +78,7 @@
                 const response = await fetch("/signup/verifyOTP", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ OTP:otp }),
+                    body: JSON.stringify({ OTP: otp }),
                 });
 
                 const result = await response.json();
@@ -84,7 +86,7 @@
                 if (result.success) {
                     showAlert("success", "Success!", "OTP verified successfully.");
                     setTimeout(() => {
-                        window.location.href = "/";
+                        window.location.href = "/login";
                     }, 2000);
                 } else {
                     showAlert("error", "Invalid!", result.message || "Invalid OTP. Please try again.");
@@ -101,10 +103,10 @@
             try {
                 const response = await fetch("/signup/resendOTP", { method: "POST" });
                 const result = await response.json();
+                startCountdown();
 
                 if (result.success) {
                     showAlert("success", "Sent!", "OTP has been resent.");
-                    startCountdown();
                 } else {
                     showAlert("error", "Failed!", result.message || "Unable to resend OTP.");
                 }

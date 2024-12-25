@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Order Management Dashboard</title>
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="description" content="Admin dashboard for order management" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        
+        <!-- Favicon -->
+        <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+        
+        <!-- Template CSS -->
+        <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+        
+        <!-- SweetAlert2 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <div class="screen-overlay"></div>
+        
+        <%-include("partials/header")%>
+        
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Order List</h2>
+                    <p>View and manage your orders efficiently.</p>
+                </div>
+                <div>
+                    <input 
+                        type="text" 
+                        id="orderSearchInput" 
+                        placeholder="Search order ID" 
+                        class="form-control bg-white" 
+                    />
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <header class="card-header">
+                    <div class="row gx-3">
+                        <div class="col-lg-4 col-md-6 me-auto">
+                            <input 
+                                type="text" 
+                                id="globalSearchInput" 
+                                placeholder="Global search..." 
+                                class="form-control" 
+                            />
+                        </div>
+                        <div class="col-lg-2 col-6 col-md-3">
+                            <select id="statusFilter" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-6 col-md-3">
+                            <select id="pageSize" class="form-select">
+                                <option value="20">Show 20</option>
+                                <option value="30">Show 30</option>
+                                <option value="50">Show 50</option>
+                                <option value="100">Show 100</option>
+                            </select>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <% if (orders && orders.length > 0) { %>
+                        <table class="table table-hover" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% orders.forEach((order, index) => { %>
+                                <tr data-order-id="<%= order._id %>">
+                                    <td><%= order._id %></td>
+                                    <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                    <td><b><%= order.userEmail %></b></td>
+                                    <td>
+                                        <span class="badge rounded-pill 
+                                            <%= 
+                                                order.status === 'Active' ? 'alert-success' : 
+                                                order.status === 'Pending' ? 'alert-warning' : 
+                                                order.status === 'Completed' ? 'alert-info' : 
+                                                'alert-danger'
+                                            %>">
+                                            <%= order.status %>
+                                        </span>
+                                    </td>
+                                    <td>$<%= order.totalPrice.toFixed(2) %></td>
+                                    
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="#" class="btn btn-sm btn-primary" onclick="showOrderDetails('<%= order._id %>')">
+                                                View Details
+                                            </a>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="material-icons md-more_horiz"></i>
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <a class="dropdown-item" href="#" onclick="editOrder('<%= order._id %>')">
+                                                        <i class="material-icons md-edit"></i> Edit Order
+                                                    </a>
+                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteOrder('<%= order._id %>')">
+                                                        <i class="material-icons md-delete"></i> Delete Order
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                        <% } else { %>
+                        <div class="alert alert-info text-center">
+                            No orders found. Your order list is currently empty.
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <% if (orders && orders.length > 0) { %>
+                <div class="pagination-area mt-15 mb-50">
+                    <nav aria-label="Order list pagination">
+                        <ul class="pagination justify-content-start">
+                            <% for(let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
+                </div>
+                <% } %>
+            </div>
+        </section>
+        
+        <%-include("partials/footer")%>
+        
+        <!-- Required JavaScript Libraries -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+        <script src="/path/to/bootstrap.bundle.min.js"></script>
+        
+        <script>
+            // Order management functions
+            const showOrderDetails = async (orderId) => {
+                try {
+                    window.location.href = `/admin/showDetails/${orderId}`;
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Unable to load order details. Please try again.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            };
+
+            const editOrder = async (orderId) => {
+                try {
+                    window.location.href = `/admin/orders/edit/${orderId}`;
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Edit Error',
+                        text: 'Could not navigate to order edit page.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            };
+
+            const deleteOrder = async (orderId) => {
+                try {
+                    const result = await Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'You will not be able to recover this order!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    });
+
+                    if (result.isConfirmed) {
+                        // Replace with actual delete endpoint
+                        const response = await fetch(`/admin/orders/delete/${orderId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'The order has been deleted.',
+                                confirmButtonText: 'OK'
+                            }).then(() => location.reload());
+                        } else {
+                            throw new Error('Delete failed');
+                        }
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Delete Error',
+                        text: 'Could not delete the order. Please try again.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            };
+
+            // Client-side search and filtering
+            document.addEventListener('DOMContentLoaded', () => {
+                const orderSearchInput = document.getElementById('orderSearchInput');
+                const globalSearchInput = document.getElementById('globalSearchInput');
+                const statusFilter = document.getElementById('statusFilter');
+                const pageSizeSelect = document.getElementById('pageSize');
+                const ordersTable = document.getElementById('ordersTable');
+
+                const applyFilters = () => {
+                    const rows = ordersTable?.querySelectorAll('tbody tr');
+                    const orderSearchTerm = orderSearchInput.value.toLowerCase();
+                    const globalSearchTerm = globalSearchInput.value.toLowerCase();
+                    const selectedStatus = statusFilter.value;
+
+                    rows?.forEach(row => {
+                        const orderId = row.querySelector('td:first-child').textContent.toLowerCase();
+                        const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                        const status = row.querySelector('.badge').textContent.toLowerCase();
+
+                        const matchesOrderSearch = orderId.includes(orderSearchTerm);
+                        const matchesGlobalSearch = 
+                            email.includes(globalSearchTerm) || 
+                            orderId.includes(globalSearchTerm);
+                        const matchesStatus = selectedStatus === '' || status === selectedStatus.toLowerCase();
+
+                        row.style.display = (matchesOrderSearch && matchesGlobalSearch && matchesStatus) 
+                            ? '' 
+                            : 'none';
+                    });
+                };
+
+                orderSearchInput.addEventListener('input', applyFilters);
+                globalSearchInput.addEventListener('input', applyFilters);
+                statusFilter.addEventListener('change', applyFilters);
+            });
+        </script>
+    </body>
+</html>

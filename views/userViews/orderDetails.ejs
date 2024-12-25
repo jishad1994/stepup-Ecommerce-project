@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - <%= order.orderId %>
+    </title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+    <link rel="stylesheet" href="/styles/fonts/icomoon/style.css">
+    <link rel="stylesheet" href="/styles/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/css/magnific-popup.css">
+    <link rel="stylesheet" href="/styles/css/jquery-ui.css">
+    <link rel="stylesheet" href="/styles/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="/styles/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="/styles/css/aos.css">
+    <link rel="stylesheet" href="/styles/css/style.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .order-details-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .order-section {
+            padding: 20px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .order-status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .order-status-pending {
+            background-color: #ffc107;
+            color: white;
+        }
+
+        .order-status-processing {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .order-status-shipped {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .order-status-delivered {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .order-status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+        }
+
+        .product-image {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <%-include("../partials/header")%>
+        <div class="container">
+            <div class="order-details-container">
+                <!-- Order Header -->
+                <div class="order-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Order Details</h2>
+                    <span class="order-status order-status-<%= order.status.toLowerCase() %>">
+                        <%= order.status %>
+                    </span>
+                </div>
+
+                <!-- Order Information -->
+                <div class="order-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Order Information</h4>
+                            <p><strong>Order ID:</strong>
+                                <%= order.orderId %>
+                            </p>
+                            <p><strong>Order Date:</strong>
+                                <%= new Date(order.invoiceDate).toLocaleDateString('en-US', { year: 'numeric' ,
+                                    month: 'long' , day: 'numeric' }) %>
+                            </p>
+                            <p><strong>Payment Type:</strong>
+                                <%= order.paymentType %>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Order Summary</h4>
+                            <p><strong>Total Items:</strong>
+                                <%= order.totalItems %>
+                            </p>
+                            <p><strong>Total Price:</strong> $<%= order.totalPrice.toFixed(2) %>
+                            </p>
+                            <p><strong>Shipping Fee:</strong> $<%= order.shippingFee.toFixed(2) %>
+                            </p>
+                            <% if (order.couponApplied) { %>
+                                <p><strong>Coupon:</strong> Applied</p>
+                                <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Items -->
+                <div class="order-section">
+                    <h4>Order Items</h4>
+                    <% order.items.forEach((item,index)=> { %>
+                        <div class="product-item">
+                            <img src="<%=products[index].productImage[0]%>" alt="Product Image"
+                                class="product-image">
+                            <div class="product-details flex-grow-1">
+                                <h5>
+                                    <%= item.productName %>
+                                </h5>
+                                <p>
+                                    <strong>Quantity:</strong>
+                                    <%= item.quantity %>
+                                        | <strong>Price:</strong> $<%= item.price.toFixed(2) %>
+                                            | <strong>Subtotal:</strong> $<%= (item.quantity * item.price).toFixed(2) %>
+                                </p>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="order-section">
+                    <h4>Shipping Address</h4>
+                    <p>
+                        <strong>
+                            <%= order.address.fullName %>
+                        </strong><br>
+                        <%= order.address.addressType %> Address<br>
+                            <%= order.address.city %>, <%= order.address.state %>
+                                    <%= order.address.pincode %><br>
+                                        <strong>Phone:</strong>
+                                        <%= order.address.phone %>
+                                            <% if (order.address.altPhone) { %>
+                                                | <strong>Alt. Phone:</strong>
+                                                <%= order.address.altPhone %>
+                                                    <% } %>
+                    </p>
+                    <% if (order.orderNote) { %>
+                        <div class="mt-3">
+                            <strong>Order Note:</strong>
+                            <p>
+                                <%= order.orderNote %>
+                            </p>
+                        </div>
+                        <% } %>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="order-section text-end">
+                    <% if (order.status !=='Delivered' && order.status !=='Cancelled' ) { %>
+                        <button class="btn btn-outline-danger me-2" onclick="cancelOrder('<%= order._id %>')">
+                            Cancel Order
+                        </button>
+                        <% } %>
+                            <button class="btn btn-primary" onclick="printOrder()">
+                                Print Order
+                            </button>
+                </div>
+            </div>
+        </div>
+        <%-include("../partials/footer")%>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+                <script src="/scripts/jquery-3.3.1.min.js"></script>
+                <script src="/scripts/jquery-ui.js"></script>
+                <script src="/scripts/popper.min.js"></script>
+                <script src="/scripts/bootstrap.min.js"></script>
+                <script src="/scripts/owl.carousel.min.js"></script>
+                <script src="/scripts/jquery.magnific-popup.min.js"></script>
+                <script src="/scripts/aos.js"></script>
+                <script src="/scripts/main.js"></script>
+        <script>
+            // function cancelOrder(orderId) {
+                //     // Implement order cancellation logic
+                //     Swal.fire({
+                    //         title: 'Cancel Order',
+
+
+
+                    //         text: 'Are you sure you want to cancel this order?',
+                    //         icon: 'warning',
+                    //         showCancelButton: true,
+                    //         confirmButtonColor: '#d33',
+                    //         cancelButtonColor: '#3085d6',
+                    //         confirmButtonText: 'Yes, cancel it!'
+                //     }).then((result) => {
+                    //         if (result.isConfirmed) {
+                        //             // Add fetch or AJAX call to cancel order
+                //             window.location.href = `/cancel-order/${orderId}`;
+                //         }
+                //     });
+                // }
+                
+                function printOrder() {
+                    window.print();
+                }
+                </script>
+                <!-- Bootstrap JS -->
+                
+</body>
+
+</html>

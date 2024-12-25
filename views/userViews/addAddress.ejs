@@ -1,171 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Address</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
-    <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
-    <link rel="stylesheet" href="styles/css/bootstrap.min.css">
-    <link rel="stylesheet" href="styles/css/magnific-popup.css">
-    <link rel="stylesheet" href="styles/css/jquery-ui.css">
-    <link rel="stylesheet" href="styles/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="styles/css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="styles/css/aos.css">
-    <link rel="stylesheet" href="styles/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-color: #f4f6f9;
         }
+
         .address-container {
             max-width: 600px;
             margin: 50px auto;
             background-color: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .form-check-input:checked {
-            background-color: #4a90e2;
-            border-color: #4a90e2;
-        }
-        .address-type-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .address-type-label {
-            border: 2px solid #e0e0e0;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .address-type-input:checked + .address-type-label {
-            border-color: #4a90e2;
-            background-color: #f0f6ff;
-        }
+
         .form-label {
             font-weight: 600;
         }
+
         .save-address-btn {
             background-color: #4a90e2;
             color: white;
         }
+
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .is-invalid {
+            border-color: red !important;
+        }
     </style>
 </head>
+
 <body>
-    <%-include("../partials/header")%>
     <div class="container">
         <div class="address-container">
             <h2 class="mb-4">Add New Address</h2>
-            <form>
+            <form id="addressForm" novalidate>
+                <!-- Address Type -->
                 <div class="mb-3">
                     <label class="form-label">Address Type*</label>
-                    <div class="address-type-group">
-                        <input type="radio" class="btn-check address-type-input" name="addressType" id="home" autocomplete="off" checked>
-                        <label class="address-type-label" for="home">
-                            <i class="bi bi-house me-2"></i>Home
-                        </label>
+                    <div class="d-flex gap-3">
+                        <input type="radio" name="addressType" id="home" value="Home" class="btn-check" checked>
+                        <label class="btn btn-outline-primary" for="home">Home</label>
 
-                        <input type="radio" class="btn-check address-type-input" name="addressType" id="office" autocomplete="off">
-                        <label class="address-type-label" for="office">
-                            <i class="bi bi-building me-2"></i>Office
-                        </label>
+                        <input type="radio" name="addressType" id="work" value="Work" class="btn-check">
+                        <label class="btn btn-outline-primary" for="work">Work</label>
 
-                        <input type="radio" class="btn-check address-type-input" name="addressType" id="other" autocomplete="off">
-                        <label class="address-type-label" for="other">
-                            <i class="bi bi-geo-alt me2"></i>Other
-                        </label>
+                        <input type="radio" name="addressType" id="other" value="Other" class="btn-check">
+                        <label class="btn btn-outline-primary" for="other">Other</label>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Full Name*</label>
-                        <input type="text" class="form-control" placeholder="Enter full name" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone Number*</label>
-                        <input type="tel" class="form-control" placeholder="Enter phone number" required>
-                    </div>
-                </div>
-
+                <!-- Full Name -->
                 <div class="mb-3">
-                    <label class="form-label">Street Address*</label>
-                    <input type="text" class="form-control" placeholder="Enter street address" required>
+                    <label class="form-label">Full Name*</label>
+                    <input type="text" id="fullName" class="form-control" placeholder="Enter full name"
+                        aria-describedby="fullNameError" required>
+                    <div class="error-message" id="fullNameError" role="alert"></div>
                 </div>
 
+                <!-- Phone Number -->
+                <div class="mb-3">
+                    <label class="form-label">Phone Number*</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="Enter phone number"
+                        aria-describedby="phoneError" required>
+                    <div class="error-message" id="phoneError" role="alert"></div>
+                </div>
+
+                <!-- Alternative Phone Number -->
+                <div class="mb-3">
+                    <label class="form-label">Alternative Number</label>
+                    <input type="tel" id="altphone" class="form-control" placeholder="Enter alternative phone number"
+                        aria-describedby="altphoneError">
+                    <div class="error-message" id="altphoneError" role="alert"></div>
+                </div>
+
+                <!-- City -->
+                <div class="mb-3">
+                    <label class="form-label">City*</label>
+                    <input type="text" id="city" class="form-control" placeholder="Enter city"
+                        aria-describedby="cityError" required>
+                    <div class="error-message" id="cityError" role="alert"></div>
+                </div>
+
+                <!-- Landmark -->
                 <div class="mb-3">
                     <label class="form-label">Landmark</label>
-                    <input type="text" class="form-control" placeholder="Enter nearby landmark (optional)">
+                    <input type="text" id="landmark" class="form-control" placeholder="Enter landmark (optional)">
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">State*</label>
-                        <select class="form-select" required>
-                            <option selected disabled>Select your state</option>
-                            <option>Andhra Pradesh</option>
-                            <option>Goa</option>
-                            <option>Karnataka</option>
-                            <option>Kerala</option>
-                            <option>Tamil Nadu</option>
-                            <option>Telangana</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Country*</label>
-                        <input type="text" class="form-control" value="India" required>
+                <!-- State -->
+                <div class="mb-3">
+                    <label class="form-label">State*</label>
+                    <select id="state" class="form-select" aria-describedby="stateError" required>
+                        <option selected disabled value="">Select your state</option>
+                        <option>Andhra Pradesh</option>
+                        <option>Arunachal Pradesh</option>
+                        <option>Assam</option>
+                        <option>Bihar</option>
+                        <option>Chhattisgarh</option>
+                        <option>Goa</option>
+                        <option>Gujarat</option>
+                        <option>Haryana</option>
+                        <option>Himachal Pradesh</option>
+                        <option>Jharkhand</option>
+                        <option>Karnataka</option>
+                        <option>Kerala</option>
+                        <option>Madhya Pradesh</option>
+                        <option>Maharashtra</option>
+                        <option>Manipur</option>
+                        <option>Meghalaya</option>
+                        <option>Mizoram</option>
+                        <option>Nagaland</option>
+                        <option>Odisha</option>
+                        <option>Punjab</option>
+                        <option>Rajasthan</option>
+                        <option>Sikkim</option>
+                        <option>Tamil Nadu</option>
+                        <option>Telangana</option>
+                        <option>Tripura</option>
+                        <option>Uttar Pradesh</option>
+                    </select>
+                    <div class="error-message" id="stateError" role="alert"></div>
+                </div>
+
+                <!-- Pincode -->
+                <div class="mb-3">
+                    <label class="form-label">Postal Code*</label>
+                    <input type="text" id="pincode" class="form-control" placeholder="Enter postal code"
+                        aria-describedby="pincodeError" required>
+                    <div class="error-message" id="pincodeError" role="alert"></div>
+                </div>
+
+                <!-- Default Address Selection -->
+                <div class="default-address-section mb-3">
+                    <label class="form-label d-block">Default Address</label>
+                    <div class="d-flex gap-3">
+                        <input type="radio" name="defaultAddress" id="setDefault" value="true" class="btn-check">
+                        <label class="btn btn-outline-success" for="setDefault">Set as Default</label>
+
+                        <input type="radio" name="defaultAddress" id="notDefault" value="false" class="btn-check"
+                            checked>
+                        <label class="btn btn-outline-secondary" for="notDefault">Not Default</label>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Postal Code*</label>
-                        <input type="text" class="form-control" placeholder="Enter postal code" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Alternative Phone</label>
-                        <input type="tel" class="form-control" placeholder="Alternate contact number">
-                    </div>
-                </div>
 
+                <!-- Address Details -->
                 <div class="mb-3">
                     <label class="form-label">Address Details*</label>
-                    <textarea class="form-control" rows="3" placeholder="Additional address information" required></textarea>
+                    <textarea id="addressDetails" class="form-control" rows="3"
+                        placeholder="Enter address details"></textarea>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="defaultAddress">
-                    <label class="form-check-label" for="defaultAddress">
-                        Set as default address
-                    </label>
-                </div>
-
-                <button type="submit" class="btn save-address-btn w-100">
-                    Save Address
-                </button>
+                <button type="submit" class="btn save-address-btn w-100">Save Address</button>
             </form>
         </div>
     </div>
 
-    <%-include("../partials/footer")%>
+    <script>
+        document.getElementById("addressForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const errors = {};
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="scripts/jquery-3.3.1.min.js"></script>
-    <script src="scripts/jquery-ui.js"></script>
-    <script src="scripts/popper.min.js"></script>
-    <script src="scripts/bootstrap.min.js"></script>
-    <script src="scripts/owl.carousel.min.js"></script>
-    <script src="scripts/jquery.magnific-popup.min.js"></script>
-    <script src="scripts/aos.js"></script>
-    <script src="scripts/main.js"></script>
+            // Gather form values
+            const formData = {
+                addressType: document.querySelector("input[name='addressType']:checked").value,
+                fullName: document.getElementById("fullName").value.trim(),
+                phone: document.getElementById("phone").value.trim(),
+                altphone: document.getElementById("altphone").value.trim(),
+                city: document.getElementById("city").value.trim(),
+                state: document.getElementById("state").value,
+                pincode: document.getElementById("pincode").value.trim(),
+                landmark: document.getElementById("landmark").value.trim(),
+                addressDetails: document.getElementById("addressDetails").value.trim(),
+                isDefault: document.querySelector("input[name='defaultAddress']:checked").value === 'true'
+            };
+
+            const isValid = () => {
+                let isFormValid = true;
+
+                if (!/^[a-zA-Z\s'-]{3,50}$/.test(formData.fullName)) {
+                    errors.fullName = "Full Name must be 3-50 characters and only contain alphabets, spaces, hyphens, and apostrophes.";
+                    isFormValid = false;
+                }
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    errors.phone = "Phone Number must be exactly 10 digits.";
+                    isFormValid = false;
+                }
+                if (formData.altphone && !/^\d{10}$/.test(formData.altphone)) {
+                    errors.altphone = "Alternative Phone Number must be exactly 10 digits.";
+                    isFormValid = false;
+                }
+                if (!/^[a-zA-Z\s]{3,}$/.test(formData.city)) {
+                    errors.city = "City must contain at least 3 alphabetic characters.";
+                    isFormValid = false;
+                }
+                if (!formData.state || formData.state === "Select your state") {
+                    errors.state = "Please select a valid state.";
+                    isFormValid = false;
+                }
+                if (!/^\d{6}$/.test(formData.pincode)) {
+                    errors.pincode = "Pincode must be exactly 6 digits.";
+                    isFormValid = false;
+                }
+
+                // Display errors
+                document.querySelectorAll(".error-message").forEach((element) => (element.textContent = ""));
+                Object.keys(errors).forEach((field) => {
+                    const errorElement = document.getElementById(`${field}Error`);
+                    if (errorElement) {
+                        errorElement.textContent = errors[field];
+                        document.getElementById(field).classList.add("is-invalid");
+                    }
+                });
+
+                return isFormValid;
+            };
+
+            if (isValid()) {
+                try {
+                    const response = await fetch("/addAddress", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(formData),
+                    });
+                    if (response.ok) {
+                        Swal.fire("Success", "Address saved successfully!", "success").then(() => {
+                            window.location.href = "/addresses"; // Redirect to the addresses page
+                        });
+                        document.getElementById("addressForm").reset();
+                    } else {
+                        Swal.fire("Error", "Failed to save address. Try again later.", "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", "Something went wrong. Please try again.", "error");
+                }
+            }
+
+            // Reset error styles on input
+            document.querySelectorAll("input, select, textarea").forEach((field) => {
+                field.addEventListener("input", () => {
+                    field.classList.remove("is-invalid");
+                    const errorElement = document.getElementById(`${field.id}Error`);
+                    if (errorElement) errorElement.textContent = "";
+                });
+            });
+        });
+    </script>
 </body>
+
 </html>

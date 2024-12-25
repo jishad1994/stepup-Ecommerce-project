@@ -10,6 +10,12 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
         rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
     <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
@@ -26,7 +32,7 @@
         }
 
         .addresses-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 50px auto;
         }
 
@@ -35,8 +41,10 @@
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
+            margin-top: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             position: relative;
+            height: 100%;
         }
 
         .address-actions {
@@ -65,142 +73,147 @@
             background-color: #3a80d2;
             color: white;
         }
+
+        @media (max-width: 768px) {
+            .address-grid {
+                display: flex;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 
 <body>
     <%-include("../partials/header")%>
-    <div class="container addresses-container">
-        <div class="row mb-4">
-            <div class="col-12 d-flex justify-content-between align-items-center">
-                <h2>My Addresses</h2>
-                <button onclick="window.location='/addAddress'" class="btn add-address-btn" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                    <i class="bi bi-plus me-2"></i>Add New Address
-                </button>
+        <div class="container addresses-container">
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h2>My Addresses</h2>
+                    <button onclick="window.location='/addAddress'" class="btn add-address-btn" data-bs-toggle="modal"
+                        data-bs-target="#addAddressModal">
+                        <i class="bi bi-plus me-2"></i>Add New Address
+                    </button>
+                </div>
             </div>
-        </div>
+            <%if(message){%>
+                <div>
+                    <h2>
+                        <%=message%>
+                    </h2>
+                </div>
+                <%}else{%>
+                    <div class="row address-grid">
+                        <% addresses.forEach(address=>{%>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="address-card" data-address-id="<%=address._id%>">
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="address-card">
-                    <span class="default-badge">Default</span>
-                    <div class="address-actions">
-                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal"
-                            data-bs-target="#editAddressModal">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                                    <%if(address.isDefault==true){%>
+
+                                        <span class="default-badge">default</span>
+                                        <%}%>
+                                            <div class="address-actions">
+                                                <button class="btn btn-sm btn-outline-primary me-2" id="edit-address"
+                                                    onclick="window.location.href='/editAddress/<%=address._id%>'">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-danger delete-address">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                            <h5>
+                                                <%=address.addressType%>
+                                            </h5>
+                                            <p class="mb-1">
+                                                <%=address.fullName%>
+                                            </p>
+                                            <p class="mb-1">
+                                                <%=address.state%>
+                                            </p>
+                                            <p class="mb-1">
+                                                <%=address.city%>
+                                            </p>
+                                            <p class="mb-1">
+                                                <%=address.phone%>
+                                            </p>
+                                            <%if(address.altPhone){%>
+                                                <p class="mb-1">alternative phone:<%=address.altPhone%>
+                                                </p>
+                                                <%}%>
+
+                                                    <%if(address.landmark){%>
+                                                        <p class="mb-1">
+                                                            <%=address.landMark%>
+                                                        </p>
+                                                        <%}%>
+                                </div>
+                            </div>
+                            <%})%>
                     </div>
-                    <h5>Home Address</h5>
-                    <p class="mb-1">John Doe</p>
-                    <p class="mb-1">123 Main Street, Apartment 4B</p>
-                    <p class="mb-1">San Francisco, CA 94105</p>
-                    <p class="mb-1">United States</p>
-                    <p class="mb-0">Phone: +1 (555) 123-4567</p>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="address-card">
-                    <div class="address-actions">
-                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal"
-                            data-bs-target="#editAddressModal">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                    <h5>Work Address</h5>
-                    <p class="mb-1">John Doe</p>
-                    <p class="mb-1">456 Tech Lane, Suite 200</p>
-                    <p class="mb-1">San Francisco, CA 94110</p>
-                    <p class="mb-1">United States</p>
-                    <p class="mb-0">Phone: +1 (555) 987-6543</p>
-                </div>
-            </div>
+                    <%}%>
         </div>
-    </div>
-
-    <!-- Add Address Modal -->
-    <div class="modal fade" id="addAddressModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" placeholder="Enter first name">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" placeholder="Enter last name">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <input type="text" class="form-control" placeholder="Street address">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Apartment, suite, etc. (optional)</label>
-                            <input type="text" class="form-control" placeholder="Apartment or suite number">
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">City</label>
-                                <input type="text" class="form-control" placeholder="City">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">State</label>
-                                <input type="text" class="form-control" placeholder="State">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Zip Code</label>
-                                <input type="text" class="form-control" placeholder="Zip code">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" placeholder="Phone number">
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="defaultAddress">
-                            <label class="form-check-label" for="defaultAddress">
-                                Set as default address
-                            </label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary">Save Address</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <%-include("../partials/footer")%>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="scripts/jquery-3.3.1.min.js"></script>
-    <script src="scripts/jquery-ui.js"></script>
-    <script src="scripts/popper.min.js"></script>
-    <script src="scripts/bootstrap.min.js"></script>
-    <script src="scripts/owl.carousel.min.js"></script>
-    <script src="scripts/jquery.magnific-popup.min.js"></script>
-    <script src="scripts/aos.js"></script>
-    <script src="scripts/main.js"></script>
 
 
 
+
+
+        <%-include("../partials/footer")%>
+
+            <!-- Bootstrap JS -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+            <script src="scripts/jquery-3.3.1.min.js"></script>
+            <script src="scripts/jquery-ui.js"></script>
+            <script src="scripts/popper.min.js"></script>
+            <script src="scripts/bootstrap.min.js"></script>
+            <script src="scripts/owl.carousel.min.js"></script>
+            <script src="scripts/jquery.magnific-popup.min.js"></script>
+            <script src="scripts/aos.js"></script>
+            <script src="scripts/main.js"></script>
+
+
+            <script>
+                // Attach delete functionality to all delete buttons
+                document.querySelectorAll('.delete-address').forEach(deleteButton => {
+                    deleteButton.addEventListener('click', async (event) => {
+                        try {
+                            // Get the address card and its ID
+                            const addressCard = event.target.closest('.address-card');
+                            const addressId = addressCard.dataset.addressId;
+            
+                            const response = await fetch(`/deleteAddress/${addressId}`, {
+                                method: 'DELETE'
+                            });
+            
+                            const data = await response.json();
+            
+                            if (response.ok) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: data.message || 'Address deleted successfully'
+                                }).then(() => {
+                                    // Remove the entire address column
+                                    addressCard.closest('.col-lg-4').remove();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message || 'Failed to delete address'
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Error deleting address:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Network error or something went wrong'
+                            });
+                        }
+                    });
+                });
+            </script>
+            
 </body>
 
 </html>

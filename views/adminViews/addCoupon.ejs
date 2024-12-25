@@ -1,0 +1,365 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Nest Dashboard - Add New Product</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg">
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Cropper.js CSS and JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+</head>
+
+<body>
+    <%- include("partials/header")%>
+
+        <section class="content-main">
+            <form id="coupon-form">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="content-header">
+                            <h2 class="content-title">Add New Coupon</h2>
+                            <div>
+                                <button class="btn btn-md rounded font-sm hover-up" type="submit">Add Coupon</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <!-- Coupon Code -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>1. Coupon Code</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code"
+                                            class="form-control" required>
+                                        <small class="text-danger" id="coupon-code-error"></small>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+                                <!-- Discount Type -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>2. Discount Type</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="discountType"
+                                                value="percentage" id="discountPercentage" required>
+                                            <label class="form-check-label" for="discountPercentage">
+                                                Percentage
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="discountType"
+                                                value="flat" id="discountFlat">
+                                            <label class="form-check-label" for="discountFlat">
+                                                Flat
+                                            </label>
+                                        </div>
+                                        <small class="text-danger" id="discount-type-error"></small>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+                                <!-- Discount Values -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>3. Discount Details</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-3">
+                                            <label class="form-label">Discount Value <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="number" id="discount-value" name="discountValue"
+                                                placeholder="Enter discount value" class="form-control" min="0"
+                                                step="0.01" required>
+                                            <small class="text-danger" id="discount-value-error"></small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Minimum Order Value</label>
+                                            <input type="number" id="min-order-value" name="minOrderValue"
+                                                placeholder="Enter minimum order value" class="form-control" min="0"
+                                                step="0.01">
+                                            <small class="text-danger" id="min-order-value-error"></small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Maximum Discount Value</label>
+                                            <input type="number" id="max-discount-value" name="maxDiscountValue"
+                                                placeholder="Enter maximum discount value" class="form-control" min="0"
+                                                step="0.01">
+                                            <small class="text-danger" id="max-discount-value-error"></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+                                <!-- Usage Limits -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>4. Usage Limits</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total Usage Limit</label>
+                                            <input type="number" id="usage-limit" name="usageLimit"
+                                                placeholder="Enter total usage limit" class="form-control" min="0">
+                                            <small class="text-danger" id="usage-limit-error"></small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Per User Usage Limit</label>
+                                            <input type="number" id="user-usage-limit" name="userUsageLimit"
+                                                placeholder="Enter per user limit" class="form-control" min="1"
+                                                value="1">
+                                            <small class="text-danger" id="user-usage-limit-error"></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+                                <!-- Validity Period -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>5. Validity Period</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-3">
+                                            <label class="form-label">Start Date <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="start-date" name="startDate"
+                                                class="form-control" required>
+                                            <small class="text-danger" id="start-date-error"></small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">End Date <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="end-date" name="endDate"
+                                                class="form-control" required>
+                                            <small class="text-danger" id="end-date-error"></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+
+
+                                <!-- Status -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <h6>7. Status</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is-active"
+                                                name="isActive" checked>
+                                            <label class="form-check-label" for="is-active">
+                                                Active
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <%- include("partials/footer")%>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.getElementById('coupon-form');
+                    const errorMessages = {
+                        code: {
+                            required: 'Coupon code is required',
+                            pattern: 'Coupon code must be alphanumeric',
+                            exists: 'This coupon code already exists'
+                        },
+                        discountType: {
+                            required: 'Please select a discount type'
+                        },
+                        discountValue: {
+                            required: 'Discount value is required',
+                            min: 'Discount value must be greater than 0',
+                            max: 'Percentage discount cannot exceed 100'
+                        },
+                        dates: {
+                            required: 'Both start and end dates are required',
+                            invalid: 'End date must be after start date'
+                        }
+                    };
+
+
+
+                    // Form validation and submission
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        clearErrors();
+
+                        if (!validateForm()) {
+                            return;
+                        }
+
+                        try {
+                            await submitCoupon();
+                        } catch (error) {
+                            console.error('Error submitting coupon:', error);
+                            showGeneralError('Failed to create coupon. Please try again.');
+                        }
+                    });
+
+                    // Validate form before submission
+                    function validateForm() {
+                        let isValid = true;
+
+                        // Validate coupon code
+                        const codeInput = document.getElementById('coupon-code');
+                        if (!codeInput.value.trim()) {
+                            showError('coupon-code', errorMessages.code.required);
+                            isValid = false;
+                        } else if (!/^[A-Za-z0-9]+$/.test(codeInput.value)) {
+                            showError('coupon-code', errorMessages.code.pattern);
+                            isValid = false;
+                        }
+
+                        // Validate discount type
+                        const discountType = document.querySelector('input[name="discountType"]:checked');
+                        if (!discountType) {
+                            showError('discount-type', errorMessages.discountType.required);
+                            isValid = false;
+                        }
+
+                        // Validate discount value
+                        const discountValue = document.getElementById('discount-value').value;
+                        if (!discountValue) {
+                            showError('discount-value', errorMessages.discountValue.required);
+                            isValid = false;
+                        } else if (discountValue <= 0) {
+                            showError('discount-value', errorMessages.discountValue.min);
+                            isValid = false;
+                        } else if (discountType?.value === 'percentage' && discountValue > 100) {
+                            showError('discount-value', errorMessages.discountValue.max);
+                            isValid = false;
+                        }
+
+                        // Validate dates
+                        const startDate = new Date(document.getElementById('start-date').value);
+                        const endDate = new Date(document.getElementById('end-date').value);
+
+                        if (!startDate || !endDate) {
+                            showError('start-date', errorMessages.dates.required);
+                            isValid = false;
+                        } else if (endDate <= startDate) {
+                            showError('end-date', errorMessages.dates.invalid);
+                            isValid = false;
+                        }
+
+                        return isValid;
+                    }
+
+                    // Submit coupon to backend
+                    async function submitCoupon() {
+                        const formData = new FormData(form);
+
+                        // Convert FormData to JSON object
+                        const couponData = {
+                            code: formData.get('code').toUpperCase(),
+                            discountType: formData.get('discountType'),
+                            discountValue: Number(formData.get('discountValue')),
+                            minOrderValue: Number(formData.get('minOrderValue')) || 0,
+                            maxDiscountValue: Number(formData.get('maxDiscountValue')) || null,
+                            usageLimit: Number(formData.get('usageLimit')) || null,
+                            userUsageLimit: Number(formData.get('userUsageLimit')) || 1,
+                            startDate: new Date(formData.get('startDate')).toISOString(),
+                            endDate: new Date(formData.get('endDate')).toISOString(),
+                            isActive: formData.get('isActive') === 'on'
+                        };
+
+                        const response = await fetch('/admin/postAddCoupon', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                // Add any authorization headers if needed
+                                // 'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(couponData)
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            if (error.code === 'DUPLICATE_CODE') {
+                                showError('coupon-code', errorMessages.code.exists);
+                                throw new Error('Duplicate coupon code');
+                            }
+                            throw new Error(error.message || 'Failed to create coupon');
+                        }
+
+                        const result = await response.json();
+                        showSuccess('Coupon created successfully!');
+                        resetForm();
+
+                        return result;
+                    }
+
+
+                    //helper functions
+                    function showError(elementId, message) {
+                        const errorElement = document.getElementById(`${elementId}-error`);
+                        if (errorElement) {
+                            errorElement.textContent = message;
+                        }
+                    }
+
+                    function clearErrors() {
+                        const errorElements = document.querySelectorAll('small.text-danger');
+                        errorElements.forEach(element => element.textContent = '');
+                    }
+
+                    function showSuccess(message) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: message ,
+                        })
+                    }
+
+                    function showGeneralError(message) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: message ,
+                        })
+                    }
+
+                    function resetForm() {
+                        form.reset();
+                        clearErrors();
+                        // Reset select elements if using a plugin like Select2
+                        // $('#applicable-products').val(null).trigger('change');
+                        // $('#applicable-categories').val(null).trigger('change');
+                    }
+                });
+            </script>
+</body>
+
+</html>

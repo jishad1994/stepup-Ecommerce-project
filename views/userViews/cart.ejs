@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>StepUp </title>
+  <title>StepUp</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -21,7 +21,6 @@
       color: #333;
       font-weight: bold;
       text-align: center;
-
       margin-bottom: 2rem;
       text-transform: uppercase;
       letter-spacing: 1.5px;
@@ -36,145 +35,126 @@
 <body>
 
   <div class="site-wrap">
-    <%-include("../partials/header")%>
-      <div class="bg-light py-3">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-12 mb-0"><a href="/">Home</a> <span class="mx-2 mb-0">/</span> <strong
-                class="text-black ">Cart</strong></div>
-          </div>
+    <%- include("../partials/header") %>
+    <div class="bg-light py-3">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12 mb-0"><a href="/">Home</a> <span class="mx-2 mb-0">/</span> <strong
+              class="text-black">Cart</strong></div>
         </div>
       </div>
+    </div>
 
-      <div class="d-flex justify-content-center align-items-center" >
-        <h2 class="text-center mb-5 cart-heading">Your Shopping Cart</h2>
-      </div>
+    <div class="d-flex justify-content-center align-items-center">
+      <h2 class="text-center mb-5 cart-heading">Your Shopping Cart</h2>
+    </div>
 
-      <div class="site-section">
-        <div class="container">
-          <div class="row mb-5">
-            <form class="col-md-12" method="post">
-              <div class="site-blocks-table">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th class="product-thumbnail">Image</th>
-                      <th class="product-name">Product</th>
-                      <th class="product-price">Price</th>
-                      <th class="product-quantity">Quantity</th>
-                      <th class="product-total">Total</th>
-                      <th class="product-remove">Remove</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="product-thumbnail">
-                        <img src="images/cloth_1.jpg" alt="Image" class="img-fluid">
-                      </td>
-                      <td class="product-name">
-                        <h2 class="h5 text-black">Top Up T-Shirt</h2>
-                      </td>
-                      <td>$49.00</td>
-                      <td>
-                        <div class="input-group mb-3" style="max-width: 120px;">
-                          <div class="input-group-prepend">
-                            <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
-                          </div>
-                          <input type="text" class="form-control text-center" value="1" placeholder=""
-                            aria-label="Example text with button addon" aria-describedby="button-addon1">
-                          <div class="input-group-append">
-                            <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
-                          </div>
-                        </div>
-
-                      </td>
-                      <td>$49.00</td>
-                      <td><a href="#" class="btn btn-primary btn-sm">X</a></td>
-                    </tr>
-
+    <div class="site-section">
+      <div class="container">
+        <div class="row mb-5">
+          <form class="col-md-12" method="post">
+            <div class="site-blocks-table">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th class="product-thumbnail">Image</th>
+                    <th class="product-name">Product</th>
+                    <th class="product-price">Price</th>
+                    <th class="product-size">Size</th>
+                    <th class="product-quantity">Quantity</th>
+                    <th class="product-total">Total</th>
+                    <th class="product-remove">Remove</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (Object.keys(cart).length === 0) { %>
+                    <tr><td colspan="6"><h2>Your cart is empty, please add items.</h2></td></tr>
+                  <% } else { 
+                    let subtotal = 0;
+                    for (let product of products) { 
+                      let productTotal = product.salePrice * product.quantity;
+                      subtotal += productTotal;
+                  %>
                     <tr>
                       <td class="product-thumbnail">
-                        <img src="images/cloth_2.jpg" alt="Image" class="img-fluid">
+                        <img src="<%= product.productImage[0] %>" alt="Image" class="img-fluid">
                       </td>
                       <td class="product-name">
-                        <h2 class="h5 text-black">Polo Shirt</h2>
+                        <h2 class="h5 text-black"><%= product.productName %></h2>
                       </td>
-                      <td>$49.00</td>
+                      <td><%= product.salePrice %></td>
+                      <td><%= product.size %></td>
                       <td>
                         <div class="input-group mb-3" style="max-width: 120px;">
-                          <div class="input-group-prepend">
+                          <!-- <div class="input-group-prepend">
                             <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
-                          </div>
-                          <input type="text" class="form-control text-center" value="1" placeholder=""
-                            aria-label="Example text with button addon" aria-describedby="button-addon1">
-                          <div class="input-group-append">
+                          </div> -->
+                          <input type="text" class="form-control text-center" value="<%= product.quantity %>" disabled>
+                          <!-- <div class="input-group-append">
                             <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
-                          </div>
+                          </div> -->
                         </div>
-
                       </td>
-                      <td>$49.00</td>
-                      <td><a href="#" class="btn btn-primary btn-sm">X</a></td>
+                      <td><%= productTotal %></td>
+                      <td><a href="/removeFromCart?id=<%= product._id %>&size=<%= product.size%>" id="removeFromCart" class="btn btn-primary btn-sm">X</a></td>
                     </tr>
-                  </tbody>
-                </table>
-              </div>
-            </form>
-          </div>
+                  <% } %>
+                  <% } %>
+                </tbody>
+                
+              </table>
+            </div>
+          </form>
+        </div>
 
-          <div class="row">
-            <div class="col-md-6">
-              <div class="row mb-5">
-                <!-- <div class="col-md-6 mb-3 mb-md-0">
-                  <button class="btn btn-primary btn-sm btn-block">Update Cart</button>
-                </div> -->
-                <div class="col-md-6  ">
-                  <button class="  btn btn-outline-primary btn-sm btn-block" onclick="Window.location='/shopall'">Continue Shopping</button>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <label class="text-black h4" for="coupon">Coupon</label>
-                  <p>Enter your coupon code if you have one.</p>
-                </div>
-                <div class="col-md-8 mb-3 mb-md-0">
-                  <input type="text" class="form-control py-3" id="coupon" placeholder="Coupon Code">
-                </div>
-                <div class="col-md-4">
-                  <button class="btn btn-primary btn-sm">Apply Coupon</button>
-                </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="row mb-5">
+              <div class="col-md-6">
+                <button class="btn btn-outline-primary btn-sm btn-block" onclick="window.location='/shopall'">Continue Shopping</button>
               </div>
             </div>
-            <div class="col-md-6 pl-5">
-              <div class="row justify-content-end">
-                <div class="col-md-7">
-                  <div class="row">
-                    <div class="col-md-12 text-right border-bottom mb-5">
-                      <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
-                    </div>
+            <div class="row">
+              <div class="col-md-12">
+                <label class="text-black h4" for="coupon">Coupon</label>
+                <p>Enter your coupon code if you have one.</p>
+              </div>
+              <div class="col-md-8 mb-3 mb-md-0">
+                <input type="text" class="form-control py-3" id="coupon" placeholder="Coupon Code">
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-primary btn-sm">Apply Coupon</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 pl-5">
+            <div class="row justify-content-end">
+              <div class="col-md-7">
+                <div class="row">
+                  <div class="col-md-12 text-right border-bottom mb-5">
+                    <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
                   </div>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <span class="text-black">Subtotal</span>
-                    </div>
-                    <div class="col-md-6 text-right">
-                      <strong class="text-black">$230.00</strong>
-                    </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <span class="text-black">Subtotal</span>
                   </div>
-                  <div class="row mb-5">
-                    <div class="col-md-6">
-                      <span class="text-black">Total</span>
-                    </div>
-                    <div class="col-md-6 text-right">
-                      <strong class="text-black">$230.00</strong>
-                    </div>
+                  <div class="col-md-6 text-right">
+                    <strong class="text-black"><%= subtotal %></strong>
                   </div>
+                </div>
+                <div class="row mb-5">
+                  <div class="col-md-6">
+                    <span class="text-black">Total</span>
+                  </div>
+                  <div class="col-md-6 text-right">
+                    <strong class="text-black"><%= subtotal %></strong>
+                  </div>
+                </div>
 
-                  <div class="row">
-                    <div class="col-md-12">
-                      <button class="btn btn-primary btn-lg py-3 btn-block"
-                        onclick="window.location='/Checkout'">Proceed To Checkout</button>
-                    </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <button class="btn btn-primary btn-lg py-3 btn-block" onclick="window.location='/Checkout'">Proceed To Checkout</button>
                   </div>
                 </div>
               </div>
@@ -182,7 +162,8 @@
           </div>
         </div>
       </div>
-      <%-include("../partials/footer")%>
+    </div>
+    <%- include("../partials/footer") %>
   </div>
 
   <script src="scripts/jquery-3.3.1.min.js"></script>
@@ -193,6 +174,12 @@
   <script src="scripts/jquery.magnific-popup.min.js"></script>
   <script src="scripts/aos.js"></script>
   <script src="scripts/main.js"></script>
+
+
+  
+
+
+
 
 </body>
 

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - E-commerce</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+    <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
+    <link rel="stylesheet" href="styles/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/css/magnific-popup.css">
+    <link rel="stylesheet" href="styles/css/jquery-ui.css">
+    <link rel="stylesheet" href="styles/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="styles/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="styles/css/aos.css">
+    <link rel="stylesheet" href="styles/css/style.css">
+    <style>
+        /* Add these validation styles */
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .invalid-feedback {
+            color: #dc3545;
+            display: none;
+        }
+
+        .form-control:invalid {
+            border-color: #dc3545;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .edit-profile-container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+
+        .profile-card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .profile-picture-container {
+            position: relative;
+            width: 150px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4a90e2;
+        }
+
+        .profile-picture-upload {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a80d2;
+            transform: translateY(-2px);
+        }
+
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+    <%-include("../partials/header")%>
+
+        <div class="container edit-profile-container">
+            <div class="profile-card">
+                <form id="editProfileForm">
+                    <div class="text-center mb-4">
+                        <!-- <div class="profile-picture-container">
+                        <img src="<%= user.profilePicture || '/api/placeholder/150/150' %>" 
+                             alt="Profile Picture" 
+                             class="profile-picture" 
+                             id="profilePicturePreview">
+                        <label for="profilePictureUpload" class="profile-picture-upload">
+                            <i class="bi bi-camera"></i>
+                            <input type="file" 
+                                   id="profilePictureUpload" 
+                                   name="profilePicture" 
+                                   accept="image/*" 
+                                   style="display:none;">
+                        </label>
+                    </div> -->
+                        <h3>
+                            <%= user.name %>
+                        </h3>
+                        <p class="text-muted">
+                            <%= user.email %>
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="firstName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName"
+                                value="<%= user.name %>" required minlength="2" maxlength="50" pattern="^[A-Za-z\s]+$"
+                                title="Name should only contain letters and spaces">
+                            <div class="invalid-feedback">
+                                Please enter a valid name (2-50 characters, letters only)
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>"
+                            disabled>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="<%= user.phone %>"
+                            required pattern="^\+?[1-9]\d{9,14}$" title="Phone number should be 10-15 digits">
+                        <div class="invalid-feedback">
+                            Please enter a valid phone number (10-15 digits)
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save me-2"></i>Save Changes
+                        </button>
+                        <a href="/userprofile" class="btn btn-outline-secondary btn-lg ms-3">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Profile Picture Preview
+            document.getElementById('profilePictureUpload').addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    document.getElementById('profilePicturePreview').src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            });
+        </script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="scripts/jquery-3.3.1.min.js"></script>
+        <script src="scripts/jquery-ui.js"></script>
+        <script src="scripts/popper.min.js"></script>
+        <script src="scripts/bootstrap.min.js"></script>
+        <script src="scripts/owl.carousel.min.js"></script>
+        <script src="scripts/jquery.magnific-popup.min.js"></script>
+        <script src="scripts/aos.js"></script>
+        <script src="scripts/main.js"></script>
+
+        <%-include("../partials/footer")%>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.getElementById('editProfileForm');
+                    const inputs = form.querySelectorAll('input[required]');
+
+
+                    // Prevent default HTML5 validation
+                    form.setAttribute('novalidate', '');
+
+                    // Real-time validation
+                    inputs.forEach(input => {
+                        input.addEventListener('input', function () {
+                            validateInput(this);
+                        });
+
+                        input.addEventListener('blur', function () {
+                            validateInput(this);
+                        });
+                    });
+
+                    // Form submission validation
+                    form.addEventListener('submit', async function (event) {
+                        event.preventDefault();
+                        try {
+
+                            let isValid = true;
+                            const name = document.getElementById("firstName").value.trim()
+                            const phone = document.getElementById("phone").value.trim();
+                            const email = document.getElementById("email").value.trim();
+
+                            inputs.forEach(input => {
+                                if (!validateInput(input)) {
+                                    isValid = false;
+                                }
+                            });
+
+
+
+                            if (isValid == true) {
+
+
+                                const response = await fetch("/postEditProfile", {
+
+                                    method: 'PUT',
+                                    headers: {
+
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ name, phone, email })
+                                })
+
+                                const data = await response.json();
+
+                                if (!response.ok) {
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: `${data.message}`,
+                                    });
+                                }
+                                // Success scenario
+                                if (data.success || response.ok) {
+                                    await Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success',
+                                        text: 'Your profile was edited successfully',
+                                    });
+
+                                    // Redirect to profile page
+                                    window.location.href = '/userprofile';
+                                }
+                            }
+                        } catch (error) {
+                            console.log("error while editting the profile");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'error',
+                                text: 'an unexpected error occured',
+                            })
+
+                        }
+
+
+
+
+
+                    });
+
+                    function validateInput(input) {
+                        const feedback = input.parentElement.querySelector('.invalid-feedback');
+
+                        if (input.validity.valid) {
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                            feedback.style.display = 'none';
+                            return true;
+                        } else {
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                            feedback.style.display = 'block';
+                            return false;
+                        }
+                    }
+
+                });
+            </script>
+
+
+</body>
+
+</html>

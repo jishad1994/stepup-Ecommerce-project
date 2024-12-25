@@ -1,0 +1,274 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Nest Dashboard - Edit Product</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg">
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Cropper.js CSS and JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <style>
+        #image-crop-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .crop-modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        #image-to-crop {
+            max-width: 100%;
+            max-height: 500px;
+        }
+
+        .image-upload-info {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .existing-image {
+            position: relative;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .existing-image img {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+        }
+
+        .remove-existing-image {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include("partials/header")%>
+
+        <section class="content-main">
+            <form id="product-edit-form">
+
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="content-header">
+                            <h2 class="content-title">Add/Edit Stock</h2>
+                            <div>
+                                <button class="btn btn-md rounded font-sm hover-up" type="submit">Add/Edit Stock
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6>1. General info</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-4">
+                                            <label class="form-label" for="title">Product title </span></label>
+                                            <input type="text" id="product-title" name="title" placeholder="Type here"
+                                                class="form-control" value="<%= product.productName %>" disabled
+                                                required>
+                                            <small class="text-danger" id="title-error"></small>
+                                        </div>
+                                        <div class="mb-4">
+                                            <!-- <label class="form-label" for="productId">product ID </label> -->
+                                            <input id="product-id" name="productId" value="<%= product._id%>"
+                                                type="hidden">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="mb-4 mt-0">
+
+
+
+
+                                <!-- Size and Quantity Addition -->
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6>2. Size and Quantity</h6>
+                                    </div>
+
+                                    <hr class="mb-4 mt-0">
+
+                                    <!-- Size 6 -->
+                                    <div class="mb-4">
+
+                                        <input type="text" name="sizes[]" placeholder="size 6" class="form-control"
+                                            value="6" min="0" disabled>
+                                        <input type="number" id="size-six" name="quantities[]" placeholder="quantity"
+                                            class="form-control" min="0" step="1" value="<%=product.stock[0].quantity%>"
+                                            required>
+                                        <small class="text-danger" id="quantity-error-size-six"></small>
+                                    </div>
+
+                                    <!-- Size 7 -->
+                                    <div class="mb-4">
+                                        <!-- <label class="form-label">Size 7 <span class="text-danger">*</span></label> -->
+                                        <input type="text" name="sizes[]" class="form-control" value="7" min="0"
+                                            disabled>
+                                        <input type="number" id="size-seven" name="quantities[]" placeholder="quantity"
+                                            class="form-control" min="0" step="1" value="<%=product.stock[1].quantity%>"
+                                            required>
+                                        <small class="text-danger" id="quantity-error-size-seven"></small>
+                                    </div>
+
+                                    <!-- Size 8 -->
+                                    <div class="mb-4">
+                                        <input type="number" name="sizes[]" class="form-control" value="8" min="0"
+                                            disabled>
+                                        <input type="number" id="size-eight" name="quantities[]" placeholder="quantity"
+                                            class="form-control" min="0" step="1" value="<%=product.stock[2].quantity%>"
+                                            required>
+                                        <small class="text-danger" id="quantity-error-size-eight"></small>
+                                    </div>
+
+                                    <!-- Size 9 -->
+                                    <div class="mb-4">
+                                        <input type="number" type="hidden" name="sizes[]" class="form-control" value="9"
+                                            min="0" disabled>
+                                        <input type="number" id="size-nine" name="quantities[]" placeholder="quantity"
+                                            class="form-control" min="0" step="1" value="<%=product.stock[3].quantity%>"
+                                            required>
+                                        <small class="text-danger" id="quantity-error-size-nine"></small>
+                                    </div>
+                                </div>
+
+
+
+                                <hr class="mb-4 mt-0">
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </section>
+
+
+
+        <%- include("partials/footer")%>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+    const productEditForm = document.getElementById("product-edit-form");
+
+    productEditForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const isValid = validateProductForm();
+
+        if (isValid) {
+            const productId = document.getElementById("product-id").value;
+            
+            const sizes = Array.from(
+                document.querySelectorAll('input[name="sizes[]"]'),
+                input => input.value
+            );
+
+            const quantities = Array.from(
+                document.querySelectorAll('input[name="quantities[]"]'),
+                input => input.value
+            );
+
+            const stockMaker = (sizes, quantities) => {
+                return sizes.map((size, index) => ({
+                    size: size,
+                    quantity: quantities[index]
+                }));
+            }
+
+            const stock = stockMaker(sizes, quantities);
+
+            try {
+                const response = await fetch(`/admin/postAddStock`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stock,
+                        productId,
+                       
+                    }),
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    await Swal.fire("Success", "Stock updated successfully!", "success");
+                    productEditForm.reset();
+                } else {
+                    await Swal.fire("Error", result.message || "Failed to update Stock.", "error");
+                }
+            } catch (error) {
+                await Swal.fire("Error", "Failed to process request", "error");
+            }
+        } else {
+            await Swal.fire("Error", "Please correct the validation errors", "error");
+        }
+    });
+});
+
+function validateProductForm() {
+    let isValid = true;
+
+    const sizeInputs = ['size-six', 'size-seven', 'size-eight', 'size-nine'];
+    
+    sizeInputs.forEach((sizeId) => {
+        const quantityInput = document.getElementById(sizeId);
+        const quantityError = document.getElementById(`quantity-error-${sizeId}`);
+        
+        if (!quantityInput.value) {
+            isValid = false;
+            quantityError.innerText = "Quantity is required";
+        } else if (isNaN(quantityInput.value)) {
+            isValid = false;
+            quantityError.innerText = "Please enter a valid number";
+        } else if (quantityInput.value < 0) {
+            isValid = false;
+            quantityError.innerText = "Stock cannot be negative";
+        } else {
+            quantityError.innerText = "";
+        }
+    });
+
+    return isValid;
+}
+
+            </script>
+
+
+</body>
+
+</html>

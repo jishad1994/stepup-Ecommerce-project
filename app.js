@@ -2,35 +2,50 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const env = require("dotenv").config();
-const PORT = process.env.PORT;
-const SECTRET_KEY = process.env.SECTRET_KEY;
+const session = require("express-session");
+const nocache = require("nocache");
+const passport = require("./config/passport.js");
 const connectDB = require("./config/db.js");
+const cookieParser = require("cookie-parser");
 
-//routes
+// Routes
 const userRoutes = require("./routes/userRoutes/routes.js");
 const adminRoutes = require("./routes/adminRoutes/adminRoutes.js");
 
-const session = require("express-session");
-const passport = require("./config/passport.js");
-const nocache = require("nocache");
+// Environment Variables
+const PORT = process.env.PORT;
+const SECTRET_KEY = process.env.SECTRET_KEY;
 
+
+
+
+
+
+
+
+
+// View Engine
 app.set("view engine", "ejs");
 
-//session management
+app.use(cookieParser()); // Enable cookie parsing middleware
+
+
+// Session Management
 app.use(
     session({
-        secret: process.env.SECTRET_KEY,
+        name:"session_id",
+        secret: SECTRET_KEY,
         resave: false,
         saveUninitialized: false,
         cookie: {
-            httpOnly:true,
+            httpOnly: true,
             secure: false,
-            maxAge: 60* 1000 *60
+            maxAge: 60 * 1000 * 60, // 1 hour
         },
     })
 );
 
-//dynamic views setup
+// Dynamic Views Setup
 app.use((req, res, next) => {
     if (req.path.startsWith("/admin")) {
         app.set("views", path.join(__dirname, "/views/adminViews"));
@@ -40,33 +55,34 @@ app.use((req, res, next) => {
     next();
 });
 
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(nocache());
 
+// Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).render("error", { message: "Internal Server Error" });
 });
 
+// Assign User to Response Locals
 app.use((req, res, next) => {
-    res.locals.user = req.session.user || null;  // Assuming the user info is stored in the session
+    res.locals.user = req.session.user || null;
     next();
-  });
-//initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
+});
 
-//nocache
-app.use(nocache());
-
-// connecting  db
+// Database Connection
 connectDB();
-//user routes
+
+// Routes
 app.use("/", userRoutes);
-//admin routes
 app.use("/admin", adminRoutes);
 
+// Start Server
 app.listen(PORT, () => {
-    console.log(`port is connected at ${PORT}`);
+    console.log(`Port is connected at ${PORT}`);
 });

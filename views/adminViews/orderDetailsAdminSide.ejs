@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Nest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.27/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.27/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+    <!-- Template CSS -->
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%-include("partials/header")%>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Order detail</h2>
+                    <p>Details for Order ID: <%=order._id%>
+                    </p>
+                </div>
+            </div>
+            <div class="card">
+                <header class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 col-md-6 mb-lg-0 mb-15">
+                            <span> <i class="material-icons md-calendar_today"></i> <b>
+                                    <%=new Date(order.createdAt).toLocaleDateString()%>
+                                </b> </span> <br />
+                            <small class="text-muted">Order ID: <%=order._id%></small>
+                        </div>
+                        <div class="col-lg-6 col-md-6 ms-auto text-md-end">
+                            <select class="form-select d-inline-block mb-lg-0 mr-5 mw-200">
+                                <option selected value="Pending">Change status</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Return Request">Return Request</option>
+                                <option value="Returned">Returned</option>
+                            </select>
+                            <a class="btn btn-primary" id="saveBtn">Save</a>
+                            <a class="btn btn-secondary print ms-2" href="#"><i
+                                    class="icon material-icons md-print"></i></a>
+                        </div>
+                    </div>
+                </header>
+                <!-- card-header end// -->
+                <div class="card-body">
+                    <div class="row mb-50 mt-20 order-info-wrap">
+                        <div class="col-md-4">
+                            <article class="icontext align-items-start">
+                                <span class="icon icon-sm rounded-circle bg-primary-light">
+                                    <i class="text-primary material-icons md-person"></i>
+                                </span>
+                                <div class="text">
+                                    <h6 class="mb-1">Customer</h6>
+                                    <p class="mb-1">
+                                        <%= user.name ? user.name : 'Unknown' %>
+                                            <br />
+                                            <%=user.email%> <br />
+                                                <%=user.phone%>
+                                    </p>
+                                    <!-- <a href="#">View profile</a> -->
+                                </div>
+                            </article>
+                        </div>
+                        <!-- col// -->
+                        <div class="col-md-4">
+                            <article class="icontext align-items-start">
+                                <span class="icon icon-sm rounded-circle bg-primary-light">
+                                    <i class="text-primary material-icons md-local_shipping"></i>
+                                </span>
+                                <div class="text">
+                                    <h6 class="mb-1">Order info</h6>
+                                    <p class="mb-1">
+                                        Shipping: Fargo express <br />
+                                        Pay method: <%=order.paymentType%> <br />
+                                            Status: <%=order.status%>
+                                    </p>
+                                    <a href="#">Download info</a>
+                                </div>
+                            </article>
+                        </div>
+                        <!-- col// -->
+                        <div class="col-md-4">
+                            <article class="icontext align-items-start">
+                                <span class="icon icon-sm rounded-circle bg-primary-light">
+                                    <i class="text-primary material-icons md-place"></i>
+                                </span>
+                                <div class="text">
+                                    <h6 class="mb-1">Deliver to</h6>
+                                    <p class="mb-1">
+                                        City:<%=order.address?.city%> <br />
+                                            <%=order.address?.state%> <br />
+                                                Po Box <%=order.address.pincode%>
+                                    </p>
+                                    <a href="#">View profile</a>
+                                </div>
+                            </article>
+                        </div>
+                        <!-- col// -->
+                    </div>
+                    <!-- row // -->
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th width="40%">Product</th>
+                                            <th width="20%">Unit Price</th>
+                                            <th width="20%">Quantity</th>
+                                            <th width="20%" class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <a class="itemside" href="#">
+                                                    <div class="left">
+                                                        <img src'' width="40" height="40" class="img-xs" alt="Item" />
+                                                    </div>
+                                                    <div class="info">Haagen-Dazs Caramel Cone Ice</div>
+                                                </a>
+                                            </td>
+                                            <td>$44.25</td>
+                                            <td>2</td>
+                                            <td class="text-end">$99.50</td>
+                                        </tr>
+
+
+                                        <tr>
+                                            <td colspan="4">
+                                                <article class="float-end">
+                                                    <dl class="dlist">
+                                                        <dt>Subtotal:</dt>
+                                                        <dd>$<%=order.totalPrice-10%></dd>
+                                                    </dl>
+                                                    <dl class="dlist">
+                                                        <dt>Shipping cost:</dt>
+                                                        <dd>$10.00</dd>
+                                                    </dl>
+                                                    <dl class="dlist">
+                                                        <dt>Grand total:</dt>
+                                                        <dd><b class="h5">$<%=order.totalPrice%></b></dd>
+                                                    </dl>
+                                                    <dl class="dlist">
+                                                        <dt class="text-muted">Status:</dt>
+                                                        <dd>
+                                                            <span
+                                                                class="badge rounded-pill alert-success text-success">Payment
+                                                                done</span>
+                                                        </dd>
+                                                    </dl>
+                                                </article>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- table-responsive// -->
+                        </div>
+                        <!-- col// -->
+                        <div class="col-lg-1"></div>
+                        <div class="col-lg-4">
+                            <div class="box shadow-sm bg-light">
+                                <h6 class="mb-15">Payment info</h6>
+                                <p>
+                                    <img src="assets/imgs/card-brands/2.png" class="border" height="20" /> Master Card
+                                    **** **** 4768 <br />
+                                    Business name: Grand Market LLC <br />
+                                    Phone: +1 (800) 555-154-52
+                                </p>
+                            </div>
+                            <div class="h-25 pt-4">
+                                <div class="mb-3">
+                                    <label>Notes</label>
+                                    <textarea class="form-control" name="notes" id="notes"
+                                        placeholder="Type some note"></textarea>
+                                </div>
+                                <button class="btn btn-primary">Save note</button>
+                            </div>
+                        </div>
+                        <!-- col// -->
+                    </div>
+                </div>
+                <!-- card-body end// -->
+            </div>
+            <!-- card end// -->
+        </section>
+        <!-- content-main end// -->
+        <%-include("partials/footer")%>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    // Define a variable to hold the selected value
+                    let selectedStatus = null;
+
+                    // Get the select element and attach an event listener
+                    const selectElement = document.querySelector('.form-select');
+                    selectElement.addEventListener('change', function () {
+                        // Update the selected value
+                        selectedStatus = this.value;
+                        console.log('Selected Value:', selectedStatus);
+                    });
+
+                    // Handle the save button click
+                    const saveButton = document.getElementById("saveBtn");
+                    saveButton.addEventListener("click", async (event) => {
+                        event.preventDefault();
+
+                        if (!selectedStatus) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'No Status Selected',
+                                text: 'Please select a status before saving.',
+                            });
+                            return;
+                        }
+
+                        try {
+
+                            //currunt status 
+                            const currentStatus = "<%=order.Status%>";
+                            const orderId = '<%=order._id%>'
+
+                            // Send the selected status to the server
+                            const response = await fetch("/admin/changeOrderStatus", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ selectedStatus,currentStatus,_id:orderId })
+                            });
+
+                            const data = await response.json(); // Ensure response is parsed
+
+                            // Handle the response
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Status Change Successful!',
+                                    text: data.message || 'The order status has been updated.',
+                                }).then(() => {
+                                    // Optionally refresh the page or update UI dynamically
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message || 'An error occurred while updating the status.',
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Unexpected error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Unexpected Error',
+                                text: error.message,
+                            });
+                        }
+                    });
+                });
+            </script>
+
+
+
+</body>
+
+</html>

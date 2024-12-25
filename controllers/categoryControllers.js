@@ -171,7 +171,7 @@ const deleteOrUndoCategory = async (req, res) => {
 
         let category = await Category.findOne({ name });
 
-        if (category.isDeleted ) {
+        if (category.isDeleted) {
             await Category.updateOne({ name: name }, { $set: { isDeleted: false } });
 
             return res.redirect("/admin/categories");
@@ -186,6 +186,7 @@ const deleteOrUndoCategory = async (req, res) => {
     }
 };
 
+
 module.exports = {
     categoryInfo,
     addCategory,
@@ -194,4 +195,5 @@ module.exports = {
     updateCategory,
     loadUpdateCategory,
     deleteOrUndoCategory,
+    
 };

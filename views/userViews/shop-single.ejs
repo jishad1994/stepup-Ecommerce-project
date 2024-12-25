@@ -2,10 +2,11 @@
 <html lang="en">
 
 <head>
-  <title>Shoppers &mdash; Colorlib e-Commerce Template</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta charset="UTF-8">
+  <title>stepUp</title>
 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
   <link rel="stylesheet" href="/styles/fonts/icomoon/style.css">
   <link rel="stylesheet" href="/styles/css/bootstrap.min.css">
@@ -15,132 +16,655 @@
   <link rel="stylesheet" href="/styles/css/owl.theme.default.min.css">
   <link rel="stylesheet" href="/styles/css/aos.css">
   <link rel="stylesheet" href="/styles/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- aos -->
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+
+
+  <style>
+    .rating-summary .star-rating-large {
+      font-size: 24px;
+      color: #ffd700;
+    }
+
+    .rating-bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .rating-bar-row .stars {
+      width: 60px;
+    }
+
+    .rating-bar-row .progress {
+      flex-grow: 1;
+      margin: 0 10px;
+      height: 12px;
+    }
+
+    .rating-bar-row .count {
+      width: 50px;
+    }
+
+    .rating-input {
+      display: flex;
+      flex-direction: row-reverse;
+      font-size: 24px;
+    }
+
+    .rating-input input {
+      display: none;
+    }
+
+    .rating-input label {
+      color: #ddd;
+      cursor: pointer;
+      padding: 0 2px;
+    }
+
+    .rating-input label:hover,
+    .rating-input label:hover~label,
+    .rating-input input:checked~label {
+      color: #ffd700;
+    }
+
+    .review .star.filled {
+      color: #ffd700;
+    }
+
+    .size-selector {
+      margin: 20px 0;
+    }
+
+    .size-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .size-btn {
+      width: 45px;
+      height: 45px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .size-btn:hover:not(.disabled) {
+      border-color: #000;
+    }
+
+    .size-btn.selected {
+      background: #000;
+      color: white;
+      border-color: #000;
+    }
+
+    .size-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f5f5f5;
+    }
+  </style>
+
+  <style>
+    /* Main product image styling */
+    .main-product-image {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Thumbnail gallery styling */
+    .product-image-gallery {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .product-image-gallery img {
+      max-width: 75px;
+      /* Ensure thumbnails are smaller */
+      height: auto;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
+      cursor: pointer;
+    }
+
+    /* Highlight active thumbnail */
+    .product-image-gallery img.active {
+      border: 2px solid #007bff;
+    }
+
+    #addToWishlistBtn {
+      margin-top: 20px;
+      /* Adds 20px space between the buttons */
+      background-color: rgb(244, 124, 242);
+      /* Sets the background color to pink */
+      color: white;
+      /* Adjusts the text color for better visibility */
+      border: none;
+      /* Removes the default border */
+    }
+
+    #wishlistBtn:hover {
+      background-color: #ff69b4;
+      /* A darker shade of pink for hover effect */
+    }
+
+    .available-badge {
+      position: relative;
+      /* top: 20px;
+            left: 20px; */
+      background-color: #067006;
+      color: white;
+      padding: 2.5px 5px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+    }
+
+    .outOfStock-badge {
+
+      position: relative;
+      background-color: #b50814;
+      color: white;
+      padding: 2.5px 5px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+
+    }
+
+    /* Main product image styling */
+    .main-product-image {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Thumbnail gallery styling */
+    .product-image-gallery {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .product-image-gallery img {
+      max-width: 75px;
+      /* Ensure thumbnails are smaller */
+      height: auto;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
+      cursor: pointer;
+    }
+
+    /* Highlight active thumbnail */
+    .product-image-gallery img.active {
+      border: 2px solid #007bff;
+    }
+
+    .zoom-container {
+      position: relative;
+      overflow: hidden;
+      /* Ensures zoomed image stays within bounds */
+      width: 100%;
+      /* Adjust as needed for your layout */
+      height: auto;
+      /* Ensures responsiveness */
+    }
+
+    .main-product-image {
+      width: 100%;
+      /* Ensure the image fills the container */
+      transition: transform 0.3s ease, transform-origin 0.3s ease;
+      /* Smooth zooming effect */
+      transform: scale(1);
+      /* Default scale */
+    }
+
+    .zoom-container:hover .main-product-image {
+      cursor: crosshair;
+      /* Change the cursor to indicate zoom */
+    }
+  </style>
 
 </head>
 
 <body>
-
-  <div class="site-wrap">
-    <%-include("../partials/header")%>
-
+  <%- include("../partials/header")%>
+    <!-- BREADCRUMPS -->
     <div class="bg-light py-3">
       <div class="container">
         <div class="row">
-          <div class="col-md-12 mb-0"><a href="/">Home</a> <span class="mx-2 mb-0">/</span> <strong
-              class="text-black">Nike shoes</strong></div>
+          <div class="col-md-12 mb-0">
+            <a href="/">Home</a> <span class="mx-2 mb-0">/</span> <a href="/shopall">shop All Products</a><span
+              class="mx-2 mb-0">/</span><strong>
+              <%= product?.productName || 'Product' %>
+            </strong>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="site-section">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-6">
-            <img src="/images/products/nike-just-do-it_11.jpg" alt="Image" class="img-fluid">
+    <div class="container mt-5">
+      <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+          <div class="zoom-container">
+            <!-- Default big image -->
+            <img src="<%= product?.productImage?.[0] || '/images/placeholder.png' %>" alt="Main Product Image"
+              class="img-fluid main-product-image" id="mainProductImage">
           </div>
-          <div class="col-md-6">
-            <h2 class="text-black">running Shoe</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur, vitae, explicabo? Incidunt facere,
-              natus soluta dolores iusto! Molestiae expedita veritatis nesciunt doloremque sint asperiores fuga
-              voluptas, distinctio, aperiam, ratione dolore.</p>
-            <p class="mb-4">Ex numquam veritatis debitis minima quo error quam eos dolorum quidem perferendis. Quos
-              repellat dignissimos minus, eveniet nam voluptatibus molestias omnis reiciendis perspiciatis illum hic
-              magni iste, velit aperiam quis.</p>
-            <p><strong class="text-primary h4">$50.00</strong></p>
-            <div class="mb-1 d-flex">
-              <label for="option-sm" class="d-flex mr-3 mb-3">
-                <span class="d-inline-block mr-2" style="top:-2px; position: relative;"><input type="radio"
-                    id="option-sm" name="shop-sizes"></span> <span class="d-inline-block text-black">Small</span>
-              </label>
-              <label for="option-md" class="d-flex mr-3 mb-3">
-                <span class="d-inline-block mr-2" style="top:-2px; position: relative;"><input type="radio"
-                    id="option-md" name="shop-sizes"></span> <span class="d-inline-block text-black">Medium</span>
-              </label>
-              <label for="option-lg" class="d-flex mr-3 mb-3">
-                <span class="d-inline-block mr-2" style="top:-2px; position: relative;"><input type="radio"
-                    id="option-lg" name="shop-sizes"></span> <span class="d-inline-block text-black">Large</span>
-              </label>
-              <label for="option-xl" class="d-flex mr-3 mb-3">
-                <span class="d-inline-block mr-2" style="top:-2px; position: relative;"><input type="radio"
-                    id="option-xl" name="shop-sizes"></span> <span class="d-inline-block text-black"> Extra Large</span>
-              </label>
+          <!-- Image gallery -->
+          <div class="product-image-gallery mt-3" id="imageGallery">
+            <% (product?.productImage || []).forEach((image, index)=> { %>
+              <img src="<%= image %>" class="thumbnail-image <%= index === 0 ? 'active' : '' %>"
+                data-large="<%= image %>" alt="Thumbnail <%= index + 1 %>">
+              <% }) %>
+          </div>
+        </div>
+
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+          <h1 id="productName">
+            <%= product?.productName || 'Unnamed Product' %>
+          </h1>
+
+          <!-- Star Rating -->
+          <div class="star-rating mb-2">
+            ★★★★☆ <span class="text-muted">(42 reviews)</span>
+          </div>
+
+          <!-- Pricing -->
+          <div class="pricing mb-3">
+            <% if (product?.regularPrice && product?.salePrice) { %>
+              <span class="text-decoration-line-through text-muted me-2" id="regularPrice">$<%= product.regularPrice %>
+              </span>
+              <span class="text-danger fw-bold" id="salePrice">$<%= product.salePrice %></span>
+              <span class="badge bg-danger ms-2">
+                <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% OFF
+              </span>
+              <br>
+              <%if (product.status=='Available' ){%>
+                <span class="available-badge">Available</span>
+                <%}else{%>
+                  <span class="outOfStock-badge">out of stock</span>
+                  <%}%>
+                    <% } else { %>
+                      <span class="text-muted">Price Not Available</span>
+                      <% } %>
+          </div>
+
+          <!-- Description -->
+          <p id="productDescription" class="mb-3">
+            <%= product?.description || 'No description available for this product.' %>
+          </p>
+
+
+
+
+          <!-- size selection -->
+          <div class="size-selector">
+            <h4>Select Size</h4>
+            <div class="size-options">
+              <!-- // Get available sizes from product stock -->
+              <% const availableSizes=product?.stock?.filter(item=>
+                item.quantity > 0).map(item => item.size || []);
+                %>
+
+                <% const sizeRange=['6', '7' , '8' , '9' , ]; %>
+                  <% sizeRange.forEach(size=> { %>
+                    <button type="button" class="size-btn <%= availableSizes.includes(size) ? '' : 'disabled' %>"
+                      data-size="<%= size %>" <%=availableSizes.includes(size) ? '' : 'disabled="disabled"' %>>
+                      <%= size %>
+                    </button>
+
+                    <% }); %>
             </div>
-            <div class="mb-5">
-              <div class="input-group mb-3" style="max-width: 120px;">
-                <div class="input-group-prepend">
-                  <button class="btn btn-outline-primary js-btn-minus" type="button">&minus;</button>
-                </div>
-                <input type="text" class="form-control text-center" value="1" placeholder=""
-                  aria-label="Example text with button addon" aria-describedby="button-addon1">
-                <div class="input-group-append">
-                  <button class="btn btn-outline-primary js-btn-plus" type="button">&plus;</button>
-                </div>
-              </div>
+            <p id="size-error" class="error-message" style="display: none; color: red;">
+              Please select a size
+            </p>
+          </div>
 
+          <!-- Quantity -->
+          <div class="quantity-selector mb-3">
+            <h5>Quantity</h5>
+            <div class="input-group" style="max-width: 150px;">
+              <button class="btn btn-outline-secondary" type="button" id="decreaseQty">-</button>
+              <input type="text" class="form-control text-center" value="1" id="quantityInput">
+              <button class="btn btn-outline-secondary" type="button" id="increaseQty">+</button>
             </div>
-            <p><a href="/cart" class="buy-now btn btn-sm btn-primary">Add To Cart</a></p>
+          </div>
 
+          <!-- Add to Cart -->
+          <button class="btn btn-primary btn-lg w-100" id="addToCartBtn">
+            Add to Cart
+          </button>
+          <button class="btn wishlist-btn btn-lg w-100" id="addToWishlistBtn">
+            Add to Wishlist
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Product Tabs -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <ul class="nav nav-tabs" id="productTabs">
+            <li class="nav-item">
+              <a class="nav-link active" href="#description">Description</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#reviews">Reviews</a>
+            </li>
+          </ul>
+
+          <div class="tab-content mt-3">
+            <div class="tab-pane active" id="description">
+              <h4>Product Details</h4>
+              <ul>
+                <% (product?.details || ['100% Genuine Leather', 'Modern Slim Fit Design' , 'YKK Zipper'
+                  , 'Machine Washable' , 'Available in Multiple Colors' ]).forEach(detail=> { %>
+                  <li>
+                    <%= detail %>
+                  </li>
+                  <% }) %>
+              </ul>
+            </div>
+
+
+            <!-- <div class="tab-pane" id="reviews">
+              <% (product?.reviews || []).forEach(review=> { %>
+                <div class="review mb-3">
+                  <div class="star-rating">
+                    <%= review.rating || '★★★★☆' %>
+                  </div>
+                  <h5>
+                    <%= review.title || 'No Title' %>
+                  </h5>
+                  <p>
+                    <%= review.content || 'No review content available.' %>
+                  </p>
+                  <small class="text-muted">- <%= review.user || 'Anonymous' %></small>
+                </div>
+                <% }) %>
+            </div> -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Product Review Section -->
-    <div class="row mt-5">
-      <div class="col-md-12">
-        <h2 class="text-black">Customer Reviews</h2>
-
-        <!-- Display reviews -->
-        <div class="border p-3 mb-3">
-          <strong>John Doe</strong>
-          <span class="text-warning">★★★★☆</span>
-          <p>Great quality! Fits well and feels comfortable.</p>
-        </div>
-        <div class="border p-3 mb-3">
-          <strong>Jane Smith</strong>
-          <span class="text-warning">★★★☆☆</span>
-          <p>The material is good, but the size runs a bit small.</p>
-        </div>
-
-        <!-- Add a Review Form -->
-        <h3 class="text-black mt-5">Add a Review</h3>
-        <form action="#" method="post">
-          <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="rating">Rating</label>
-            <select id="rating" class="form-control" required>
-              <option value="5">★★★★★ - Excellent</option>
-              <option value="4">★★★★☆ - Good</option>
-              <option value="3">★★★☆☆ - Average</option>
-              <option value="2">★★☆☆☆ - Poor</option>
-              <option value="1">★☆☆☆☆ - Terrible</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="review">Your Review</label>
-            <textarea id="review" class="form-control" rows="4" required></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Submit Review</button>
-        </form>
-      </div>
-    </div>
+    <%- include("../partials/footer")%>
 
 
-    
-<%-include("../partials/footer")%>
-  </div>
+      <script>
 
-  <script src="/scripts/jquery-3.3.1.min.js"></script>
-  <script src="/scripts/jquery-ui.js"></script>
-  <script src="/scripts/popper.min.js"></script>
-  <script src="/scripts/bootstrap.min.js"></script>
-  <script src="/scripts/owl.carousel.min.js"></script>
-  <script src="/scripts/jquery.magnific-popup.min.js"></script>
-  <script src="/scripts/aos.js"></script>
-  <script src="/scripts/main.js"></script>
+        window.document.addEventListener("DOMContentLoaded", () => {
+
+
+
+          //zooming option
+
+
+          const zoomContainer = document.querySelector(".zoom-container");
+          const mainProductImage = document.getElementById("mainProductImage");
+
+          // Add mousemove event to dynamically adjust the zoom origin
+          zoomContainer.addEventListener("mousemove", (event) => {
+            const rect = zoomContainer.getBoundingClientRect(); // Get container's position and dimensions
+            const x = ((event.clientX - rect.left) / rect.width) * 100; // Calculate X percentage
+            const y = ((event.clientY - rect.top) / rect.height) * 100; // Calculate Y percentage
+
+            mainProductImage.style.transformOrigin = `${x}% ${y}%`; // Adjust zoom focus
+            mainProductImage.style.transform = "scale(2)"; // Apply zoom
+          });
+
+          // Reset the zoom on mouseleave
+          zoomContainer.addEventListener("mouseleave", () => {
+            mainProductImage.style.transform = "scale(1)"; // Reset to original size
+            mainProductImage.style.transformOrigin = "center center"; // Reset origin
+          });
+
+
+          //*******************************************************//
+
+
+          // Select the image gallery container
+          const imageGallery = document.getElementById("imageGallery");
+
+          // Add a click event listener to the gallery
+          imageGallery.addEventListener("click", (event) => {
+            // Check if the clicked element is an image
+            if (event.target.tagName === "IMG") {
+              // Get details of the clicked image
+              const clickedImage = event.target;
+              const imageSrc = clickedImage.getAttribute("src");
+              const dataLarge = clickedImage.getAttribute("data-large");
+              const altText = clickedImage.getAttribute("alt");
+
+              const mainProductImage = document.querySelector(".main-product-image");
+
+              if (mainProductImage && dataLarge) {
+                mainProductImage.setAttribute("src", dataLarge); // Correctly update the 'src' attribute
+              }
+
+            }
+          });
+
+
+
+          // State variables
+          const addToCartBtn = document.getElementById('add-to-cart-btn');
+          const quantityInput = document.getElementById('quantityInput');
+          const wishlistBtn = document.getElementById("addToWishlistBtn");
+
+          let selectedSize = null;
+          const sizeButtons = document.querySelectorAll('.size-btn');
+          const sizeError = document.getElementById('size-error');
+
+          // Handle size selection
+          sizeButtons.forEach(button => {
+            button.addEventListener('click', async function () {
+              // Remove selected class from all buttons
+              sizeButtons.forEach(btn => btn.classList.remove('selected'));
+
+              // Add selected class to clicked button
+              this.classList.add('selected');
+
+              // Store selected size
+              selectedSize = this.dataset.size;
+
+              // check the product available or not
+
+
+              const response = await fetch("/checkQuantity", {
+
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                }, body: JSON.stringify({ size: selectedSize, productId: "<%= product._id%>" })
+              })
+
+              if (!response.ok) {
+
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Server Error',
+                  text: 'Internal Server Error.',
+                });
+
+              } else {
+                const data = await response.json();
+
+                if (data.quantity <= 5) {
+                  sizeError.innerText = `Hurry up only ${data.quantity} items left`
+                  sizeError.style.display = 'block';
+
+
+                } else {
+
+                  sizeError.innerText = "";
+                  sizeError.style.display = 'none';
+
+                }
+
+              }
+
+            });
+          });
+
+
+
+          // Quantity Controls
+          const handleQuantityChange = (newValue) => {
+            const value = parseInt(newValue, 10);
+            quantityInput.value = isNaN(value) || value < 1 ? 1 : value;
+          };
+
+          document.getElementById('decreaseQty')?.addEventListener('click', () => {
+            handleQuantityChange(parseInt(quantityInput.value, 10) - 1);
+          });
+
+          document.getElementById('increaseQty')?.addEventListener('click', () => {
+            handleQuantityChange(parseInt(quantityInput.value, 10) + 1);
+          });
+
+          quantityInput?.addEventListener('input', (e) => {
+            handleQuantityChange(e.target.value);
+          });
+
+          // Validation
+          const validateProduct = () => {
+            if (!selectedSize) {
+              sizeError.style.display = 'block';
+              Swal.fire({
+                icon: 'error',
+                title: 'Size Required',
+                text: 'Please select a size before continuing.',
+              });
+              return false;
+            }
+            return true;
+          };
+
+
+          // Get Product Data
+          const getProductData = () => {
+            const productId = '<%= product?._id  %>';
+            const size = selectedSize;
+
+
+            if (!productId) throw new Error('Product ID not found');
+
+            return {
+              productId,
+              name: document.getElementById('productName')?.textContent || 'Unknown Product',
+              size: selectedSize,
+              quantity: parseInt(quantityInput?.value || '1', 10),
+              price: Number('<%= product.salePrice%>')
+            };
+          }
+
+
+
+
+          // Cart Operations
+          const addToCart = async () => {
+            try {
+              if (!validateProduct()) return;
+
+              const product = getProductData();
+              const response = await fetch('/addToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product })
+              });
+
+              const data = await response.json();
+
+              if (!response.ok) throw new Error(data.message || 'Failed to add to cart');
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Product added to cart successfully!'
+              });
+
+            } catch (error) {
+              console.error('Cart error:', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to add to cart'
+              });
+            }
+          };
+
+
+
+          // Wishlist Operations
+          const addToWishlist = async () => {
+            try {
+              if (!validateProduct()) return;
+
+              const product = getProductData();
+              const response = await fetch("/addToWishlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(product)
+              });
+
+              const data = await response.json();
+
+              if (!response.ok) throw new Error(data.message || 'Failed to add to wishlist');
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message || 'Added to wishlist successfully!'
+              });
+
+            } catch (error) {
+              console.error('Wishlist error:', error);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to add to wishlist'
+              });
+            }
+          };
+
+
+
+
+
+          // Event Listeners
+          document.getElementById('addToCartBtn')?.addEventListener('click', addToCart);
+          wishlistBtn?.addEventListener('click', addToWishlist);
+
+
+        });
+      </script>
+
+      <script src="/scripts/jquery-3.3.1.min.js"></script>
+      <script src="/scripts/jquery-ui.js"></script>
+      <script src="/scripts/popper.min.js"></script>
+      <script src="/scripts/bootstrap.min.js"></script>
+      <script src="/scripts/owl.carousel.min.js"></script>
+      <script src="/scripts/jquery.magnific-popup.min.js"></script>
+      <script src="/scripts/main.js"></script>
+      <script src="/scripts/aos.js"></script>
 
 </body>
 

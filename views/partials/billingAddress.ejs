@@ -1,0 +1,166 @@
+<div class="container mt-5">
+    <form id="checkoutForm">
+        <div class="row">
+            <div class="col-md-8">
+
+
+                <!-- Saved Addresses Dropdown -->
+                <div class="mb-3">
+                    <label class="form-label">Select Saved Address</label>
+                    <select class="form-select" id="savedAddressSelect">
+                        <option value="">Select a saved address</option>
+                    </select>
+                </div>
+                <!-- Address Type Selection -->
+                <div class="mb-3">
+                    <label class="form-label">Address Type</label>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="addressType" id="homeAddress" value="Home" checked>
+                        <label class="btn btn-outline-primary" for="homeAddress">Home</label>
+
+                        <input type="radio" class="btn-check" name="addressType" id="workAddress" value="Work">
+                        <label class="btn btn-outline-primary" for="workAddress">Work</label>
+
+                        <input type="radio" class="btn-check" name="addressType" id="otherAddress" value="Other">
+                        <label class="btn btn-outline-primary" for="otherAddress">Other</label>
+                    </div>
+                </div>
+
+                <!-- Personal and Address Information -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fullName" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">State*</label>
+                        <select id="state" class="form-select" aria-describedby="stateError" required>
+                            <option selected disabled value="">Select your state</option>
+                            <option>Andhra Pradesh</option>
+                            <option>Arunachal Pradesh</option>
+                            <option>Assam</option>
+                            <option>Bihar</option>
+                            <option>Chhattisgarh</option>
+                            <option>Goa</option>
+                            <option>Gujarat</option>
+                            <option>Haryana</option>
+                            <option>Himachal Pradesh</option>
+                            <option>Jharkhand</option>
+                            <option>Karnataka</option>
+                            <option>Kerala</option>
+                            <option>Madhya Pradesh</option>
+                            <option>Maharashtra</option>
+                            <option>Manipur</option>
+                            <option>Meghalaya</option>
+                            <option>Mizoram</option>
+                            <option>Nagaland</option>
+                            <option>Odisha</option>
+                            <option>Punjab</option>
+                            <option>Rajasthan</option>
+                            <option>Sikkim</option>
+                            <option>Tamil Nadu</option>
+                            <option>Telangana</option>
+                            <option>Tripura</option>
+                            <option>Uttar Pradesh</option>
+                        </select>
+                        <div class="error-message" id="stateError" role="alert"></div>
+                    </div>
+
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone *</label>
+                    <input type="number" class="form-control" id="phone" required>
+                </div>
+                <div class="mb-3">
+                    <label for="altPhone" class="form-label">alternative Phone </label>
+                    <input type="number" class="form-control" id="altPhone">
+                </div>
+
+                <div class="mb-3">
+                    <label for="city" class="form-label">City *</label>
+                    <input type="text" class="form-control" id="city" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="landmark" class="form-label">Landmark</label>
+                        <input type="text" class="form-control" id="landmark" >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="pincode" class="form-label">Pin Code *</label>
+                        <input type="number" class="form-control" id="pincode" required>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <!-- <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">Phone *</label>
+                        <input type="tel" class="form-control" id="phone" required>
+                    </div>
+                </div> -->
+
+                <!-- Payment Method -->
+                <div class="mb-3">
+                    <label class="form-label">Payment Method</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="COD"
+                            value="COD">
+                        <label class="form-check-label" for="COD">Cash On Delivery</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="Credit Card">
+                        <label class="form-check-label" for="creditCard">Credit Card</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="UPI"
+                            value="UPI">
+                        <label class="form-check-label" for="UPI">UPI</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="netBanking"
+                            value="Net Banking">
+                        <label class="form-check-label" for="netBanking">Net Banking</label>
+                    </div>
+                </div>
+
+                <!-- Order Notes -->
+                <div class="mb-3">
+                    <label for="orderNotes" class="form-label">Order Notes</label>
+                    <textarea class="form-control" id="orderNotes" rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Order Summary
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Your Items</h5>
+                        <ul class="list-group mb-3" id="orderItems">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>T-Shirt</span>
+                                <strong>$50.00</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Shipping</span>
+                                <strong>$10.00</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Total</strong>
+                                <strong>$60.00</strong>
+                            </li>
+                        </ul>
+                        <button type="submit" class="btn btn-primary w-100">Place Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

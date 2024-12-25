@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Nest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+    <!-- Template CSS -->
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include("partials/header")%>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Product Inventory</h2>
+                    <p>Add ,Edit stock.</p>
+                </div>
+
+            </div>
+            <div class="card mb-4">
+
+
+                <header class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col col-check flex-grow-0">
+
+                        </div>
+                        <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
+
+                            <form action="/admin/listStock" method="GET" class="d-flex align-items-center">
+                                <select name="category" class="form-select me-2" onchange="this.form.submit()">
+                                    <option value="all" <%=selectedCategory==='all' ? 'selected' : '' %>>All Categories
+                                    </option>
+                                    <% categories.forEach(category=> { %>
+                                        <option value="<%= category._id %>"
+                                            <%=selectedCategory===category._id.toString() ? 'selected' : '' %>>
+                                            <%= category.name %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="col-md-2 col-6">
+                            <select class="form-select">
+                                <option selected>Status</option>
+                                <option>Available</option>
+                                <option>Out Of Stock</option>
+                                <option>Discontinued</option>
+                            </select>
+                        </div>
+                    </div>
+                </header>
+                <!-- card-header end// -->
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Product Image</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Category</th>
+
+                                <th scope="col">Total Stock</th>
+                                <th scope="col">Status</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% products.forEach((product, index)=> { %>
+                                <tr>
+                                    <td>
+                                        <%= index + 1 %>
+                                    </td>
+                                    <td>
+                                        <img src="<%= product.productImage[0] %>" class="img-sm img-thumbnail"
+                                            alt="<%= product.productName %>" />
+                                    </td>
+                                    <td>
+                                        <%= product.productName %>
+                                    </td>
+                                    <td>
+                                        <%= product.description %>
+                                    </td>
+                                    <td>
+                                        <%= product.categoryName %>
+                                    </td>
+                                    <td>
+                                        <%= product.totalStock %>
+                                    </td>
+                                    <td>
+                                        <% if (product.isListed) { %>
+                                            <span class="badge rounded-pill alert-success">Listed</span>
+                                            <% } else { %>
+                                                <span class="badge rounded-pill alert-danger">Unlisted</span>
+                                                <% } %>
+                                    </td>
+
+                                    <!-- <td><%= product.category %></td> -->
+                                    <td>
+                                        <a href="/admin/addStock?_id=<%= product._id %>"
+                                            class="btn btn-sm font-sm rounded btn-brand">
+                                            <i class="material-icons md-edit"></i> Add Stock
+                                        </a>
+
+
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <!-- card-body end// -->
+            </div>
+
+            <div class="pagination-area mt-15 mb-50">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <% for(let i=1; i <=totalPages; i++) { %>
+                            <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                                <a class="page-link"
+                                    href="?page=<%= i %><%= selectedCategory !== 'all' ? '&category=' + selectedCategory : '' %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                    </ul>
+                </nav>
+            </div>
+
+
+        </section>
+        <!-- content-main end// -->
+        <%- include("partials/footer")%>
+</body>
+
+</html>

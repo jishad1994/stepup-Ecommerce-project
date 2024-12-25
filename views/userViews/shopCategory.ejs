@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>stepUp</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+  <link rel="stylesheet" href="/styles/fonts/icomoon/style.css">
+  <link rel="stylesheet" href="/styles/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/styles/css/magnific-popup.css">
+  <link rel="stylesheet" href="/styles/css/jquery-ui.css">
+  <link rel="stylesheet" href="/styles/css/owl.carousel.min.css">
+  <link rel="stylesheet" href="/styles/css/owl.theme.default.min.css">
+  <link rel="stylesheet" href="/styles/css/aos.css">
+  <link rel="stylesheet" href="/styles/css/style.css">
+</head>
+
+<body>
+
+  <div class="site-wrap">
+    <%- include("../partials/header") %>
+
+      <div class="bg-light py-3">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12 mb-0">
+              <a href="/">Home</a> <span class="mx-2 mb-0">/</span> <a href="/shopAll/">shop All Products</a><span
+                class="mx-2 mb-0">/ <%=categoryTitle%></span>
+
+              <% if (products.length===0) { %>
+                <div class="row">
+                  <div class="col-12 text-center">
+                    <h3 class="text-muted">No products found in this category</h3>
+                  </div>
+                </div>
+                <% } %>
+
+
+                  <% if (products.length> 0) { %>
+                    <% const categoryMap={ "674f1f1662333c214cfac645" : "Men" , "674f1f2762333c214cfac64c" : "Women"
+                      , "674f1f3662333c214cfac653" : "Kids" }; const categoryName=categoryMap[products[0].category]
+                      || "Unknown" ; %>
+
+                      <% } else { %>
+                        <!-- <strong class="text-black">No Products Found</strong> -->
+                        <% } %>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-section">
+        <div class="container">
+
+          <div class="row mb-5">
+            <div class="col-md-9 order-2">
+
+
+
+              <!-- search option -->
+              <div class="row mb-5">
+                <div class="col-md-12">
+                  <div class="float-md-left mb-4">
+                    <h2 class="text-black h5">Shop <%=categoryTitle%>
+                    </h2>
+                  </div>
+                  <div class="d-flex">
+                    <div class="dropdown mr-1 ml-md-auto">
+                      <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuOffset"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Sort By
+                      </button>
+                      <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
+                        <a class="dropdown-item <%= locals.currentSort === 'default' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=default<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Default
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'featured' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=featured<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Featured
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'newArrivals' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=newArrivals<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          New Arrivals
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'popularity' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=popularity<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Most Popular
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'priceLowToHigh' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=priceLowToHigh<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Price: Low to High
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'priceHighToLow' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=priceHighToLow<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Price: High to Low
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'nameAZ' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=nameAZ<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Name: A to Z
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'nameZA' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=nameZA<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Name: Z to A
+                        </a>
+                        <a class="dropdown-item <%= locals.currentSort === 'rating' ? 'active' : '' %>"
+                          href="/shopall/<%= pagination.categoryId%>?sort=rating<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
+                          Average Rating
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Product listing starts -->
+              <div class="row mb-5">
+                <% products.forEach(product=> { %>
+                  <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
+                    <div class="block-4 text-center border">
+                      <figure class="block-4-image">
+                        <a href="/product/<%= product._id %>">
+                          <img src="<%= product.productImage[0] %>" alt="<%= product.name %>" class="img-fluid">
+                        </a>
+                      </figure>
+                      <div class="block-4-text p-4">
+                        <h3><a href="/product/<%= product._id %>">
+                            <%= product.productName %>
+                          </a></h3>
+                        <p class="mb-0">
+                          <%= product.description %>
+                        </p>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                          <div>
+                            <% if (product.status) { %>
+                              <span
+                                class="badge badge-<%= product.status === 'In Stock' ? 'success' : (product.status === 'Out of Stock' ? 'danger' : 'warning') %>">
+                                <%= product.status %>
+                              </span>
+                              <% } %>
+                          </div>
+                          <div>
+                            <% if (product.salePrice) { %>
+                              <p class="text-muted mb-0 mr-2 text-decoration-line-through">
+                                $<%= product.regularPrice %>
+                              </p>
+                              <p class="text-primary font-weight-bold">
+                                $<%= product.salePrice %>
+                              </p>
+                              <% } else { %>
+                                <p class="text-primary font-weight-bold">
+                                  $<%= product.regularPrice %>
+                                </p>
+                                <% } %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <% }) %>
+              </div>
+
+              <!-- Pagination (optional) -->
+              <div class="row" data-aos="fade-up">
+                <div class="col-md-12 text-center">
+                  <div class="site-block-27">
+                    <ul>
+                      <% if (pagination.hasPrevPage) { %>
+                        <li>
+                          <a
+                            href="?page=<%= pagination.prevPage %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&lt;</a>
+                        </li>
+                        <% } %>
+
+                          <% pagination.pages.forEach(pageNum=> { %>
+                            <li class="<%= pageNum === pagination.currentPage ? 'active' : '' %>">
+                              <% if (pageNum===pagination.currentPage) { %>
+                                <span>
+                                  <%= pageNum %>
+                                </span>
+                                <% } else { %>
+                                  <a
+                                    href="?page=<%= pageNum %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">
+                                    <%= pageNum %>
+                                  </a>
+                                  <% } %>
+                            </li>
+                            <% }); %>
+
+                              <% if (pagination.hasNextPage) { %>
+                                <li>
+                                  <a
+                                    href="?page=<%= pagination.nextPage %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&gt;</a>
+                                </li>
+                                <% } %>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-md-3 order-1 mb-5 mb-md-0">
+              <!-- Categories Sidebar -->
+              <div class="border p-4 rounded mb-4">
+                <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
+                <ul class="list-unstyled mb-0">
+                  <li class="mb-1">
+                    <a href="#" class="d-flex">
+                      <span>Men</span> <span class="text-black ml-auto">(<%=menCount%>)</span>
+                    </a>
+                  </li>
+                  <li class="mb-1">
+                    <a href="#" class="d-flex">
+                      <span>Women</span> <span class="text-black ml-auto">(<%=womenCount%>)</span>
+                    </a>
+                  </li>
+                  <li class="mb-1">
+                    <a href="#" class="d-flex">
+                      <span>Children</span> <span class="text-black ml-auto">(<%=kidsCount%>)</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%- include("../partials/footer") %>
+  </div>
+
+  <script src="/scripts/jquery-ui.js"></script>
+  <script src="/scripts/jquery-3.3.1.min.js"></script>
+  <script src="/scripts/popper.min.js"></script>
+  <script src="/scripts/bootstrap.min.js"></script>
+  <script src="/scripts/owl.carousel.min.js"></script>
+  <script src="/scripts/jquery.magnific-popup.min.js"></script>
+  <script src="/scripts/aos.js"></script>
+  <script src="/scripts/main.js"></script>
+</body>
+
+</html>

@@ -17,20 +17,35 @@ const cartSchema = new Schema(
                 },
                 quantity: {
                     type: Number,
+                    required: true,
                     default: 1,
                     min: 1,
+                    max: 5,
                 },
-                price: { // Price specific to the product
+                price: {
                     type: Number,
                     required: true,
                     min: 0,
                 },
+                size: {
+                    type: String,
+                    required: true,
+                },
             },
         ],
-        totalPrice: { // Calculated total price for all items
+        totalPrice: {
             type: Number,
             default: 0,
             min: 0,
+        },
+        finalAmount: {
+            type: Number,
+            validate: {
+                validator: function (value) {
+                    return value >= 0 && value === this.totalPrice;
+                },
+                message: "Final amount must equal the total price.",
+            },
         },
         status: {
             type: String,
@@ -40,16 +55,32 @@ const cartSchema = new Schema(
         cancellationReason: {
             type: String,
             default: "none",
+            validate: {
+                validator: function (value) {
+                    return this.status === "Cancelled" ? value.trim().length > 0 : value === "none";
+                },
+                message: "Cancellation reason is required when the status is 'Cancelled'.",
+            },
+        },
+        currency: {
+            type: String,
+            default: "USD",
         },
     },
     { timestamps: true }
 );
 
 cartSchema.pre("save", function (next) {
-    // Recalculate the total price before saving
+    // Recalculate the total price and final amount before saving
     this.totalPrice = this.items.reduce((total, item) => {
         return total + item.quantity * item.price;
     }, 0);
+    this.finalAmount = this.totalPrice;
+
+    // Reset cancellation reason if status is not "Cancelled"
+    if (this.status !== "Cancelled") {
+        this.cancellationReason = "none";
+    }
     next();
 });
 

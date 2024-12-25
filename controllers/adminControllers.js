@@ -1,6 +1,9 @@
-const { log } = require("winston");
 const User = require("../model/userModel");
 const bcrypt = require("bcrypt");
+const Order = require("../model/orderModel");
+const Product = require("../model/productModel");
+const mongoose = require("mongoose");
+const Category = require("../model/categoryModel");
 
 const loadAdminLogin = async (req, res) => {
     try {
@@ -19,7 +22,7 @@ const loadAdminLogin = async (req, res) => {
 //post login
 const postAdminLogin = async (req, res) => {
     try {
-        console.log("post login worked")
+        console.log("post login worked");
         const { email, password } = req.body;
 
         // Validate input
@@ -33,7 +36,7 @@ const postAdminLogin = async (req, res) => {
         // Check if admin exists
         const isAdmin = await User.findOne({ email, isAdmin: true });
         if (!isAdmin) {
-            console.log("admin not find condition worked")
+            console.log("admin not find condition worked");
             return res.status(400).json({
                 success: false,
                 message: "Invalid credentials.",
@@ -119,7 +122,8 @@ const userInfo = async (req, res) => {
         const search = req.query.search || "";
 
         const query = {
-            isAdmin: false,
+            // isAdmin: false,
+            // isAdmin: true,
             $or: [
                 { name: { $regex: ".*" + search + ".*", $options: "i" } },
                 { email: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -175,6 +179,153 @@ const unblockUser = async (req, res) => {
     }
 };
 
+//list orders
+
+const listOrders = async (req, res) => {
+    try {
+        // Pagination logic
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = 8;
+        const skip = (page - 1) * limit;
+
+        // Fetch orders
+        const orders = await Order.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit);
+        const userIds = orders.map((order) => order.userId);
+        const users = await User.find({ _id: { $in: userIds } });
+
+        // Attach user emails to orders
+        orders.forEach((order) => {
+            const user = users.find((user) => user._id.toString() === order.userId.toString());
+            order.userEmail = user ? user.email : "Unknown";
+        });
+
+        // Pagination info
+        const totalOrders = await Order.countDocuments();
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        // Render the view
+        return res.render("listOrders", {
+            orders,
+            currentPage: page,
+            totalPages,
+            totalOrders,
+        });
+    } catch (error) {
+        console.error("Error while loading orders:", error.message);
+        return res.redirect("/admin/errorpage");
+    }
+};
+
+//show order details
+const showOrderDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            console.error("No order ID found in params");
+            return res.status(400).json({ success: false, message: "Order ID is required" });
+        }
+
+        // Find the order
+        const order = await Order.findById(id);
+        if (!order) {
+            console.error("Order not found");
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // Fetch the product IDs from the order
+        const productIds = order.items.map((item) => item.productId);
+        if (!productIds.length) {
+            console.warn("No products found in the order");
+            return res.render("orderDetailsAdminSide", { order, products: [], user: null });
+        }
+
+        // Fetch the products
+        const productDetails = await Product.find({ _id: { $in: productIds } });
+        console.log("product details", productDetails);
+
+        // Enhanced mapping with detailed logging
+        order.items = order.items.map((item) => {
+            const product = productDetails.find((prod) => prod._id.equals(item.productId));
+
+            if (!product) {
+                console.warn(`Product not found for ID: ${item.productId}`);
+            }
+
+            return {
+                ...item.toObject(),
+                product: product || null,
+            };
+        });
+
+        console.log("the order object is :", order.items);
+
+        // Find the user associated with the order or use default values
+        const user = (await User.findById(order.userId)) || { name: "Unknown", email: "Unknown" };
+
+        // Render the order details page
+        res.render("orderDetailsAdminSide", {
+            order,
+            products: productDetails, // Optional if detailed items are already in `order.items`
+            user,
+        });
+    } catch (error) {
+        console.error("Internal server error:", error.message);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+//change order status
+const changeOrderStatus = async (req, res) => {
+    try {
+        const { selectedStatus, currentStatus, _id } = req.body;
+
+        const validStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"];
+
+        // Validate inputs
+        if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+            return res.status(400).json({ success: false, message: "Invalid order ID" });
+        }
+
+        if (!selectedStatus) {
+            return res.status(400).json({ success: false, message: "Please select a valid status" });
+        }
+
+        if (!validStatuses.includes(selectedStatus)) {
+            return res.status(400).json({ success: false, message: "Invalid status" });
+        }
+
+        if (selectedStatus === currentStatus) {
+            return res.status(400).json({ success: false, message: "Cannot change to this status" });
+        }
+
+        // Fetch the order
+        const order = await Order.findOne({ _id });
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // Update the status
+        order.status = selectedStatus;
+        await order.save();
+
+        console.log("Order status changed successfully");
+        res.status(200).json({
+            success: true,
+            message: "Status changed successfully",
+            order,
+        });
+    } catch (error) {
+        console.error("Error changing order status:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+
+
+
+
 module.exports = {
     loadAdminLogin,
     postAdminLogin,
@@ -184,4 +335,7 @@ module.exports = {
     userInfo,
     blockUser,
     unblockUser,
+    listOrders,
+    showOrderDetails,
+    changeOrderStatus,
 };

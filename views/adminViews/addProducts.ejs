@@ -113,6 +113,23 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- offer addiing -->
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6>3. Product Offer</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-4">
+                                            <label class="form-label">Product Offer in % </label>
+                                            <input type="number" id="productOffer" name="productOffer" placeholder="0 %"
+                                                class="form-control" min="0" max="100" step="0.01">
+                                            <small class="text-danger" id="productOffer-error"></small>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!--  -->
 
 
                                 <hr class="mb-4 mt-0">
@@ -141,7 +158,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- is featured or not -->
+
 
 
 
@@ -194,10 +211,42 @@
                                     </div>
                                 </div>
                                 <!-- end -->
+                                <!-- is featured or not -->
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6>6. is Featured ?</h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-4">
+                                            <div class="row">
+
+                                                <div class="col-6 col-md-4 mb-2">
+                                                    <label class="form-check">
+                                                        <input class="form-check-input" type="radio" name="isFeatured"
+                                                            value="true">
+
+                                                        <span class="form-check-label">
+                                                            true
+                                                        </span>
+                                                    </label>
+                                                    <label class="form-check">
+                                                        <input class="form-check-input" type="radio" name="isFeatured"
+                                                            value="false" checked>
+
+                                                        <span class="form-check-label">
+                                                            false
+                                                        </span>
+                                                    </label>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <hr class="mb-4 mt-0">
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <h6>6. Media</h6>
+                                        <h6>7. Media</h6>
                                     </div>
                                     <div class="col-md-9">
                                         <div class="mb-4">
@@ -242,7 +291,7 @@
                     const cropSaveBtn = document.getElementById("crop-save-btn");
                     const cropCancelBtn = document.getElementById("crop-cancel-btn");
                     const imagesError = document.getElementById("images-error");
-
+                    const productOfferError = document.getElementById('productOffer-error');
 
                     const MAX_IMAGES = 5;
                     const MIN_IMAGES = 3;
@@ -393,6 +442,12 @@
                             document.getElementById('description-error').textContent = 'Description is required';
                             isValid = false;
                         }
+                        // validate offer percentage
+                        if (productOffer.value < 0 || productOffer.value > 100) {
+                            productOfferError.textContent = `offer cannot be ${productOffer.value < 0 ? 'less than zero' : 'greater than 100'}`
+                            isValid = false
+                        }
+
 
                         // Cost validation
                         const regularPrice = document.getElementById('regular-price');
@@ -518,14 +573,8 @@
 
                             const formData = new FormData(form);
 
-
                             //append the stock arry to formData
                             formData.append('stock', stockJson);
-
-
-
-
-
 
 
                             // Clear existing images and append cropped images

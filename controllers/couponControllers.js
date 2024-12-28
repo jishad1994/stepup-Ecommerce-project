@@ -6,6 +6,8 @@ const Wishlist = require("../model/wishlistSchema.js");
 const Cart = require("../model/cartSchema.js");
 const Order = require("../model/orderModel.js");
 const Coupon = require("../model/couponSchema.js");
+const couponSchema = require("../model/couponSchema.js");
+const mongoose = require("mongoose");
 
 //load coupon page
 const loadAddCoupon = async (req, res) => {
@@ -82,13 +84,23 @@ const postAddCoupon = async (req, res) => {
 // List Coupons
 const listCoupons = async (req, res) => {
     try {
-        // Fetch all coupons from the database
-        const coupons = await Coupon.find({});
+        //paging logic for how many data to fetch and display
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8;
+        const skip = (page - 1) * limit;
 
-        // Render the coupons page with fetched coupons
+        // Get  coupons
+        const coupons = await Coupon.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+        // Count total products based on filter
+        const totalCoupons = await Coupon.countDocuments();
+        const totalPages = Math.ceil(totalCoupons / limit);
+
         res.render("coupons", {
-            coupons: coupons || [],
-            pageTitle: "Coupons List",
+            coupons,
+            currentPage: page,
+            totalPages,
+            totalCoupons,
         });
     } catch (error) {
         console.error("Error while loading coupons page:", error.message);
@@ -102,10 +114,85 @@ const listCoupons = async (req, res) => {
     }
 };
 
+const deleteCoupon = async (req, res) => {
+    try {
+        const { _id } = req.query;
+
+        // Validate the presence of _id
+        if (!_id) {
+            return res.status(400).json({ success: false, message: "No coupon _id provided." });
+        }
+
+        // Optional: Validate if _id is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(_id)) {
+            return res.status(400).json({ success: false, message: "Invalid coupon _id." });
+        }
+
+        // Attempt to delete the coupon
+        const deletedCoupon = await Coupon.findOneAndDelete({ _id });
+
+        // Check if the coupon existed and was deleted
+        if (!deletedCoupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+
+        // Redirect after successful deletion
+        return res.redirect("/admin/listCoupons");
+    } catch (error) {
+        console.error("Error while deleting coupon:", error.message);
+
+        // Handle errors with a generic response or render an error page
+        return res.status(500).json({ success: false, message: "internal server error " });
+    }
+};
+
+//change changeCouponStatus
+const changeCouponStatus = async (req, res) => {
+    try {
+        const { _id } = req.query;
+
+        // Validate the presence of _id
+        if (!_id) {
+            return res.status(400).json({ success: false, message: "No coupon _id provided." });
+        }
+
+        // Optional: Validate if _id is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(_id)) {
+            return res.status(400).json({ success: false, message: "Invalid coupon _id." });
+        }
+
+        // Find the coupon by _id
+        const coupon = await Coupon.findById(_id);
+
+        // Check if the coupon exists
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found." });
+        }
+
+        // Toggle the coupon's active status
+        coupon.isActive = !coupon.isActive;
+
+        // Save the updated coupon
+        await coupon.save();
+
+        // Redirect to the coupon listing page
+        return res.redirect("/admin/listCoupons");
+    } catch (error) {
+        console.error("Error while changing coupon status:", error.message);
+
+        // Handle errors by rendering an error page or returning a response
+        return res
+            .status(500)
+            .json({ success: false, message: "An unexpected error occurred while updating the coupon status." });
+    }
+};
+
 module.exports = {
     loadAddCoupon,
     postAddCoupon,
     listCoupons,
+    deleteCoupon,
+    changeCouponStatus,
 };
 
 // Validation helper functions
@@ -115,7 +202,7 @@ const validateCouponInput = (data) => {
     // Validate required fields
     if (!data.code || typeof data.code !== "string" || data.code.trim() === "") {
         errors.code = "Coupon code is required";
-    } else if (!/^[A-Za-z0-9]+$/.test(data.code)) {
+    } else if (!/^[A-Za-z@#*0-9]+$/.test(data.code)) {
         errors.code = "Coupon code must be alphanumeric";
     }
 

@@ -291,10 +291,15 @@
             <% if (product?.regularPrice && product?.salePrice) { %>
               <span class="text-decoration-line-through text-muted me-2" id="regularPrice">$<%= product.regularPrice %>
               </span>
+              <% if(product.isOfferApplied){%>
+                <span class="text-danger fw-bold" id="offerPrice">$<%= product.offerPrice %></span><span class="badge rounded-pill bg-info shadow  m-2 text-white p-1 "> Offer
+                  price</span>
+                <%}else{%>
               <span class="text-danger fw-bold" id="salePrice">$<%= product.salePrice %></span>
               <span class="badge bg-danger ms-2">
                 <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% OFF
               </span>
+              <%}%>
               <br>
               <%if (product.status=='Available' ){%>
                 <span class="available-badge">Available</span>
@@ -598,7 +603,9 @@
               Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: 'Product added to cart successfully!'
+                text: 'Product added to cart successfully!',
+                showConfirmButton: false,
+                timer: 2000,
               });
 
             } catch (error) {
@@ -632,7 +639,9 @@
               Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: data.message || 'Added to wishlist successfully!'
+                text: data.message || 'Added to wishlist successfully!',
+                showConfirmButton: false,
+                timer: 2000,
               });
 
             } catch (error) {

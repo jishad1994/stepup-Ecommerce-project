@@ -57,14 +57,14 @@ const editUpload = multer({
 
 const addProducts = async (req, res) => {
     try {
-        const { title, description, regularPrice, salePrice, stock, category } = req.body;
+        const { title, description, regularPrice, salePrice, stock, category, isFeatured, productOffer } = req.body;
 
         // Comprehensive input validation
         const errors = [];
 
         if (!title || title.trim() === "") errors.push("Title is required");
         if (!stock || stock.length == 0) errors.push("quantity cannot be zero while adding product");
-
+        if (productOffer > 100 || productOffer < 0) errors.push("Add a valid offer percentage");
         if (!description || description.trim() === "") errors.push("Description is required");
         if (!regularPrice || isNaN(parseFloat(regularPrice)) || parseFloat(regularPrice) <= 0)
             errors.push("Invalid regular price");
@@ -128,6 +128,20 @@ const addProducts = async (req, res) => {
             })
         );
 
+        // Handle product offer
+
+        let isOfferApplied;
+        let offerPrice;
+        if (productOffer && productOffer > 0) {
+            isOfferApplied = true;
+
+            offerPrice = salePrice * (1 - productOffer / 100); // Calculate discounted price
+        } else {
+            isOfferApplied = false;
+
+            offerPrice = 0;
+        }
+
         // Create product in database
         const newProduct = await Product.create({
             productName: title,
@@ -136,7 +150,11 @@ const addProducts = async (req, res) => {
             salePrice: parseFloat(salePrice),
             stock: JSON.parse(stock),
             category,
+            isOfferApplied,
+            productOffer,
+            offerPrice,
             productImage: imageUrls,
+            isFeatured,
         });
 
         res.status(201).json({
@@ -257,16 +275,16 @@ const loadEditProductsPage = async (req, res) => {
     }
 };
 
-//edit products
+//edit product
 const editProduct = async (req, res) => {
     try {
-        const { productId, title, description, regularPrice, salePrice, category, stock } = req.body;
+        const { productId, title, description, regularPrice, salePrice, category, stock, productOffer } = req.body;
 
         // Validate input
         const errors = [];
         if (!title || title.trim() === "") errors.push("Title is required");
-        if (!stock || stock.length == 0) errors.push("Stock quantity is not added");
-
+        if (!stock || stock.length === 0) errors.push("Stock quantity is not added");
+        if (productOffer > 100 || productOffer < 0) errors.push("Add a valid offer percentage");
         if (!description || description.trim() === "") errors.push("Description is required");
         if (!regularPrice || isNaN(parseFloat(regularPrice)) || parseFloat(regularPrice) <= 0)
             errors.push("Invalid regular price");
@@ -278,18 +296,16 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ success: false, message: "Validation Failed", errors });
         }
 
-        //check the product name alreday exists
-
+        // Check if the product name already exists
         const isNameExists = await Product.findOne({
             _id: { $ne: productId },
             productName: { $regex: `^${title}$`, $options: "i" },
         });
 
         if (isNameExists) {
-            console.error("Product name already exists");
             return res.status(400).json({
                 success: false,
-                message: "Product Name Already Exists.Try New One",
+                message: "Product Name Already Exists. Try a new one.",
             });
         }
 
@@ -299,13 +315,26 @@ const editProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // Update text fields
+        // Update product fields
         product.productName = title;
         product.description = description;
         product.regularPrice = parseFloat(regularPrice);
-        product.salePrice = parseFloat(salePrice);
         product.category = category;
         product.stock = JSON.parse(stock);
+
+        // Handle product offer
+        if (productOffer && productOffer > 0) {
+            product.isOfferApplied = true;
+            product.productOffer = productOffer;
+            product.offerPrice = product.salePrice * (1 - productOffer / 100); // Calculate discounted price
+        } else {
+            product.isOfferApplied = false;
+            product.productOffer = 0;
+            product.offerPrice = 0;
+        }
+
+        // Handle sale price
+        product.salePrice = parseFloat(salePrice);
 
         // Handle images
         const uploadDir = path.resolve(__dirname, "../public/uploads/products");
@@ -319,21 +348,17 @@ const editProduct = async (req, res) => {
             return `/uploads/products/${filename}`;
         });
 
-        //find the length of existing images folder
-        const existingImages = product.productImage;
-        const existingNumberOfImages = product.productImage.length;
-        console.log("num of exstng imgs", existingNumberOfImages);
-        let imageUrls = await Promise.all(newImages);
-
-        //avoid uplodaing duplicate images
-        imageUrls.map((imageUrl) => {
+        // Avoid uploading duplicate images
+        const imageUrls = await Promise.all(newImages);
+        imageUrls.forEach((imageUrl) => {
             if (!product.productImage.includes(imageUrl)) {
                 product.productImage.push(imageUrl);
             }
         });
 
+        // Check minimum image count
         if (product.productImage.length < 3) {
-            return res.status(400).json({ success: false, message: "Atleast 3 defferent images should be uploaded " });
+            return res.status(400).json({ success: false, message: "At least 3 different images should be uploaded." });
         }
 
         // Save updated product

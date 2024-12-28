@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Sales Reports - Nest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <%- include('partials/header')%>
+
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Generate Sales Reports</h2>
+                    <p>View and download sales reports by different time periods</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-3">
+                            <form id="sales_report_form">
+                                <!-- Report Type Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label">Report Type</label>
+                                    <select class="form-select" id="report_type" onchange="toggleDateInputs()">
+                                        <option value="daily">Daily Report</option>
+                                        <option value="weekly">Weekly Report</option>
+                                        <option value="yearly">Yearly Report</option>
+                                        <option value="custom">Custom Date Range</option>
+                                    </select>
+                                </div>
+
+                                <!-- Daily Report Date -->
+                                <div id="daily_input" class="mb-4">
+                                    <label class="form-label">Select Date</label>
+                                    <input type="date" class="form-control" id="daily_date">
+                                </div>
+
+                                <!-- Weekly Report -->
+                                <div id="weekly_input" class="mb-4" style="display: none;">
+                                    <label class="form-label">Select Week</label>
+                                    <input type="week" class="form-control" id="weekly_date">
+                                </div>
+
+                                <!-- Yearly Report -->
+                                <div id="yearly_input" class="mb-4" style="display: none;">
+                                    <label class="form-label">Select Year</label>
+                                    <select class="form-select" id="yearly_date">
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                        <option value="2022">2022</option>
+                                    </select>
+                                </div>
+
+                                <!-- Custom Date Range -->
+                                <div id="custom_input" class="mb-4" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Start Date</label>
+                                            <input type="date" class="form-control" id="start_date">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">End Date</label>
+                                            <input type="date" class="form-control" id="end_date">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Report Format -->
+                                <div class="mb-4">
+                                    <label class="form-label">Download Format</label>
+                                    <select class="form-select" id="report_format">
+                                        <option value="pdf">PDF</option>
+                                        <option value="excel">Excel</option>
+                                    </select>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" type="submit">Generate Report</button>
+                                    <button class="btn btn-success" type="button" id="preview_report">Preview
+                                        Report</button>
+                                    <button class="btn btn-outline-secondary" type="reset">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <%- include('partials/footer')%>
+
+            <script>
+                function toggleDateInputs() {
+                    const reportType = document.getElementById('report_type').value;
+
+                    // Hide all date inputs first
+                    document.getElementById('daily_input').style.display = 'none';
+                    document.getElementById('weekly_input').style.display = 'none';
+                    document.getElementById('yearly_input').style.display = 'none';
+                    document.getElementById('custom_input').style.display = 'none';
+
+                    // Show selected input
+                    switch (reportType) {
+                        case 'daily':
+                            document.getElementById('daily_input').style.display = 'block';
+                            break;
+                        case 'weekly':
+                            document.getElementById('weekly_input').style.display = 'block';
+                            break;
+                        case 'yearly':
+                            document.getElementById('yearly_input').style.display = 'block';
+                            break;
+                        case 'custom':
+                            document.getElementById('custom_input').style.display = 'block';
+                            break;
+                    }
+                }
+
+                // Add this script to your sales report page
+                document.addEventListener('DOMContentLoaded', function () {
+                    const reportForm = document.getElementById('sales_report_form');
+                    const previewBtn = document.getElementById('preview_report');
+
+                    // Preview Report
+                    previewBtn.addEventListener('click', async function (e) {
+                        e.preventDefault();
+                        await generateReport('preview');
+                    });
+
+                    // Generate & Download Report
+                    reportForm.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        const format = document.getElementById('report_format').value;
+                        await generateReport(format);
+                    });
+
+                    async function generateReport(format) {
+                        try {
+                            const reportType = document.getElementById('report_type').value;
+                            let startDate, endDate;
+
+                            // Get dates based on report type
+                            switch (reportType) {
+                                case 'daily':
+                                    startDate = document.getElementById('daily_date').value;
+                                    endDate = startDate;
+                                    break;
+                                case 'weekly':
+                                    startDate = document.getElementById('weekly_date').value;
+                                    // Convert week format to date
+                                    let [year, week] = startDate.split('-W');
+                                    startDate = getDateOfWeek(parseInt(week), parseInt(year));
+                                    break;
+                                case 'yearly':
+                                    startDate = `${document.getElementById('yearly_date').value}-01-01`;
+                                    endDate = `${document.getElementById('yearly_date').value}-12-31`;
+                                    break;
+                                case 'custom':
+                                    startDate = document.getElementById('start_date').value;
+                                    endDate = document.getElementById('end_date').value;
+                                    break;
+                            }
+
+                            // Validate dates
+                            if (!startDate) {
+                                Swal.fire('Error', 'Please select a date', 'error');
+                                return;
+                            }
+
+                            const requestData = {
+                                reportType,
+                                startDate,
+                                endDate,
+                                format
+                            };
+
+                            if (format === 'preview') {
+                                // Fetch JSON data for preview
+                                const response = await fetch('/admin/generateSalesReports', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(requestData)
+                                });
+
+                                if (!response.ok) throw new Error('Failed to generate report');
+
+                                const data = await response.json();
+                                if (data.success) {
+                                    showPreviewModal(data.data);
+                                } else {
+                                    throw new Error(data.error);
+                                }
+                            } else {
+                                // Download file (PDF/Excel)
+                                const response = await fetch('/admin/generateSalesReports', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(requestData)
+                                });
+
+                                if (!response.ok) throw new Error('Failed to generate report');
+
+                                // Create blob and download
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `sales-report-${startDate}${endDate ? '-to-' + endDate : ''}.${format}`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                a.remove();
+
+                                Swal.fire('Success', 'Report downloaded successfully', 'success');
+                            }
+
+                        } catch (error) {
+                            console.error('Error:', error);
+                            Swal.fire('Error', error.message, 'error');
+                        }
+                    }
+
+                    // Helper function to show preview modal
+                    function showPreviewModal(reportData) {
+                        const modal = document.createElement('div');
+                        modal.innerHTML = `
+            <div class="modal fade" id="previewModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Sales Report</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6>Summary</h6>
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td>Total Orders</td>
+                                            <td>${reportData.summary.totalOrders}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Sales</td>
+                                            <td>$${reportData.summary.totalSales.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Shipping</td>
+                                            <td>$${reportData.summary.totalShipping.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Orders with Discount</td>
+                                            <td>${reportData.summary.discountedOrders}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Discount Amount</td>
+                                            <td>$${reportData.summary.totalDiscount.toFixed(2)}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h6>Daily Breakdown</h6>
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Orders</th>
+                                                <th>Revenue</th>
+                                                <th>Discount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${reportData.dailyBreakdown.map(day => `
+                                                <tr>
+                                                    <td>${day._id}</td>
+                                                    <td>${day.orders}</td>
+                                                    <td>$${day.revenue.toFixed(2)}</td>
+                                                    <td>$${day.discount.toFixed(2)}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h6>Popular Products</h6>
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Quantity Sold</th>
+                                                <th>Revenue</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${reportData.popularProducts.map(product => `
+                                                <tr>
+                                                    <td>${product.productDetails[0]?.productName || 'N/A'}</td>
+                                                    <td>${product.totalQuantity}</td>
+                                                    <td>$${product.totalRevenue.toFixed(2)}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                        document.body.appendChild(modal);
+                        const modalElement = new bootstrap.Modal(document.getElementById('previewModal'));
+                        modalElement.show();
+
+                        // Clean up modal when closed
+                        document.getElementById('previewModal').addEventListener('hidden.bs.modal', function () {
+                            this.remove();
+                        });
+                    }
+
+                    // Helper function to get date from week number
+                    function getDateOfWeek(week, year) {
+                        const simple = new Date(year, 0, 1 + (week - 1) * 7);
+                        const dow = simple.getDay();
+                        const ISOweekStart = simple;
+                        if (dow <= 4)
+                            ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+                        else
+                            ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+                        return ISOweekStart.toISOString().split('T')[0];
+                    }
+                });
+            </script>
+</body>
+
+</html>

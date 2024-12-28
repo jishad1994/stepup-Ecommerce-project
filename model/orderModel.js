@@ -63,6 +63,11 @@ const orderSchema = new Schema(
             default: false,
         },
         couponDetails: {
+            couponId: {
+                type: Schema.Types.ObjectId,
+                ref: "Coupon",
+                required: true,
+            },
             couponName: {
                 type: String,
                 required: false,
@@ -73,6 +78,10 @@ const orderSchema = new Schema(
             },
             percentage: {
                 type: Number,
+                required: false,
+            },
+            discountType: {
+                type: "String",
                 required: false,
             },
         },

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Nest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+    <!-- Template CSS -->
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include("partials/header")%>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Coupon List</h2>
+                    <p>List and Delete Coupons.</p>
+                </div>
+
+            </div>
+            <div class="card mb-4">
+
+
+                <header class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col col-check flex-grow-0">
+
+                        </div>
+
+
+                        <!-- <div class="col-md-2 col-6">
+                            <select class="form-select">
+                                <option selected>Code</option>
+                                <option>Status</option>
+                                <option>Ot</option>
+                                <option>Discontinued</option>
+                            </select>
+                        </div> -->
+                    </div>
+                </header>
+                <!-- card-header end// -->
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Coupon Code</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Starts On</th>
+                                <th scope="col">Ends On</th>
+                                <th scope="col">Discount Value</th>
+                                <th scope="col">Max D Value</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if(coupons.length==0){%>
+                                <h2>No Coupons Available</h2>
+                                <%}else{%>
+                                    <% coupons.forEach((coupon, index)=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= index + 1 %>
+                                            </td>
+
+                                            <td>
+                                                <%= coupon.code %>
+                                            </td>
+                                            <td>
+                                                <%= coupon.discountType %>
+                                            </td>
+                                            <td>
+                                                <%= new Date(coupon.startDate).toLocaleDateString() %>
+                                            </td>
+                                            <td>
+                                                <%= new Date(coupon.endDate).toLocaleDateString() %>
+                                            </td>
+
+                                            <% if(coupon.discountType=="percentage" ){%>
+                                                <td>
+                                                    <%= coupon.discountValue%> %
+                                                </td>
+                                                <%}else{%>
+                                                    <td>
+                                                        $ <%= coupon.discountValue%>
+                                                    </td>
+
+                                                    <%}%>
+                                                        <td>
+                                                            $ <%= coupon.maxDiscountValue%>
+                                                        </td>
+                                                        <td>
+                                                            <% if (coupon.isActive) { %>
+                                                                <span
+                                                                    class="badge rounded-pill alert-success">Active</span>
+                                                                <% } else { %>
+                                                                    <span
+                                                                        class="badge rounded-pill alert-danger">Inactive
+                                                                    </span>
+                                                                    <% } %>
+                                                        </td>
+
+                                                        <td>
+                                                            <a href="/admin/deleteCoupon?_id=<%= coupon._id %>"
+                                                                class="btn btn-sm font-sm rounded btn-brand">
+                                                                <i class="material-icons md-edit"></i> Delete
+                                                            </a>
+
+                                                            <% if (coupon.isActive) { %>
+                                                                <a href="/admin/couponStatusChange?_id=<%= coupon._id %>"
+                                                                    class="btn btn-sm font-sm btn-light rounded text-danger">
+                                                                    <i class="material-icons"></i> Deactivate
+                                                                </a>
+                                                                <% } else { %>
+                                                                    <a href="/admin/couponStatusChange?_id=<%= coupon._id %>"
+                                                                        class="btn btn-sm font-sm btn-light rounded">
+                                                                        <i class="material-icons"></i> Activate
+                                                                    </a>
+                                                                    <% } %>
+                                                        </td>
+                                        </tr>
+                                        <% }); %>
+                                            <%}%>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <!-- card-body end// -->
+            </div>
+
+            <div class="pagination-area mt-15 mb-50">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <% for(let i=1; i <=totalPages; i++) { %>
+                            <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                    </ul>
+                </nav>
+            </div>
+
+        </section>
+        <!-- content-main end// -->
+        <%- include("partials/footer")%>
+</body>
+
+</html>

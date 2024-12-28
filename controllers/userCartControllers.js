@@ -9,10 +9,24 @@ const loadCartPage = async (req, res) => {
     try {
         const email = req.user?.email;
 
+        //destroy the session from coupon
+        req.session.destroy((err) => {
+            if (err) {
+                throw new Error("Failed to destroy session");
+            }
+            // Clear session cookie
+            res.clearCookie("connect.sid"); // Replace 'connect.sid' with your session cookie name
+            console.log("session DESTROYED SUCCESSFULLY");
+        });
+
+        console.log("session in cart is ", req.session);
+
         // Find the user by email
         const user = await User.findOne({ email });
         if (!user) {
             return res.render("cart", { cart: {}, products: [] });
+
+            
         }
 
         const userId = user._id;
@@ -172,7 +186,7 @@ const removeFromCart = async (req, res) => {
             return res.status(404).json({ success: false, message: "Cart not found" });
         }
 
-        return res.redirect("/cart")
+        return res.redirect("/cart");
     } catch (error) {
         console.error("Error removing item from cart:", error);
         return res.status(500).json({

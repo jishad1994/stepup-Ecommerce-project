@@ -48,9 +48,15 @@
 
                 <div class="mb-4">
                   <label class="form-label">Description</label>
-                  <textarea placeholder="Type here" id="description" class="form-control"></textarea>
+                  <textarea placeholder="Type here" id="description" class="form-control" required></textarea>
                   <p id="descriptionError" class="text-danger error-message"></p>
                 </div>
+                <!-- <div class="mb-4">
+                  <label class="form-label">Category Offer</label>
+                  <input type="number" placeholder="%" max="100" min="0" id="CategoryOffer"
+                    class="form-control"></input>
+                  <p id="offerError" class="text-danger error-message"></p>
+                </div> -->
                 <div class="d-grid">
                   <button class="btn btn-primary" type="submit">Create category</button>
                 </div>
@@ -93,39 +99,45 @@
                             <td class="text-danger">Unlisted</td>
                             <% } %>
 
-                            <% if (category.isDeleted) { %>
-                              <td class="text-danger">true</td>
-                              <% } else { %>
-                                <td >false</td>
-                                <% } %>
-                              
+                              <% if (category.isDeleted) { %>
+                                <td class="text-danger">true</td>
+                                <% } else { %>
+                                  <td>false</td>
+                                  <% } %>
 
-                              <td class="text-end">
-                                <div class="dropdown">
-                                  <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
-                                    <i class="material-icons md-more_horiz"></i>
-                                  </a>
-                                  <div class="dropdown-menu">
-                                    <!-- <a class="dropdown-item" href="#">Details</a> -->
-                                    <a class="dropdown-item" href="/admin/loadUpdateCategory?name=<%=category.name%>">Edit</a>
-                                    <% if (category.isListed) { %>
-                                      <a class="dropdown-item text-danger" href="/admin/categoryUnlist?name=<%=category.name%>">Unlist</a>
 
-                                      <% } else { %>
-                                        <a class="dropdown-item" href="/admin/categoryList?name=<%=category.name%>">List</a>
+                                    <td class="text-end">
+                                      <div class="dropdown">
+                                        <a href="#" data-bs-toggle="dropdown"
+                                          class="btn btn-light rounded btn-sm font-sm">
+                                          <i class="material-icons md-more_horiz"></i>
+                                        </a>
+                                        <div class="dropdown-menu">
+                                          <!-- <a class="dropdown-item" href="#">Details</a> -->
+                                          <a class="dropdown-item"
+                                            href="/admin/loadUpdateCategory?name=<%=category.name%>">Edit</a>
+                                          <% if (category.isListed) { %>
+                                            <a class="dropdown-item text-danger"
+                                              href="/admin/categoryUnlist?name=<%=category.name%>">Unlist</a>
 
-                                        <% } %>
-                                        <% if (category.isDeleted) { %>
-                                          <a class="dropdown-item " href="/admin/deleteOrUndoCategory?name=<%=category.name%>">Restore</a>
-    
-                                          <% } else { %>
-                                            <a class="dropdown-item text-danger" href="/admin/deleteOrUndoCategory?name=<%=category.name%>">SoftDelete</a>
-    
-                                            <% } %>
+                                            <% } else { %>
+                                              <a class="dropdown-item"
+                                                href="/admin/categoryList?name=<%=category.name%>">List</a>
 
-                                  </div>
-                                </div>
-                              </td>
+                                              <% } %>
+                                                <% if (category.isDeleted) { %>
+                                                  <a class="dropdown-item "
+                                                    href="/admin/deleteOrUndoCategory?name=<%=category.name%>">Restore</a>
+
+                                                  <% } else { %>
+                                                    <a class="dropdown-item text-danger"
+                                                      href="/admin/deleteOrUndoCategory?name=<%=category.name%>">SoftDelete</a>
+
+                                                    <% } %>
+
+                                        </div>
+                                      </div>
+                                    </td>
                       </tr>
                       <% }); %>
                   </tbody>
@@ -189,6 +201,7 @@
 
               const name = document.getElementById("category_name").value.trim();
               const description = document.getElementById("description").value.trim();
+             
 
 
               const response = await fetch("/admin/addCategory", {

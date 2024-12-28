@@ -72,6 +72,50 @@ const cancelOrder = async (req, res) => {
             order.status = "Cancelled";
             await order.save();
 
+            //update the product stock and product purchase count if order placement sucesfull
+
+            const productIds = order.items.map((item) => item.productId);
+
+            const productsToUpdate = await Product.find({ _id: { $in: productIds } });
+            const updatedProducts = [];
+            order.items.map((item) => {
+                const product = productsToUpdate.find((p) => p._id.equals(item.productId));
+                //decrease the purchase count
+                product.purchaseCount -= item.quantity;
+
+                //adjust quantity of the specific size
+                product.stock.map((stockItem, index) => {
+                    if (stockItem.size == item.size) {
+                        product.stock[index].quantity += item.quantity;
+                    }   
+                });
+
+                updatedProducts.push(product);
+            });
+
+            const bulkOperations = updatedProducts.map((product) => ({
+                updateOne: {
+                    filter: { _id: product._id },
+                    update: { $set: { stock: product.stock }, purchaseCount: product.purchaseCount },
+                },
+            }));
+
+            await Product.bulkWrite(bulkOperations);
+
+            /////
+
+            // Fetch all updated products to recalculate `totalStock`
+            const products = await Product.find({ _id: { $in: productIds } });
+
+            // Update `totalStock` and `status` for each product
+            await Promise.all(
+                products.map(async (product) => {
+                    product.totalStock = product.stock.reduce((total, item) => total + item.quantity, 0);
+                    product.status = product.totalStock > 0 ? "Available" : "Out of Stock";
+                    await product.save();
+                })
+            );
+
             console.log("Order cancellation successful");
             return res.status(200).json({ success: true, message: "Order cancellation successful" });
         } else {
@@ -109,16 +153,16 @@ const showDetails = async (req, res) => {
         const productIds = order.items.map((item) => item.productId);
 
         //find the prodcuts to display images
-         // Fetch the products
-         const products = await Product.find({ _id: { $in: productIds } });
+        // Fetch the products
+        const products = await Product.find({ _id: { $in: productIds } });
 
-         //
-         if (productIds.length === 0) {
+        //
+        if (productIds.length === 0) {
             console.log("No products found in the order");
             return res.render("orderDetails", { order, products: [] });
         }
-        
-         //render page
+
+        //render page
         res.render("orderDetails", { order, products });
     } catch (error) {
         console.log("internal server error");

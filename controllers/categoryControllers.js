@@ -1,4 +1,5 @@
 const Category = require("../model/categoryModel");
+const Product = require("../model/productModel");
 
 const categoryInfo = async (req, res) => {
     try {
@@ -99,36 +100,38 @@ const loadUpdateCategory = async (req, res) => {
 //update category
 const updateCategory = async (req, res) => {
     try {
-        const { originalName, name, description } = req.body;
+        const { originalName, name, description, categoryOffer } = req.body;
+        console.log("req body", req.body);
 
         // Input validation
         if (!name || !description) {
             return res.status(400).json({
                 success: false,
-                message: "Name and description are required",
+                message: "Name and description are required.",
+            });
+        }
+        if (categoryOffer > 100 || categoryOffer < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid offer percentage (0-100).",
             });
         }
 
-        // Check if the new name already exists (excluding current category)
-        const existingCategory = await Category.findOne({
-            name: name,
-        });
-        console.log(existingCategory);
-
+        // Check if the new name already exists (excluding the current category)
+        const existingCategory = await Category.findOne({ name });
         if (existingCategory && existingCategory?.name !== originalName) {
             return res.status(400).json({
                 success: false,
-                message: "A category with this name already exists",
+                message: "A category with this name already exists.",
             });
         }
 
         // Find the original category
         const category = await Category.findOne({ name: originalName });
-
         if (!category) {
             return res.status(404).json({
                 success: false,
-                message: "Category not found",
+                message: "Category not found.",
             });
         }
 
@@ -139,6 +142,7 @@ const updateCategory = async (req, res) => {
                 $set: {
                     name,
                     description,
+                    categoryOffer,
                 },
             }
         );
@@ -147,19 +151,41 @@ const updateCategory = async (req, res) => {
         if (updateResult.modifiedCount === 0) {
             return res.status(500).json({
                 success: false,
-                message: "Failed to update category",
+                message: "Failed to update category.",
             });
+        }
+
+        // Update all products in the category with the new offer
+        const products = await Product.find({ category: category._id });
+        if (categoryOffer > 0) {
+            for (const product of products) {
+                if (product.salePrice) {
+                    product.isOfferApplied = true;
+                    product.productOffer = categoryOffer;
+                    product.offerPrice = product.salePrice * (1 - categoryOffer / 100); // Calculate discounted price
+                } else {
+                    console.warn(`Product with ID ${product._id} has no salePrice`);
+                }
+                await product.save(); // Save each product
+            }
+        } else {
+            for (const product of products) {
+                product.isOfferApplied = false;
+                product.productOffer = 0;
+                product.offerPrice = 0;
+                await product.save(); // Save each product
+            }
         }
 
         res.status(200).json({
             success: true,
-            message: "Category updated successfully",
+            message: "Category and related products updated successfully.",
         });
     } catch (error) {
         console.error("Error while updating category:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
+            message: "Internal server error.",
         });
     }
 };
@@ -186,7 +212,6 @@ const deleteOrUndoCategory = async (req, res) => {
     }
 };
 
-
 module.exports = {
     categoryInfo,
     addCategory,
@@ -195,5 +220,4 @@ module.exports = {
     updateCategory,
     loadUpdateCategory,
     deleteOrUndoCategory,
-    
 };

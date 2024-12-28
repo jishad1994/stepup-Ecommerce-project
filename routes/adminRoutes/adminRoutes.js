@@ -6,6 +6,7 @@ const categoryControllers = require("../../controllers/categoryControllers");
 const productControllers = require("../../controllers/productControllers");
 const stockControllers = require("../../controllers/stockControllers");
 const couponControllers = require("../../controllers/couponControllers");
+const salesReportControllers = require("../../controllers/salesReportControllers");
 const multer = require("multer");
 
 //authentication routes
@@ -77,7 +78,13 @@ adminRoute.post("/changeOrderStatus", adminAuth, adminControllers.changeOrderSta
 //coupon routes
 
 adminRoute.get("/loadAddCoupon", adminAuth, couponControllers.loadAddCoupon);
-adminRoute.post("/postAddCoupon",adminAuth,couponControllers.postAddCoupon)
-adminRoute.get("listCoupons",adminAuth,couponControllers.listCoupons)
+adminRoute.post("/postAddCoupon", adminAuth, couponControllers.postAddCoupon);
+adminRoute.get("/listCoupons", adminAuth, couponControllers.listCoupons);
+adminRoute.get("/deleteCoupon", adminAuth, couponControllers.deleteCoupon);
+adminRoute.get("/couponStatusChange", adminAuth, couponControllers.changeCouponStatus);
 
+//sales report route
+
+adminRoute.get("/loadGenerateSalesReports", adminAuth, salesReportControllers.loadGeneratorPage);
+adminRoute.post("/generateSalesReports", adminAuth, salesReportControllers.generateSalesReport);
 module.exports = adminRoute;

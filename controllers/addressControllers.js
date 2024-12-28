@@ -11,7 +11,6 @@ const Category = require("../model/categoryModel.js");
 const Product = require("../model/productModel.js");
 const Address = require("../model/addressModel.js");
 
-
 ////
 //add address
 const addAddress = async (req, res) => {
@@ -41,15 +40,15 @@ const addAddress = async (req, res) => {
             addressType,
             fullName,
             phone,
-            altphone,
+            altPhone,
             city,
             state,
             pincode,
-            landmark,
+            landMark,
             addressDetails,
             isDefault,
         } = req.body;
-
+        console.log(req.body);
         // Comprehensive validation
         const validationErrors = [];
 
@@ -123,12 +122,23 @@ const addAddress = async (req, res) => {
 
         // Create and save address in the database
         const address = new Address({
-            ...req.body,
+            addressType,
+            fullName,
+            phone,
+            altPhone,
+            city,
+            state,
+            pincode,
+            landMark,
+            addressDetails,
+            isDefault,
             userId,
         });
 
         await address.save();
+        
         console.log("new address saved");
+        console.log(address);
 
         return res.status(201).json({
             success: true,
@@ -155,7 +165,6 @@ const addAddress = async (req, res) => {
     }
 };
 
-
 // load addresses display
 
 const addresses = async (req, res) => {
@@ -181,8 +190,6 @@ const addresses = async (req, res) => {
         res.render("404");
     }
 };
-
-
 
 //delete address
 const deleteAddress = async (req, res) => {
@@ -267,7 +274,6 @@ const postEditAddress = async (req, res) => {
     }
 };
 
-
 //load edit address
 const loadEditAddress = async (req, res) => {
     try {
@@ -299,8 +305,6 @@ const loadEditAddress = async (req, res) => {
     }
 };
 
-
-
 //add address
 const loadAddAddress = async (req, res) => {
     try {
@@ -312,12 +316,11 @@ const loadAddAddress = async (req, res) => {
     }
 };
 
-module.exports={
-
+module.exports = {
     addAddress,
     addresses,
     deleteAddress,
     postEditAddress,
     loadEditAddress,
-    loadAddAddress
-}
+    loadAddAddress,
+};

@@ -237,7 +237,7 @@
                         if (!codeInput.value.trim()) {
                             showError('coupon-code', errorMessages.code.required);
                             isValid = false;
-                        } else if (!/^[A-Za-z0-9]+$/.test(codeInput.value)) {
+                        } else if (!/^[A-Za-z@#*0-9]+$/.test(codeInput.value)) {
                             showError('coupon-code', errorMessages.code.pattern);
                             isValid = false;
                         }

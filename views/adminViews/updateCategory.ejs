@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>Edit Category - Nest Dashboard</title>
@@ -9,47 +10,47 @@
   <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
   <%- include('partials/header')%>
 
-  <section class="content-main">
-    <div class="content-header">
-      <div>
-        <h2 class="content-title card-title">Edit Category</h2>
-        <p>Modify category details</p>
+    <section class="content-main">
+      <div class="content-header">
+        <div>
+          <h2 class="content-title card-title">Edit Category</h2>
+          <p>Modify category details</p>
+        </div>
       </div>
-    </div>
-    
-    <div class="card">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6 offset-md-3">
-            <form id="edit_category_form">
-              <input type="hidden" id="original_category_name" value="<%= category.name %>">
-              
-              <div class="mb-4">
-                <label for="category_name" class="form-label">Name</label>
-                <input 
-                  type="text" 
-                  placeholder="Type here" 
-                  class="form-control" 
-                  id="category_name" 
-                  value="<%= category.name %>"
-                />
-                <p id="nameError" class="text-danger error-message"></p>
-              </div>
 
-              <div class="mb-4">
-                <label class="form-label">Description</label>
-                <textarea 
-                  placeholder="Type here" 
-                  id="description" 
-                  class="form-control"
-                ><%= category.description %></textarea>
-                <p id="descriptionError" class="text-danger error-message"></p>
-              </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 offset-md-3">
+              <form id="edit_category_form">
+                <input type="hidden" id="original_category_name" value="<%= category.name %>">
 
-              <!-- <div class="mb-4">
+                <div class="mb-4">
+                  <label for="category_name" class="form-label">Name</label>
+                  <input type="text" placeholder="Type here" class="form-control" id="category_name"
+                    aria-describedby="nameError" value="<%= category.name %>" />
+                  <p id="nameError" class="text-danger error-message" style="display: none;"></p>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Description</label>
+                  <textarea placeholder="Type here" id="description" class="form-control"
+                    aria-describedby="descriptionError"><%= category.description %></textarea>
+                  <p id="descriptionError" class="text-danger error-message" style="display: none;"></p>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label">Category Offer</label>
+                  <input type="number" placeholder="%" max="100" min="0" id="categoryOffer" class="form-control"
+                    aria-describedby="offerError" />
+                  <p id="offerError" class="text-danger error-message" style="display: none;"></p>
+                </div>
+
+                <!-- <div class="mb-4">
                 <label class="form-label">Status</label>
                 <div class="form-check form-switch">
                   <input 
@@ -64,127 +65,153 @@
                 </div>
               </div> -->
 
-              <div class="d-grid gap-2">
-                <button class="btn btn-primary" type="submit">Update Category</button>
-                <a href="/admin/categories" class="btn btn-outline-secondary">Cancel</a>
-              </div>
-            </form>
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary" type="submit">Update Category</button>
+                  <a href="/admin/categories" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <%- include('partials/footer')%>
+    <%- include('partials/footer')%>
 
-  <script>
-    const form = document.getElementById("edit_category_form");
-    const statusToggle = document.getElementById("category_status");
+      <script>
+        const form = document.getElementById("edit_category_form");
+        const statusToggle = document.getElementById("category_status");
 
-    // Update label text when status is toggled
-    // statusToggle.addEventListener('change', function() {
-    //   this.nextElementSibling.textContent = this.checked ? 'Listed' : 'Unlisted';
-    // });
+        // Update label text when status is toggled
+        // statusToggle.addEventListener('change', function() {
+        //   this.nextElementSibling.textContent = this.checked ? 'Listed' : 'Unlisted';
+        // });
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      clearErrorMessage();
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          clearErrorMessage();
 
-      let isValid = validateForm();
+          const submitButton = form.querySelector("button[type='submit']");
+          submitButton.disabled = true;
+          submitButton.textContent = "Updating...";
 
-      if (!isValid) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Please check your input and try again.",
-        });
-        return;
-      }
+          let isValid = validateForm();
 
-      try {
-        const originalName = document.getElementById("original_category_name").value.trim();
-        const name = document.getElementById("category_name").value.trim();
-        const description = document.getElementById("description").value.trim();
-        // const isListed = document.getElementById("category_status").checked;
+          if (!isValid) {
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Please check your input and try again.",
+            });
+            submitButton.disabled = false;
+            submitButton.textContent = "Update Category";
+            return;
+          }
 
-        const response = await fetch("/admin/updateCategory", {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            originalName, 
-            name, 
-            description, 
-            
-          })
-        });
+          try {
+            const originalName = document.getElementById("original_category_name").value.trim();
+            const name = document.getElementById("category_name").value.trim();
+            const description = document.getElementById("description").value.trim();
+            const categoryOffer = Number(document.getElementById("categoryOffer").value);
 
-        if (response.ok) {
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: "Category updated successfully.",
-            didClose: () => {
-              window.location.href = "/admin/categories";
+            const response = await fetch("/admin/updateCategory", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                originalName,
+                name,
+                description,
+                categoryOffer,
+              }),
+            });
+
+            if (response.ok) {
+              Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Category updated successfully.",
+                didClose: () => {
+                  window.location.href = "/admin/categories";
+                },
+              });
+            } else {
+              const data = await response.json();
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message || "An error occurred while updating the category.",
+              });
             }
-          });
-        } else {
-          const data = await response.json();
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: data.message || "An error occurred while updating the category.",
+          } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "An unexpected error occurred. Please try again later.",
+            });
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Update Category";
+          }
+        });
+
+        // Validation function
+        const validateForm = () => {
+          const name = document.getElementById("category_name").value.trim();
+          const description = document.getElementById("description").value.trim();
+          const categoryOffer = document.getElementById("categoryOffer").value;
+          const alphabeticRegex = /^[a-zA-Z\s]+$/;
+
+          let isValid = true;
+
+          if (!name) {
+            errorMessage("nameError", "Name field should not be blank");
+            isValid = false;
+          } else if (!alphabeticRegex.test(name)) {
+            errorMessage("nameError", "Category name must contain only letters and spaces!");
+            isValid = false;
+          }
+
+          if (!description) {
+            errorMessage("descriptionError", "Description should be provided.");
+            isValid = false;
+          }
+
+          if (categoryOffer < 0 || categoryOffer > 100) {
+            errorMessage("offerError", "Category offer should be between 0 and 100.");
+            isValid = false;
+          }
+
+          return isValid;
+        };
+
+        // Error message function
+        function errorMessage(tagId, message) {
+          const errorElement = document.getElementById(tagId);
+          errorElement.style.display = "block";
+          errorElement.innerText = message;
+
+          // Attach event listener to clear error on input change
+          const associatedInput = document.querySelector(`[aria-describedby="${tagId}"]`);
+          if (associatedInput) {
+            associatedInput.addEventListener("input", () => {
+              errorElement.style.display = "none";
+            });
+          }
+        }
+
+        // Clear all error messages
+        function clearErrorMessage() {
+          const errorElements = document.getElementsByClassName("error-message");
+          Array.from(errorElements).forEach((element) => {
+            element.innerText = "";
+            element.style.display = "none";
           });
         }
-      } catch (error) {
-        console.error("Error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "An unexpected error occurred. Please try again later.",
-        });
-      }
-    });
 
-    // Validation function
-    const validateForm = () => {
-      const name = document.getElementById("category_name").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const alphabeticRegex = /^[a-zA-Z\s]+$/;
-
-      if (!name) {
-        errorMessage("nameError", "Name field should not be blank");
-        return false;
-      }
-
-      if (!alphabeticRegex.test(name)) {
-        errorMessage("nameError", "Category name must contain only letters and spaces!");
-        return false;
-      }
-
-      if (!description) {
-        errorMessage("descriptionError", "Description should be given..");
-        return false;
-      }
-
-      return true;
-    }
-
-    // Error message function
-    function errorMessage(tagId, errorMessage) {
-      document.getElementById(tagId).style.display = "block";
-      document.getElementById(tagId).innerText = errorMessage;
-    }
-
-    // Clear error messages
-    function clearErrorMessage() {
-      const errorElements = document.getElementsByClassName("error-message");
-      Array.from(errorElements).forEach((element) => {
-        element.innerText = "";
-        element.style.display = "none";
-      });
-    }
-  </script>
+      </script>
 </body>
+
 </html>

@@ -23,7 +23,7 @@ route.post("/rzpVerifyPayment",userAuth,checkoutControllers.rzpVerifyPayment)
 
 
 //authentication controllers
-route.get("/", userController.loadHomePage);
+route.get("/",userAuth, userController.loadHomePage);
 route.get("/signup", userController.loadSignup);
 route.post("/signup", userController.signup);
 route.get("/login", userController.loadSignin);
@@ -74,7 +74,7 @@ route.post("/addToWishlist", userAuth, wishlistControllers.addToWishlist);
 route.delete("/deleteWishlist", userAuth, wishlistControllers.deleteWishlist);
 
 //checkout routes
-
+route.post("/applyCoupon",userAuth,checkoutControllers.applyCoupon)
 route.get("/checkout", userAuth, checkoutControllers.loadCheckout);
 route.post("/placeOrder", userAuth, checkoutControllers.placeOrder);
 

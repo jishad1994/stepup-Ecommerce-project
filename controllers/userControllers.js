@@ -12,22 +12,6 @@ const Address = require("../model/addressModel.js");
 //load home apge
 const loadHomePage = async (req, res) => {
     try {
-        if (req.user) {
-            console.log("req.user is present");
-
-            req.session.userdata = { email: req.user.email };
-            req.session.save(); // Ensure session data is saved
-
-            console.log("The user is", req.user.email);
-            return res.render("index", { user: req.user.email });
-        }
-
-        if (req.session?.userdata) {
-            console.log("req.session is present", req.session);
-            return res.render("index", { user: req.session.userdata.email });
-        }
-
-        console.log("No session or req.user present");
         res.render("index");
     } catch (err) {
         console.error("Error while loading the home page:", err.message);
@@ -84,7 +68,7 @@ const shopCategory = async (req, res) => {
         // Get the sort configuration
         const sortConfig = sortConfigs[sortOption];
         const categoryId = req.params.id ? new mongoose.Types.ObjectId(req.params.id) : null;
-        console.log('hii category is ',categoryId);
+        console.log("hii category is ", categoryId);
 
         //decide the category
         var categoryTitle;
@@ -100,6 +84,10 @@ const shopCategory = async (req, res) => {
 
         // Build base query
         let baseQuery = { isListed: true };
+
+        if (sortOption == "featured") {
+            baseQuery = { isListed: true, isFeatured: true };
+        }
         if (categoryId) {
             baseQuery.category = categoryId;
         }
@@ -183,122 +171,10 @@ const shopCategory = async (req, res) => {
         });
     }
 };
-// const shopCategory = async (req, res) => {
-//     try {
-//         // Pagination parameters
-//         const page = parseInt(req.query.page) || 1;
-//         const limit = parseInt(req.query.limit) || 9;
-//         const skip = (page - 1) * limit;
-
-//         // Predefined category IDs
-//         const categoryIds = {
-//             men: "674f1f1662333c214cfac645",
-//             women: "674f1f2762333c214cfac64c",
-//             kids: "674f1f3662333c214cfac653",
-//         };
-
-//         const categoryId = new mongoose.Types.ObjectId(req.params.id);
-
-//         // Check if category is listed
-//         const isListed = await Category.findOne({
-//             _id: categoryId,
-//             isListed: true
-//         });
-
-//         // If category is blocked, return empty results
-//         if (!isListed) {
-//             console.log("The category is blocked");
-//             return res.render("shopCategory", {
-//                 products: [],
-//                 menCount: 0,
-//                 womenCount: 0,
-//                 kidsCount: 0,
-//                 pagination: {
-//                     currentPage: 1,
-//                     hasNextPage: false,
-//                     hasPrevPage: false,
-//                     pages: [1],
-//                     totalPages: 1,
-//                     nextPage: null,
-//                     prevPage: null
-//                 }
-//             });
-//         }
-
-//         // Parallel queries for counts and products
-//         const [
-//             menCount,
-//             womenCount,
-//             kidsCount,
-//             totalProducts,
-//             products
-//         ] = await Promise.all([
-//             Product.countDocuments({
-//                 category: new mongoose.Types.ObjectId(categoryIds.men),
-//                 isListed: true
-//             }),
-//             Product.countDocuments({
-//                 category: new mongoose.Types.ObjectId(categoryIds.women),
-//                 isListed: true
-//             }),
-//             Product.countDocuments({
-//                 category: new mongoose.Types.ObjectId(categoryIds.kids),
-//                 isListed: true
-//             }),
-//             Product.countDocuments({
-//                 category: categoryId,
-//                 isListed: true
-//             }),
-//             Product.find({
-//                 category: categoryId,
-//                 isListed: true
-//             })
-//             .skip(skip)
-//             .limit(limit)
-//             .lean()
-//         ]);
-
-//         // Calculate pagination values
-//         const totalPages = Math.ceil(totalProducts / limit);
-//         const hasNextPage = page < totalPages;
-//         const hasPrevPage = page > 1;
-
-//         // Create array of page numbers for pagination
-//         let pages = [];
-//         for(let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
-//             pages.push(i);
-//         }
-
-//         // Render the page with pagination data
-//         res.render("shopCategory", {
-//             products,
-//             menCount,
-//             womenCount,
-//             kidsCount,
-//             pagination: {
-//                 currentPage: page,
-//                 hasNextPage,
-//                 hasPrevPage,
-//                 pages,
-//                 totalPages,
-//                 nextPage: page + 1,
-//                 prevPage: page - 1,
-//                 categoryId: req.params.id // Pass category ID for pagination URLs
-//             }
-//         });
-
-//     } catch (error) {
-//         console.error("Error while loading shop page categorywise:", error.message);
-//         res.status(500).render("404", {
-//             error: "Failed to load the shop page category wise. Please try again later."
-//         });
-//     }
-// };
 
 //shop all
 const loadShopAll = async (req, res) => {
     try {
-        console.log("hii session data is", req.session.userdata);
         // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
@@ -320,10 +196,13 @@ const loadShopAll = async (req, res) => {
             priceHighToLow: { regularPrice: -1 },
             rating: { averageRating: -1 },
         };
-
         // Build base query
         let baseQuery = { isListed: true };
+        if (sortOption == "featured") {
+            baseQuery = { isListed: true, isFeatured: true };
+        }
 
+        
         // Add search functionality
         if (searchQuery) {
             baseQuery.$or = [
@@ -389,55 +268,6 @@ const loadShopAll = async (req, res) => {
         res.status(500).render("404", {
             error: "Failed to load the shop all page. Please try again later.",
         });
-    }
-};
-// const loadShopAll = async (req, res) => {
-//     try {
-//         console.log("Entered shopAll controller");
-
-//         // Predefined category IDs (consider replacing with dynamic fetch from DB)
-//         const categoryIds = {
-//             men: "674f1f1662333c214cfac645",
-//             women: "674f1f2762333c214cfac64c",
-//             kids: "674f1f3662333c214cfac653",
-//         };
-
-//         //find categories that are not blocked
-
-//         const listedCategories = await Category.find({ isListed: true });
-//         //find the ids of the listed categories
-
-//         const listedCategoryIds = listedCategories.filter((category) => {
-//             return category._id;
-//         });
-
-//         // Parallel queries for counts
-//         const [menCount, womenCount, kidsCount] = await Promise.all([
-//             Product.countDocuments({ category: new mongoose.Types.ObjectId(categoryIds.men) }),
-//             Product.countDocuments({ category: new mongoose.Types.ObjectId(categoryIds.women) }),
-//             Product.countDocuments({ category: new mongoose.Types.ObjectId(categoryIds.kids) }),
-//         ]);
-
-//         // Fetch all listed products but only fromlisted categories
-//         const products = await Product.find({ isListed: true, category: { $in: listedCategoryIds } });
-
-//         // Render the page
-//         res.render("shopAll", { products, menCount, womenCount, kidsCount });
-//     } catch (error) {
-//         console.error("Error while loading shopAll page :", error.message);
-//         res.status(500).render("404", { error: "Failed to load the shopall page . Please try again later." });
-//     }
-// };
-
-//load cart
-
-const loadCart = async (req, res) => {
-    try {
-        console.log("cart contoller worked");
-        res.render("cart");
-    } catch (error) {
-        console.log("error occured while loading cart page");
-        res.render("404");
     }
 };
 
@@ -517,9 +347,9 @@ const logout = async (req, res) => {
         // Clear the JWT token from the client's cookies
 
         res.clearCookie("authToken", {
-            httpOnly: true, // Ensures the cookie isn't accessible via JavaScript
-            secure: process.env.NODE_ENV === "production", // Use secure flag in production
-            sameSite: "strict", // Ensures the cookie is only sent in first-party contexts
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
         });
 
         console.log("User logged out, auth token cleared.");
@@ -860,7 +690,6 @@ module.exports = {
     postLogin,
     logout,
     loadShopAll,
-    loadCart,
     loadProduct,
     orderConfirmed,
     wallet,

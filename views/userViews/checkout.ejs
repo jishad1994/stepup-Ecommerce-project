@@ -168,17 +168,9 @@
                         <div class="form-check">
                           <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard"
                             value="Credit Card">
-                          <label class="form-check-label" for="creditCard">Credit Card</label>
+                          <label class="form-check-label" for="creditCard">Online Payment</label>
                         </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="paymentMethod" id="UPI" value="UPI">
-                          <label class="form-check-label" for="UPI">UPI</label>
-                        </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="paymentMethod" id="netBanking"
-                            value="Net Banking">
-                          <label class="form-check-label" for="netBanking">Net Banking</label>
-                        </div>
+
                       </div>
 
                       <!-- Order Notes -->
@@ -187,9 +179,31 @@
                         <textarea class="form-control" id="orderNotes" name="orderNotes" rows="3"></textarea>
                       </div>
                     </div>
-
-                    <!-- Order Summary -->
+                    <!-- coupon apply -->
+                    <!-- Coupon Section -->
                     <div class="col-md-4">
+                      <div class="card">
+                        <div class="card-header">
+                          <h5>Apply Coupon</h5>
+                        </div>
+                        <div class="card-body">
+                          <select id="couponSelect" class="form-select">
+                            <option value="" selected disabled>Select a coupon</option>
+                            <% coupons.forEach((coupon)=> { %>
+                              <option value="<%= coupon._id %>" data-discount="<%= coupon.discount %>">
+                                <%= coupon.code %> - <%= coupon.discontType %> - <%= coupon.discountValue %> Off
+                              </option>
+                              <% }); %>
+                          </select>
+                          <button id="applyCouponBtn" class="btn btn-primary mt-3">Apply Coupon</button>
+                        </div>
+                      </div>
+
+                      <input type="hidden" id="selectedCoupon" name="selectedCoupon">
+
+                      <!--  -->
+                      <!-- Order Summary -->
+
                       <div class="card">
                         <div class="card-header">
                           Order Summary
@@ -215,15 +229,25 @@
                               <strong>$10.00</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
+                              <strong>Discount</strong>
+                              <strong id="discount-amount"> </strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
                               <strong>Total</strong>
-                              <strong>$<%=cart.finalAmount+10%> </strong>
+                              <strong id="final-amount"><%=cart.finalAmount+10%> </strong>
                             </li>
                           </ul>
 
                           <button type="submit" class="btn btn-primary w-100">Place Order</button>
                         </div>
                       </div>
+                      <!--  -->
+
+
                     </div>
+                    <!-- apply coupon end  -->
+
+
                   </div>
                 </form>
               </div>
@@ -279,6 +303,78 @@
           }
         }
       });
+      // Get references to the coupon dropdown and hidden input field
+      const couponSelect = document.getElementById("couponSelect");
+      const selectedCouponInput = document.getElementById("selectedCoupon");
+
+      // Listen for changes in the coupon dropdown
+      couponSelect.addEventListener("change", () => {
+        const selectedCoupon = couponSelect.value; // Get the selected coupon ID
+        selectedCouponInput.value = selectedCoupon; // Update the hidden input field
+      });
+
+
+      //coupon valid checking fetching
+      document.getElementById("applyCouponBtn").addEventListener("click", async (event) => {
+        event.stopPropagation();
+        try {
+          const couponId = document.getElementById("selectedCoupon").value;
+
+          if (!couponId) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: 'Please enter a coupon code',
+            });
+            return;
+          }
+
+          const response = await fetch("/applyCoupon", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ couponId }) // Send as an object
+          });
+
+          const data = await response.json(); // Always parse the response
+
+          if (!response.ok) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: data.message || 'Failed to apply coupon',
+            });
+          } else {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: "Coupon Applied Successfully",
+            }).then(() => {
+              // Update UI with new values
+              const totalAmount = document.getElementById('final-amount');
+              const discountElement = document.getElementById('discount-amount');
+
+              if (totalAmount) {
+                totalAmount.innerText = `${data.totalAmount.toFixed(2)}`;
+              }
+
+              if (discountElement && data.discountAmount) {
+                discountElement.innerText = `$${data.discountAmount.toFixed(2)}`;
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error applying coupon:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Something went wrong. Please try again.',
+          });
+        }
+      });
+
+
 
       // Form submission handler
       form.addEventListener('submit', async function (event) {
@@ -356,8 +452,11 @@
                 <p>${formData.orderNotes}</p>
               ` : ''}
               
+              <div class="discount-amount">
+                <h4>Discount Amount: ${document.getElementById("discount-amount").innerText}</h4>
+              </div>
               <div class="total-amount">
-                <h4>Total Amount: $${document.querySelector('.list-group-item:last-child strong').textContent}</h4>
+                <h4>Total Amount: ${document.getElementById("final-amount").innerText}</h4>
               </div>
             </div>
           `,
@@ -371,10 +470,13 @@
               if (result.isConfirmed) {
 
                 if (paymentMethod == "Credit Card") {
+
+                  const amount = document.getElementById("final-amount").innerText
+                  console.log('amont is ',amount);
                   const response = await fetch("/rzpCreateOrder", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: `<%=cart.finalAmount + 10%>`, currency: "INR" }),
+                    body: JSON.stringify({ amount: amount, currency: "INR" }),
                   });
                   const data = await response.json();
 
@@ -440,9 +542,6 @@
                                 text: data.message,
                               });
                             }
-
-
-
 
                           })
                           // Redirect or update UI accordingly

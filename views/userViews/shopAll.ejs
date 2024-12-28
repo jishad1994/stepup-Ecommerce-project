@@ -139,16 +139,17 @@
                               <% } %>
                           </div>
                           <div>
-                            <% if (product.salePrice) { %>
-                              <p class="text-muted mb-0 mr-2 text-decoration-line-through">
-                                $<%= product.regularPrice %>
-                              </p>
+                            <p class="text-muted mb-0 mr-2 text-decoration-line-through">
+                              $<%= product.regularPrice %>
+                            </p>
+                            <% if (product.isOfferApplied) { %>
                               <p class="text-primary font-weight-bold">
-                                $<%= product.salePrice %>
+                                $ <%= product.offerPrice %><span class="badge rounded-pill bg-info shadow  m-2 text-white p-1 "> Offer
+                                    price</span>
                               </p>
                               <% } else { %>
                                 <p class="text-primary font-weight-bold">
-                                  $<%= product.regularPrice %>
+                                  $<%= product.salePrice %>
                                 </p>
                                 <% } %>
                           </div>
@@ -236,6 +237,58 @@
   <script src="scripts/jquery.magnific-popup.min.js"></script>
   <script src="scripts/aos.js"></script>
   <script src="scripts/main.js"></script>
+
+  <script>
+
+
+    // Add this to your page's JavaScript
+    const searchInput = document.querySelector('input[name="search"]');
+    const productsContainer = document.querySelector('.row.mb-5'); // Container for products
+
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function () {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const searchQuery = this.value;
+        const currentSort = document.querySelector('input[name="sort"]').value;
+
+        fetch(`/shopAll?search=${searchQuery}&sort=${currentSort}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              productsContainer.innerHTML = data.products.map(product => `
+                        <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
+                            <div class="block-4 text-center border">
+                                <figure class="block-4-image">
+                                    <a href="/product/${product._id}">
+                                        <img src="${product.productImage[0]}" alt="${product.name}" class="img-fluid">
+                                    </a>
+                                </figure>
+                                <div class="block-4-text p-4">
+                                    <h3><a href="/product/${product._id}">${product.productName}</a></h3>
+                                    <p class="mb-0">${product.description}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            ${product.status ? `<span class="badge badge-${product.status === 'Available' ? 'success' : 'danger'}">${product.status}</span>` : ''}
+                                        </div>
+                                        <div>
+                                            ${product.salePrice ?
+                  `<p class="text-muted mb-0 mr-2 text-decoration-line-through">$${product.regularPrice}</p>
+                                                 <p class="text-primary font-weight-bold">$${product.salePrice}</p>` :
+                  `<p class="text-primary font-weight-bold">$${product.regularPrice}</p>`
+                }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+            }
+          });
+      }, 300); // Debounce delay
+    });
+  </script>
 </body>
 
 </html>

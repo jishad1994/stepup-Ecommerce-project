@@ -511,6 +511,9 @@
                             icon: 'success',
                             title: 'Success',
                             text: 'Your payment is successfull..placing Order',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            
                           }).then(async () => {
 
                             console.log("payment success full proceeding to place order")
@@ -592,6 +595,8 @@
                       icon: 'success',
                       title: 'Success',
                       text: `${data.message}`,
+                      showConfirmButton: false,
+                      timer: 2000,
                     }).then(() => {
                       // Redirect to orders page
                       window.location.href = '/orders'; // Add your redirect URL

@@ -32,7 +32,7 @@ const loadOrders = async (req, res) => {
 
         //fetch the orders of customer
 
-        const orders = await Order.find({ userId });
+        const orders = await Order.find({ userId }).sort({ createdAt: -1 });
 
         if (!orders) {
             console.log("no orders found ");
@@ -87,7 +87,7 @@ const cancelOrder = async (req, res) => {
                 product.stock.map((stockItem, index) => {
                     if (stockItem.size == item.size) {
                         product.stock[index].quantity += item.quantity;
-                    }   
+                    }
                 });
 
                 updatedProducts.push(product);
@@ -170,8 +170,185 @@ const showDetails = async (req, res) => {
     }
 };
 
+const cancelSingleItem = async (req, res) => {
+    try {
+        const orderId = req.query.orderId;
+        const itemId = req.query.itemId;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        if (!["Pending", "Processing"].includes(order.status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot cancel items from orders that are not Pending or Processing",
+            });
+        }
+
+        // Find and update the specific item
+        const item = order.items.id(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found in order" });
+        }
+
+        // Set item status to cancelled
+        item.status = "Cancelled";
+
+        // Recalculate order totals (this will handle coupon calculations)
+
+        // Get active items only
+        const activeItems = order.items.filter((item) => item.status === "Active");
+
+        // Calculate base total from active items
+        let subtotal = activeItems.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
+
+        // Calculate total items
+        this.totalItems = activeItems.reduce((total, item) => {
+            return total + item.quantity;
+        }, 0);
+
+        // Apply coupon if exists
+        if (order.couponApplied && order.couponDetails) {
+            if (order.couponDetails.discountType === "percentage" && order.couponDetails.percentage) {
+                const discountAmount = (subtotal * order.couponDetails.percentage) / 100;
+                order.couponDetails.discountAmount = discountAmount;
+                subtotal -= discountAmount;
+            } else if (order.couponDetails.discountType === "flat" && order.couponDetails.discountAmount) {
+                subtotal -= order.couponDetails.discountAmount;
+            }
+        }
+
+        // Add shipping fee
+        subtotal += this.shippingFee;
+
+        // Set final total price
+        order.totalPrice = Math.max(0, subtotal); // Ensure price doesn't go below 0
+
+        // If all items are cancelled, cancel the entire order
+        if (activeItems.length === 0) {
+            order.status = "Cancelled";
+            // Reset coupon details since order is cancelled
+            order.couponApplied = false;
+            order.couponDetails = undefined;
+        }
+
+        await order.save();
+
+        res.json({
+            success: true,
+            message: "Item cancelled successfully",
+            updatedTotals: {
+                totalItems: order.totalItems,
+                totalPrice: order.totalPrice,
+                discountAmount: order.couponDetails?.discountAmount || 0,
+            },
+        });
+    } catch (error) {
+        console.error("Error cancelling item:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const returnOrder = async (req, res) => {
+    try {
+        const orderId = req.query.orderId;
+        const { reason, details } = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        if (order.status !== "Delivered") {
+            return res.status(400).json({
+                success: false,
+                message: "Only delivered orders can be returned",
+            });
+        }
+        order.returnRequest = {
+            status: "Pending",
+            requestDate: new Date(),
+            reason: `${reason}: ${details}`,
+        };
+
+        //change all status of products
+        await Promise.all(
+            order.items.map(async (item) => {
+                item.status = "Return Pending";
+            })
+        );
+
+        //change order status as well
+        order.status = "Return Request";
+
+        await order.save();
+        res.json({ success: true, message: "Return request submitted successfully" });
+
+        console.log(orderId, reason, details);
+    } catch (error) {
+        console.error("Error submitting return request:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const returnItem = async (req, res) => {
+    try {
+        const orderId = req.query.orderId;
+        const itemId = req.query.itemId;
+        const { status, note } = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        const item = order.items.id(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
+
+        item.returnRequest.adminResponse = {
+            status,
+            responseDate: new Date(),
+            note,
+        };
+
+        item.returnRequest.status = status;
+        item.status = status === "Approved" ? "Return Approved" : "Return Rejected";
+
+        // Recalculate order totals if return is approved
+        if (status === "Approved") {
+            const activeItems = order.items.filter((i) => !["Cancelled", "Return Approved", "Returned"].includes(i.status));
+
+            if (activeItems.length === 0) {
+                order.status = "Returned";
+            }
+
+            // Recalculate totals considering returns
+            order.recalculateOrderTotals();
+        }
+
+        await order.save();
+
+        res.status(201).json({ success: true, message: "Return request updated successfully" });
+    } catch (error) {
+        console.error("Error updating return request:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 module.exports = {
     loadOrders,
     cancelOrder,
     showDetails,
+    cancelSingleItem,
+    returnOrder,
+    returnItem,
 };

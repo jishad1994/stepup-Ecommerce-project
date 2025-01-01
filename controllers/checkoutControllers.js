@@ -60,8 +60,7 @@ const rzpVerifyPayment = async (req, res) => {
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
 
-
-            console.log('razor pay hmac',hmac);
+        console.log("razor pay hmac", hmac);
         if (hmac === razorpay_signature) {
             res.status(200).json({ success: true, message: "Payment verified successfully." });
         } else {
@@ -211,11 +210,15 @@ const placeOrder = async (req, res) => {
             if (coupon.discountType === "percentage") {
                 discountAmount = (cartTotal * coupon.discountValue) / 100;
                 console.log("discount amount", discountAmount);
-                if (coupon.maxDiscountValue) {
+
+                console.log("max discount value and its type", coupon.maxDiscountValue, typeof maxDiscountValue);
+                if (coupon.maxDiscountValue > 0) {
                     discountAmount = Math.min(discountAmount, coupon.maxDiscountValue);
+                    console.log("final discount amount from math min:", discountAmount);
                 }
             } else {
                 discountAmount = coupon.discountValue;
+                console.log("final discount amount from else caes:", discountAmount);
             }
 
             // Ensure discount doesn't exceed cart total
@@ -223,7 +226,10 @@ const placeOrder = async (req, res) => {
 
             discountAmount = Math.min(discountAmount, cartTotal);
 
-            const totalPrice = cartTotal + shippingFee - discountAmount;
+            console.log("final discount amount:", discountAmount);
+
+            const totalPrice = cartTotal - discountAmount + shippingFee;
+            console.log("total price while placing order is", totalPrice);
 
             // Function to generate a unique 5- or 6-digit order ID
             async function generateOrderId() {
@@ -246,6 +252,10 @@ const placeOrder = async (req, res) => {
                 }
             }
 
+            //calculate total items
+
+            const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
+
             const uniqueId = await generateOrderId();
 
             // Prepare order data
@@ -254,11 +264,11 @@ const placeOrder = async (req, res) => {
                 userId,
                 paymentType: paymentMethod,
                 shippingFee,
+                totalItems,
                 totalPrice: totalPrice,
                 address,
                 orderNotes,
 
-                
                 items: cart.items,
                 orderId: uniqueId,
                 couponApplied: true,
@@ -363,7 +373,8 @@ const placeOrder = async (req, res) => {
             }
 
             const uniqueId = await generateOrderId();
-
+            //total items
+            const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
             // Prepare order data
             const address = { userId, addressType, fullName, phone, altPhone, state, city, landmark, pincode };
             const order = new Order({
@@ -371,6 +382,7 @@ const placeOrder = async (req, res) => {
                 paymentType: paymentMethod,
                 shippingFee,
                 totalPrice,
+                totalItems,
                 address,
                 orderNotes,
                 items: cart.items,
@@ -493,16 +505,19 @@ const applyCoupon = async (req, res) => {
         // Ensure discount doesn't exceed cart total
         let shippingFee = 10;
         discountAmount = Math.min(discountAmount, cartTotal);
+        console.log("final disco", discountAmount);
         const totalAmount = cartTotal + shippingFee - discountAmount;
+        console.log("total amount is", totalAmount);
 
         // Store coupon details in session
         req.session.coupon = {
             couponId: coupon._id,
             code: coupon.code,
+            maxDiscountValue: coupon.maxDiscountValue,
             discountType: coupon.discountType,
             discountValue: coupon.discountValue,
             discountAmount: discountAmount,
-            totalAmount: totalAmount,
+            totalAmount,
             appliedAt: new Date(),
         };
 

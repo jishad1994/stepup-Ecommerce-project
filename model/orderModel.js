@@ -36,11 +36,36 @@ const orderSchema = new Schema(
                     type: String,
                     required: true,
                 },
+                status: {
+                    type: String,
+                    enum: ["Active", "Cancelled", "Return Pending", "Return Approved", "Return Rejected", "Returned"],
+                    default: "Active",
+                    required: true,
+                },
+                returnRequest: {
+                    status: {
+                        type: String,
+                        enum: ["No Request", "Pending", "Approved", "Rejected"],
+                        default: "No Request",
+                    },
+                    requestDate: Date,
+                    reason: String,
+                    details: String,
+                    adminResponse: {
+                        status: String,
+                        responseDate: Date,
+                        note: String,
+                    },
+                },
             },
         ],
+        totalItems: {
+            type: Number,
+            required: true,
+        },
         paymentType: {
             type: String,
-            enum: ["COD", "Credit Card", "UPI", "Net Banking"],
+            enum: ["COD", "Credit Card", "UPI", "Online Payment", "Net Banking"],
             default: "COD",
         },
         totalPrice: {
@@ -66,7 +91,7 @@ const orderSchema = new Schema(
             couponId: {
                 type: Schema.Types.ObjectId,
                 ref: "Coupon",
-                required: true,
+                required: false,
             },
             couponName: {
                 type: String,
@@ -81,7 +106,7 @@ const orderSchema = new Schema(
                 required: false,
             },
             discountType: {
-                type: "String",
+                type: String,
                 required: false,
             },
         },
@@ -94,6 +119,27 @@ const orderSchema = new Schema(
             type: String,
             maxlength: 500,
         },
+
+        returnRequest: {
+            status: {
+                type: String,
+                enum: ["No Request", "Pending", "Approved", "Rejected"],
+                default: "No Request",
+            },
+            requestDate: Date,
+            reason: {
+                type: String,
+                required: function () {
+                    return this.returnRequest.status !== "No Request";
+                },
+            },
+            adminResponse: {
+                status: String,
+                responseDate: Date,
+                note: String,
+            },
+        },
+
         address: {
             addressType: {
                 type: String,

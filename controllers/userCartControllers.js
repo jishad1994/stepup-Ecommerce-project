@@ -25,8 +25,6 @@ const loadCartPage = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) {
             return res.render("cart", { cart: {}, products: [] });
-
-            
         }
 
         const userId = user._id;
@@ -48,7 +46,15 @@ const loadCartPage = async (req, res) => {
         );
 
         // Calculate the subtotal
-        const subtotal = products.reduce((total, product) => total + product.salePrice * product.quantity, 0);
+
+        const subtotal = products.reduce((total, product) => {
+            if (product.offerPrice && product.isOfferApplied) {
+                total += product.offerPrice * product.quantity;
+            } else {
+                total += product.salePrice * product.quantity;
+            }
+            return total;
+        }, 0);
 
         // Render the cart with its data
         res.render("cart", { cart, products, subtotal });
@@ -71,10 +77,10 @@ const addToCart = async (req, res) => {
         }
 
         const userId = user._id;
-        const { productId, quantity, size, price } = req.body.product;
+        const { productId, quantity, size } = req.body.product;
 
         // Validate input
-        if (!productId || !quantity || !price || !size) {
+        if (!productId || !quantity || !size) {
             return res.status(400).json({ success: false, message: "Missing required product details" });
         }
 
@@ -97,6 +103,15 @@ const addToCart = async (req, res) => {
         const sizeStock = product.stock.find((item) => item.size === size);
         if (!sizeStock || sizeStock.quantity < quantity) {
             return res.status(400).json({ success: false, message: "Selected size is out of stock" });
+        }
+
+        //find the price of the produtc by chacking wether any offer price is there
+
+        let price = 0;
+        if (product.isOfferApplied) {
+            price = product.offerPrice;
+        } else {
+            price = product.salePrice;
         }
 
         // Find or create a cart for the user
@@ -152,12 +167,12 @@ const addToCart = async (req, res) => {
         });
     }
 };
-//remove item from cart
+
+//remove single item from cart
 const removeFromCart = async (req, res) => {
     const { email } = req.user || {};
     const { id: productId, size } = req.query;
 
-    // Early validation of required parameters
     if (!email) {
         return res.status(401).json({ success: false, message: "Unauthorized user" });
     }
@@ -166,25 +181,21 @@ const removeFromCart = async (req, res) => {
     }
 
     try {
-        // Use findOneAndUpdate to combine multiple operations
-        const cart = await Cart.findOneAndUpdate(
-            {
-                userId: (await User.findOne({ email }, "_id"))._id,
-            },
-            {
-                $pull: {
-                    items: {
-                        productId: productId,
-                        size: size,
-                    },
-                },
-            },
-            { new: true }
-        );
-
+        // Fetch the cart for the logged-in user
+        const cart = await Cart.findOne({ userId: req.user._id });
         if (!cart) {
             return res.status(404).json({ success: false, message: "Cart not found" });
         }
+
+        // Filter out the item to be removed
+        cart.items = cart.items.filter((item) => item.productId.toString() !== productId.toString() || item.size !== size);
+
+        // Recalculate the total price and final amount
+        cart.totalPrice = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+        cart.finalAmount = cart.totalPrice;
+
+        // Save the updated cart
+        await cart.save();
 
         return res.redirect("/cart");
     } catch (error) {

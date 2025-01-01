@@ -10,20 +10,19 @@ const wishlistControllers = require("../../controllers/wishlistControllers");
 const checkoutControllers = require("../../controllers/checkoutControllers");
 const addressControllers = require("../../controllers/addressControllers");
 const orderControllers = require("../../controllers/orderControllers");
-const productControllers = require("../../controllers/productControllers")
+const productControllers = require("../../controllers/productControllers");
 
 route.use((req, res, next) => {
     console.log(` request type: ${req.method} | request url:${req.url} `);
     next();
 });
 
-//RAZORPAY ROUTES   
-route.post("/rzpCreateOrder",userAuth,checkoutControllers.rzpCreateOrder)
-route.post("/rzpVerifyPayment",userAuth,checkoutControllers.rzpVerifyPayment)
-
+//RAZORPAY ROUTES
+route.post("/rzpCreateOrder", userAuth, checkoutControllers.rzpCreateOrder);
+route.post("/rzpVerifyPayment", userAuth, checkoutControllers.rzpVerifyPayment);
 
 //authentication controllers
-route.get("/",userAuth, userController.loadHomePage);
+route.get("/", userAuth, userController.loadHomePage);
 route.get("/signup", userController.loadSignup);
 route.post("/signup", userController.signup);
 route.get("/login", userController.loadSignin);
@@ -74,7 +73,7 @@ route.post("/addToWishlist", userAuth, wishlistControllers.addToWishlist);
 route.delete("/deleteWishlist", userAuth, wishlistControllers.deleteWishlist);
 
 //checkout routes
-route.post("/applyCoupon",userAuth,checkoutControllers.applyCoupon)
+route.post("/applyCoupon", userAuth, checkoutControllers.applyCoupon);
 route.get("/checkout", userAuth, checkoutControllers.loadCheckout);
 route.post("/placeOrder", userAuth, checkoutControllers.placeOrder);
 
@@ -83,14 +82,16 @@ route.get("/cancelOrder/:id", userAuth, orderControllers.cancelOrder);
 route.get("/showDetails/:id", userAuth, orderControllers.showDetails);
 route.get("/orders", userAuth, orderControllers.loadOrders);
 route.get("/orderConfirmation", userAuth, userController.orderConfirmed);
+route.post("/cancelSingleItem", userAuth, orderControllers.cancelSingleItem);
+route.post("/returnOrder", userAuth, orderControllers.returnOrder);
+route.post("/returnItem", userAuth, orderControllers.returnItem);
 
 //wallet controllers
 route.get("/wallet", userAuth, userController.wallet);
 
-
 //stock availabity check route
 
-route.post("/checkQuantity",userAuth,productControllers.checkStock)
+route.post("/checkQuantity", userAuth, productControllers.checkStock);
 
 //google auth routes
 route.get("/signup/googleAuth", passport.authenticate("google", { scope: ["profile", "email"] }));

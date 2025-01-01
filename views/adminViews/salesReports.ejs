@@ -125,7 +125,7 @@
                     }
                 }
 
-                // Add this script to your sales report page
+               
                 document.addEventListener('DOMContentLoaded', function () {
                     const reportForm = document.getElementById('sales_report_form');
                     const previewBtn = document.getElementById('preview_report');
@@ -315,7 +315,7 @@
                                                 <tr>
                                                     <td>${product.productDetails[0]?.productName || 'N/A'}</td>
                                                     <td>${product.totalQuantity}</td>
-                                                    <td>$${product.totalRevenue.toFixed(2)}</td>
+                                                    <td>₹${product.totalRevenue.toFixed(2)}</td>
                                                 </tr>
                                             `).join('')}
                                         </tbody>

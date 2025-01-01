@@ -1,7 +1,7 @@
 /* Base */
 body {
     line-height: 1.7;
-    color: #8c92a0;
+    color: #000000;
     font-weight: 300;
     font-size: 16px;
 }
@@ -27,7 +27,7 @@ body {
     display: block;
     padding: 10px;
     text-decoration: none;
-    color: #333;
+    color: #090101;
   }
 
   #user-dropdown a:hover {
@@ -152,7 +152,7 @@ a:hover {
 
 .site-section-heading {
     font-size: 30px;
-    color: #25262a;
+    color: #000000;
     position: relative;
 }
 .site-section-heading:before {
@@ -188,14 +188,14 @@ a:hover {
     margin-bottom: 10px;
 }
 .site-footer ul li a {
-    color: #5c626e;
+    color: #1a1a1a;
 }
 .site-footer ul li a:hover {
     color: #063970;
 }
 .site-footer .footer-heading {
     font-size: 20px;
-    color: #25262a;
+    color: #01030a;
 }
 
 /* Navbar */

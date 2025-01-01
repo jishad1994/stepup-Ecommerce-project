@@ -13,7 +13,7 @@ const loadGeneratorPage = async (req, res) => {
 const generateSalesReport = async (req, res) => {
     try {
         const { reportType, startDate, endDate, format } = req.body;
-        console.log('req body',req.body);
+        console.log("req body", req.body);
         let query = {};
         let dateRange = {};
 
@@ -134,7 +134,9 @@ const generateSalesReport = async (req, res) => {
         } else if (format === "excel") {
             // Generate Excel report
             const excelBuffer = await helpers.generateExcelReport(reportData);
-            res.contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            // res.contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            res.setHeader("Content-Disposition", "attachment; filename=Sales_Report.xlsx");
             res.send(excelBuffer);
         } else {
             // Send JSON response for preview

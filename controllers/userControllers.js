@@ -201,6 +201,7 @@ const loadShopAll = async (req, res) => {
         if (sortOption == "featured") {
             baseQuery = { isListed: true, isFeatured: true };
         }
+        
 
         
         // Add search functionality

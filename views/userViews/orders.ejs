@@ -145,10 +145,13 @@
                                         <strong>$<%= order.totalPrice || "0.00" %></strong>
                                     </div>
                                     <div class="col-md-2 text-end">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="showDetails('<%=order._id%>')">View Details</button>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                            onclick="showDetails('<%=order._id%>')">View Details</button>
                                     </div>
                                     <div class="col-md-2 text-end">
-                                        <% if (order.status !=="Cancelled" && order.status !=="Delivered" ) { %>
+                                        <% if (order.status !=="Cancelled" && order.status !=="Delivered" &&![ "Shipped"
+                                            , "Delivered" , "Cancelled" , "Return Request" , "Returned"
+                                            ].includes(order.status) ) { %>
                                             <button class="btn btn-sm btn-outline-danger"
                                                 onclick="cancelOrder(event,'<%=order._id%>')">Cancel Order</button>
                                             <% } %>
@@ -159,7 +162,7 @@
                                 <% } %>
             </div>
         </div>
-        <%-include("../partials/footer")%>
+        <%- include("../partials/footer")%>
 
             <!-- Bootstrap JS -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -174,13 +177,13 @@
 
             <script>
 
-                
-                    //order details showing function
-                    const showDetails=async(_id)=>{
+
+                //order details showing function
+                const showDetails = async (_id) => {
                     try {
 
-                   window.location.href=`/showDetails/${_id}`
-                        
+                        window.location.href = `/showDetails/${_id}`
+
                     } catch (error) {
 
                         console.log("internal server error");
@@ -189,69 +192,69 @@
                             icon: 'error',
                             title: 'unexpected error occured',
                             text: "",
-                        });                       
+                        });
                     }
-                    }
+                }
 
 
-                    //order cancellation function
-                    const cancelOrder = async (event, _id) => {
+                //order cancellation function
+                const cancelOrder = async (event, _id) => {
 
-                        try {
+                    try {
 
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Do you want to cancel the order?',
-                                showCancelButton: true,
-                                confirmButtonText: 'Yes, cancel it',
-                                cancelButtonText: 'No, keep it',
-                                reverseButtons: true
-                            }).then(async (result) => {
-                                if (result.isConfirmed) {
-                                    // cancellation logic
-                                    const response = await fetch(`/cancelOrder/${_id}`);
-                                    const data = await response.json();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Do you want to cancel the order?',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, cancel it',
+                            cancelButtonText: 'No, keep it',
+                            reverseButtons: true
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                // cancellation logic
+                                const response = await fetch(`/cancelOrder/${_id}`);
+                                const data = await response.json();
 
-                                    if (data.success) {
-                                        console.log("order cancellation successfull")
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'Your order has been cancelled.',
-                                        }
-                                        );
-                                        setTimeout(() => location.reload(), 1500);
-                                    } else {
-
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: 'cancellation failed',
-                                            text: data.message,
-                                        });
+                                if (data.success) {
+                                    console.log("order cancellation successfull")
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Your order has been cancelled.',
                                     }
-
-                                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                                    Swal.fire(
-                                        'Cancelled',
-                                        'Your order is safe :)',
-                                        'info'
                                     );
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'cancellation failed',
+                                        text: data.message,
+                                    });
                                 }
-                            });
 
-                        } catch (error) {
-                            console.log("internal server error");
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                Swal.fire(
+                                    'Cancelled',
+                                    'Your order is safe :)',
+                                    'info'
+                                );
+                            }
+                        });
 
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'unexpected error occured',
-                                text: "",
-                            });
-                        }
+                    } catch (error) {
+                        console.log("internal server error");
 
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'unexpected error occured',
+                            text: "",
+                        });
                     }
 
+                }
 
-                
+
+
             </script>
 </body>
 

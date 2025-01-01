@@ -307,6 +307,15 @@ const changeOrderStatus = async (req, res) => {
 
         // Update the status
         order.status = selectedStatus;
+
+        if (!["Cancelled", "Return Request", "Returned"].includes(order.status)) {
+            //change all status of products
+            await Promise.all(
+                order.items.map(async (item) => {
+                    item.status = "Active";
+                })
+            );
+        }
         await order.save();
 
         console.log("Order status changed successfully");
@@ -320,11 +329,6 @@ const changeOrderStatus = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
-
-
-
-
-
 
 module.exports = {
     loadAdminLogin,

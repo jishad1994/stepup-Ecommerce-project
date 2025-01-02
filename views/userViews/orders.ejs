@@ -73,6 +73,14 @@
             color: yellow;
         }
 
+        .order-status-return-request-Approved {
+            color: rgb(0, 123, 4);
+        }
+
+        .order-status-return-request-Rejected {
+            color: rgb(222, 5, 5);
+        }
+
         .product-image {
             max-width: 100px;
             max-height: 100px;
@@ -120,6 +128,8 @@
                             case "Delivered": statusClass = "order-status-delivered"; break;
                             case "Cancelled": statusClass = "order-status-cancelled"; break;
                             case "Return Request": statusClass = "order-status-return-request"; break;
+                            case "Return Request Approved": statusClass = "order-status-return-request-Approved"; break;
+                            case "Return Request Rejected": statusClass = "order-status-return-request-Rejected"; break;
                             case "Returned": statusClass = "order-status-returned"; break;
                             default: statusClass = "order-status-unknown";
                             }
@@ -150,7 +160,7 @@
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <% if (order.status !=="Cancelled" && order.status !=="Delivered" &&![ "Shipped"
-                                            , "Delivered" , "Cancelled" , "Return Request" , "Returned"
+                                            , "Delivered" , "Cancelled" , "Return Request","Return Request Approved" ,"Return Request Rejected", "Returned"
                                             ].includes(order.status) ) { %>
                                             <button class="btn btn-sm btn-outline-danger"
                                                 onclick="cancelOrder(event,'<%=order._id%>')">Cancel Order</button>

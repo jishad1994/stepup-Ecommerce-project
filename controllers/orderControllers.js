@@ -281,6 +281,7 @@ const returnOrder = async (req, res) => {
         await Promise.all(
             order.items.map(async (item) => {
                 item.status = "Return Pending";
+                item.returnRequest.status = "Pending";
             })
         );
 
@@ -301,7 +302,8 @@ const returnItem = async (req, res) => {
     try {
         const orderId = req.query.orderId;
         const itemId = req.query.itemId;
-        const { status, note } = req.body;
+        
+        const { reason, details } = req.body;
 
         const order = await Order.findById(orderId);
 
@@ -309,37 +311,33 @@ const returnItem = async (req, res) => {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        const item = order.items.id(itemId);
+        if (order.status !== "Delivered") {
+            return res.status(400).json({
+                success: false,
+                message: "Only delivered orders can be returned",
+            });
+        }
+
+        const item = order.items.find((item) => item._id.toString() === itemId);
+        console.log("the returning item is ", item);
         if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
         }
 
-        item.returnRequest.adminResponse = {
-            status,
-            responseDate: new Date(),
-            note,
+        item.returnRequest = {
+            status: "Pending",
+            requestDate: new Date(),
+            reason,
+            details,
         };
 
-        item.returnRequest.status = status;
-        item.status = status === "Approved" ? "Return Approved" : "Return Rejected";
-
-        // Recalculate order totals if return is approved
-        if (status === "Approved") {
-            const activeItems = order.items.filter((i) => !["Cancelled", "Return Approved", "Returned"].includes(i.status));
-
-            if (activeItems.length === 0) {
-                order.status = "Returned";
-            }
-
-            // Recalculate totals considering returns
-            order.recalculateOrderTotals();
-        }
+        item.status = "Return Pending";
 
         await order.save();
 
-        res.status(201).json({ success: true, message: "Return request updated successfully" });
+        res.json({ success: true, message: "Return request submitted successfully" });
     } catch (error) {
-        console.error("Error updating return request:", error);
+        console.error("Error submitting return request:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

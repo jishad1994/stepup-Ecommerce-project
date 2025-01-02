@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Nest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
+    <!-- Template CSS -->
+    <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <%- include("partials/header")%>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Order Return Requests</h2>
+                    <p>Approve/Reject Return Requests.</p>
+                </div>
+
+            </div>
+            <div class="card mb-4">
+
+
+                <header class="card-header">
+                    <!-- <div class="row align-items-center">
+                        <div class="col col-check flex-grow-0">
+
+                        </div>
+
+                        <div class="col-md-2 col-6">
+                            <select class="form-select">
+                                <option selected>Status</option>
+                                <option>Available</option>
+                                <option>Out Of Stock</option>
+                                <option>Discontinued</option>
+                            </select>
+                        </div>
+                    </div> -->
+                </header>
+                <!-- card-header end// -->
+                <div class="container mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Request Date</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orderReturnRequests.forEach(order=> { %>
+                                <tr>
+                                    <td>
+                                        <%= order.orderId %>
+                                    </td>
+                                    <td>
+                                        <%= order.address.fullName %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(order.returnRequest.requestDate).toLocaleDateString() %>
+                                    </td>
+                                    <td>
+                                        <%= order.returnRequest.reason %>
+                                    </td>
+                                    <td>
+                                        <%= order.returnRequest.status %>
+                                    </td>
+                                    <td>
+                                        <% if (order.returnRequest.status==='Pending' ) { %>
+                                            <button class="btn btn-success btn-sm"
+                                                onclick="handleReturn('<%= order._id %>', 'Approved')">
+                                                Approve
+                                            </button>
+                                            <button class="btn btn-danger btn-sm"
+                                                onclick="handleReturn('<%= order._id %>', 'Rejected')">
+                                                Reject
+                                            </button>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+
+
+
+                <!-- card-body end// -->
+            </div>
+
+            <div class="pagination-area mt-15 mb-50">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <% for(let i=1; i <=totalPages; i++) { %>
+                            <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                    </ul>
+                </nav>
+            </div>
+
+        </section>
+        <!-- content-main end// -->
+        <%- include("partials/footer")%>
+</body>
+
+<script>
+    function handleReturn(orderId, status) {
+        if (status === 'Rejected') {
+            Swal.fire({
+                title: 'Reason for Rejection',
+                input: 'textarea',
+                inputLabel: 'Please provide a reason:',
+                inputPlaceholder: 'Type your reason here...',
+                inputAttributes: {
+                    'aria-label': 'Type your reason here'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const note = result.value || ''; // Get the rejection note
+                    sendReturnRequest(orderId, status, note);
+                }
+            });
+        } else {
+            sendReturnRequest(orderId, status, ''); // No note needed for approvals
+        }
+    }
+
+    function sendReturnRequest(orderId, status, note) {
+        fetch(`/admin/order/approveOrReject/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status, note })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.reload(); // Refresh the page
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Something went wrong. Please try again later.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+
+</script>
+
+</html>

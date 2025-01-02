@@ -74,6 +74,10 @@ adminRoute.post("/postAddStock", adminAuth, stockControllers.postAddStock);
 adminRoute.get("/listOrders", adminAuth, adminControllers.listOrders);
 adminRoute.get("/showDetails/:id", adminAuth, adminControllers.showOrderDetails);
 adminRoute.post("/changeOrderStatus", adminAuth, adminControllers.changeOrderStatus);
+adminRoute.get("/loadOrderReturnRequests", adminAuth, adminControllers.loadOrderReqs);
+adminRoute.post("/order/approveOrReject/:orderId", adminAuth, adminControllers.orderApproveOrReject);
+adminRoute.get("/loadItemReturnRequests", adminAuth, adminControllers.loadItemReturnReqs);
+adminRoute.post("/order/itemReturnApproveOrReject", adminAuth, adminControllers.itemApproveOrReject);
 
 //coupon routes
 

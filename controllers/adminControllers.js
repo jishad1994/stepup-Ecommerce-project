@@ -330,6 +330,222 @@ const changeOrderStatus = async (req, res) => {
     }
 };
 
+const loadOrderReqs = async (req, res) => {
+    try {
+        // Pagination logic
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = 8;
+        const skip = (page - 1) * limit;
+
+        const orderReturnRequests = await Order.find({
+            "returnRequest.status": "Pending",
+        })
+            .sort("-returnRequest.requestDate")
+            .skip(skip)
+            .limit(limit);
+        // Pagination info
+        const totalRequests = await Order.countDocuments({
+            "returnRequest.status": "Pending",
+        });
+        const totalPages = Math.ceil(totalRequests / limit);
+
+        res.render("orderReturnRequests", { orderReturnRequests, currentPage: page, totalPages, totalRequests });
+    } catch (error) {
+        console.error("Error fetching return requests:", error);
+        res.status(500).send("Internal server error");
+    }
+};
+
+const orderApproveOrReject = async (req, res) => {
+    try {
+        console.log("approve or reject");
+        const { orderId } = req.params;
+        const { status, note } = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        order.returnRequest.adminResponse = {
+            status,
+            responseDate: new Date(),
+            note,
+        };
+
+        order.returnRequest.status = status;
+
+        order.status = status === "Approved" ? "Return Request Approved" : "Return Request Rejected";
+
+        const itemStatus = status === "Approved" ? "Return Approved" : "Return Rejected";
+        const requestStatus = status === "Approved" ? "Approved" : "Rejected";
+
+        await Promise.all(
+            order.items.map((item) => {
+                item.status = itemStatus;
+                item.returnRequest.status = requestStatus;
+            })
+        );
+
+        await order.save();
+
+        res.json({ success: true, message: "Return request updated successfully" });
+    } catch (error) {
+        console.error("Error updating return request:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+//loda item return reqs page
+const loadItemReturnReqs = async (req, res) => {
+    try {
+        // Pagination logic
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = 8;
+        const skip = (page - 1) * limit;
+
+        // Pipeline to unwind and filter items with pending return requests
+        const itemReturnRequests = await Order.aggregate([
+            // Unwind the items array to work with individual items
+            { $unwind: "$items" },
+
+            // Match only items with pending return requests
+            {
+                $match: {
+                    "items.returnRequest.status": "Pending",
+                },
+            },
+
+            // Sort by the item's return request date
+            {
+                $sort: {
+                    "items.returnRequest.requestDate": -1,
+                },
+            },
+
+            // Lookup product details from the Products collection
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.productId",
+                    foreignField: "_id",
+                    as: "productDetails",
+                },
+            },
+
+            // Flatten the productDetails array (optional if only one match is expected)
+            {
+                $unwind: {
+                    path: "$productDetails",
+                    preserveNullAndEmptyArrays: true, // Retain items without a matching product
+                },
+            },
+            // Project relevant fields
+            {
+                $project: {
+                    _id: 1, // Order ID
+                    userId: 1,
+                    orderId: 1,
+                    address: 1,
+                    "items._id": 1,
+                    "items.productId": 1,
+                    "items.quantity": 1,
+                    "items.price": 1,
+                    "items.size": 1,
+                    "items.status": 1,
+                    "items.returnRequest": 1,
+                    productDetails: 1, // Include the joined product details
+                },
+            },
+
+            // Skip and limit for pagination
+            { $skip: skip },
+            { $limit: limit },
+        ]).exec();
+
+        console.log("hii total item return reqs", itemReturnRequests);
+        // Count total requests using the same filtering logic
+        const totalRequestsPipeline = [
+            { $unwind: "$items" },
+            {
+                $match: {
+                    "items.returnRequest.status": "Pending",
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 },
+                },
+            },
+        ];
+
+        const totalRequestsResult = await Order.aggregate(totalRequestsPipeline);
+        const totalRequests = totalRequestsResult.length > 0 ? totalRequestsResult[0].count : 0;
+        const totalPages = Math.ceil(totalRequests / limit);
+
+        res.render("itemReturnRequests", {
+            itemReturnRequests,
+            currentPage: page,
+            totalPages,
+            totalRequests,
+        });
+    } catch (error) {
+        console.error("Error fetching return requests:", error);
+        res.status(500).send("Internal server error");
+    }
+};
+
+const itemApproveOrReject = async (req, res) => {
+    try {
+        const { orderId, itemId } = req.query;
+        const { status, note } = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        const item = order.items.id(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
+
+        item.returnRequest.adminResponse = {
+            status,
+            responseDate: new Date(),
+            note,
+        };
+
+        item.returnRequest.status = status;
+        item.status = status === "Approved" ? "Return Approved" : "Return Rejected";
+
+        // Recalculate order totals if return is approved
+        if (status === "Approved") {
+            const activeItems = order.items.filter((i) => !["Cancelled", "Return Approved", "Returned"].includes(i.status));
+
+            if (activeItems.length === 0) {
+                order.status = "Returned";
+            }
+
+            // Recalculate totals considering returns
+            const refundAmount = await calculateRefundAmount(orderId, itemId);
+            console.log("refund amount", refundAmount);
+            order.totalPrice = Number(order.totalPrice - refundAmount);
+            console.log("hii", order.totalPrice);
+        }
+
+        await order.save();
+
+        res.json({ success: true, message: "Return request updated successfully" });
+    } catch (error) {
+        console.error("Error updating return request:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 module.exports = {
     loadAdminLogin,
     postAdminLogin,
@@ -342,4 +558,69 @@ module.exports = {
     listOrders,
     showOrderDetails,
     changeOrderStatus,
+    loadOrderReqs,
+    orderApproveOrReject,
+    loadItemReturnReqs,
+    itemApproveOrReject,
+};
+
+//calculate refund amount
+const calculateRefundAmount = async (orderId, returnedItemId) => {
+    try {
+        // Fetch the complete order
+        const order = await Order.findById(orderId);
+        if (!order) {
+            throw new Error("Order not found");
+        }
+
+        // Find the returned item in the order
+        const returnedItem = order.items.find((item) => item._id.toString() === returnedItemId);
+
+        if (!returnedItem) {
+            throw new Error("Item not found in order");
+        }
+
+        // Calculate basic refund amount for the item
+        const itemTotal = returnedItem.price * returnedItem.quantity;
+
+        // If no coupon was applied, return the item total
+        if (!order.couponApplied) {
+            return itemTotal;
+        }
+
+        // Calculate remaining order total without the returned item
+        const remainingItemsTotal = order.totalPrice - itemTotal;
+
+        // Handle coupon adjustments
+        const couponDetails = order.couponDetails;
+        let refundAmount = itemTotal;
+
+        if (couponDetails.discountType === "percentage") {
+            // Calculate proportional discount for the returned item
+            const percentageDiscount = (itemTotal * couponDetails.percentage) / 100;
+            refundAmount = itemTotal - percentageDiscount;
+
+            // If there was a maximum discount cap
+            if (couponDetails.discountAmount) {
+                const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
+                refundAmount = itemTotal - proportionalDiscount;
+            }
+        } else if (couponDetails.discountType === "flat") {
+            // Calculate proportional flat discount
+            const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
+            refundAmount = itemTotal - proportionalDiscount;
+        }
+
+        // Check if remaining order still qualifies for coupon
+        const coupon = await mongoose.model("Coupon").findById(couponDetails.couponId);
+        if (coupon && remainingItemsTotal < coupon.minOrderValue) {
+            // If remaining items don't qualify for coupon, return full item price
+            refundAmount = itemTotal;
+        }
+
+        return Math.round(refundAmount * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+        console.error("Error calculating refund amount:", error);
+        throw error;
+    }
 };

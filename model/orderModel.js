@@ -63,10 +63,12 @@ const orderSchema = new Schema(
             type: Number,
             required: true,
         },
-        paymentType: {
-            type: String,
-            enum: ["COD", "Credit Card", "UPI", "Online Payment", "Net Banking"],
-            default: "COD",
+        paymentType: { type: String, enum: ["COD", "Online","Wallet"], default: "COD" },
+        paymentDetails: {
+            paymentId: { type: String },
+            orderId: { type: String },
+            status: { type: String },
+            paymentMethod: { type: String },
         },
         totalPrice: {
             type: Number,

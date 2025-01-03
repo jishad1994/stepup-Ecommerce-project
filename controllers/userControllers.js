@@ -8,6 +8,7 @@ const sendOTP = require("../utilities/sendOTP.js");
 const env = require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const Address = require("../model/addressModel.js");
+const Wallet = require("../model/walletModel.js");
 
 //load home apge
 const loadHomePage = async (req, res) => {
@@ -201,9 +202,7 @@ const loadShopAll = async (req, res) => {
         if (sortOption == "featured") {
             baseQuery = { isListed: true, isFeatured: true };
         }
-        
 
-        
         // Add search functionality
         if (searchQuery) {
             baseQuery.$or = [
@@ -312,9 +311,35 @@ const orderConfirmed = async (req, res) => {
 
 const wallet = async (req, res) => {
     try {
-        res.render("wallet");
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized access. Please log in.",
+            });
+        }
+
+        const userId = req.user._id;
+
+        // Find the wallet
+        const wallet = await Wallet.findOne({ userId });
+
+        if (!wallet) {
+            return res.status(404).json({
+                success: false,
+                message: "Wallet not found.",
+            });
+        }
+
+        // Render the wallet page with wallet data
+        res.render("wallet", { wallet });
     } catch (error) {
-        console.log("error while loading wallet", error);
+        console.error("Error while loading wallet:", error);
+
+        // Return a server error response
+        res.status(500).json({
+            success: false,
+            message: "Internal server error. Please try again later.",
+        });
     }
 };
 
@@ -457,22 +482,21 @@ const loadOtpPage = async (req, res) => {
 };
 
 //otp verification page
+
 const verifyOTP = async (req, res) => {
     try {
-        console.log("request reached verify otp controller");
-        const { OTP } = req.body;
-        console.log(OTP);
-        console.log(" he current session data is :", req.session.userdata);
+        console.log("OTP verification request received.");
 
-        if (!req.session.userdata) {
+        const { OTP } = req.body;
+
+        if (!req.session.userdata || !req.session.userdata.OTP || !req.session.userdata.expiry) {
             return res.status(400).json({
                 success: false,
-                message: "Session expired. Please try again.",
+                message: "Invalid session data. Please try again.",
             });
         }
 
         const isExpired = Date.now() > req.session.userdata.expiry;
-
         if (isExpired) {
             return res.status(400).json({
                 success: false,
@@ -480,42 +504,46 @@ const verifyOTP = async (req, res) => {
             });
         }
 
-        if (OTP == req.session.userdata?.OTP) {
-            console.log("OTP matches and verification successful");
-
-            //Clear session OTP after successful verification
-            req.session.userdata.OTP = null;
-
-            console.log("the session data is:", req.session.userdata);
-            password = req.session.userdata.password;
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-
-            const user = await new User({
-                name: req.session.userdata.name,
-                email: req.session.userdata.email,
-                password: hashedPassword,
-                phone: req.session.userdata.phone,
-            });
-
-            await user.save();
-
-            return res.status(200).json({
-                success: true,
-                message: "OTP verification is successful and Data saved in DB",
-            });
-        } else {
-            console.log("otp else case worked");
-            res.status(400).json({
+        if (OTP !== req.session.userdata.OTP) {
+            return res.status(400).json({
                 success: false,
                 message: "Invalid OTP. Please try again.",
             });
         }
+
+        console.log("OTP matches and verification successful.");
+
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.session.userdata.password, salt);
+
+        // Save the user
+        const user = new User({
+            name: req.session.userdata.name,
+            email: req.session.userdata.email,
+            password: hashedPassword,
+            phone: req.session.userdata.phone,
+        });
+        const savedUser = await user.save();
+
+        console.log("Saving wallet for user with ID:", savedUser._id);
+
+        // Create a wallet for the user
+        const wallet = new Wallet({ userId: savedUser._id });
+        await wallet.save();
+
+        // Clear session data
+        req.session.userdata = null;
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP verification successful, and data saved in DB.",
+        });
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({
+        console.error("Error in verifyOTP controller:", error.message);
+        return res.status(500).json({
             success: false,
-            message: "Error while comparing OTP",
+            message: "Error while verifying OTP.",
         });
     }
 };
@@ -698,4 +726,5 @@ module.exports = {
     shopCategory,
     loadEditProfile,
     postEditProfile,
+   
 };

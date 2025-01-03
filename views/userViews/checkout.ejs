@@ -166,9 +166,12 @@
                           <label class="form-check-label" for="COD">Cash On Delivery</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard"
-                            value="Credit Card">
-                          <label class="form-check-label" for="creditCard">Online Payment</label>
+                          <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="Online">
+                          <label class="form-check-label" for="online">Online Payment</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="Wallet">
+                          <label class="form-check-label" for="Wallet">Wallet</label>
                         </div>
 
                       </div>
@@ -234,7 +237,7 @@
                           <ul>
                             <li class="list-group-item d-flex justify-content-between">
                               <span>Shipping</span>
-                              <strong id="shipping-charge">₹10.00</strong>
+                              <strong id="shipping-charge">₹ 10.00</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                               <strong>Discount</strong>
@@ -503,10 +506,10 @@
             }).then(async (result) => {
               if (result.isConfirmed) {
 
-                if (paymentMethod == "Credit Card") {
+                if (paymentMethod == "Online") {                                            // if online payment
 
                   const amount = document.getElementById("final-amount").innerText
-                  console.log('amont is ', amount);
+
                   const response = await fetch("/rzpCreateOrder", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -537,20 +540,26 @@
                         });
 
 
-                        const verifyData = await verifyResponse.json();
+                        var verifyData = await verifyResponse.json();
+                        console.log('hii verify data is ', verifyData);
 
-                        //proceed to plae the order
+                        //proceed to place the order
                         if (verifyData.success) {
                           Swal.fire({
                             icon: 'success',
                             title: 'Success',
-                            text: 'Your payment is successfull..placing Order',
+                            text: ' Payment Successfull..Placing Order',
                             showConfirmButton: false,
                             timer: 2000,
 
                           }).then(async () => {
 
                             console.log("payment success full proceeding to place order")
+
+                            // Append payment details to formData
+                            formData.razorpay_order_id = verifyData.razorpay_order_id;
+                            formData.razorpay_payment_id = verifyData.razorpay_payment_id;
+
 
                             // // Process the order
                             const response = await fetch("/placeOrder", {
@@ -608,6 +617,44 @@
                       text: "Failed to create Razorpay order.",
                     });
                   }
+
+
+                } else if (paymentMethod === 'Wallet') {                            // order placement by walllet
+
+
+
+                  const response = await fetch("/placeOrderByWallet", {
+
+                    method: 'POST',
+                    headers: {
+
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                  })
+                  const data = await response.json();
+
+                  if (data.success) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Success',
+                      text: `${data.message}`,
+                      showConfirmButton: false,
+                      timer: 2000,
+                    }).then(() => {
+                      // Redirect to orders page
+                      window.location.href = '/orders'; // redierct to orders
+                    });
+                  } else {
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: data.message,
+                    });
+                  }
+
+
+
 
 
 

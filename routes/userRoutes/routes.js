@@ -88,6 +88,7 @@ route.post("/returnItem", userAuth, orderControllers.returnItem);
 
 //wallet controllers
 route.get("/wallet", userAuth, userController.wallet);
+route.post("/placeOrderByWallet",userAuth,checkoutControllers.placeOrderByWallet)
 
 //stock availabity check route
 

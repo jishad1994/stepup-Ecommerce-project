@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,36 +20,71 @@
         body {
             background-color: #f4f6f9;
         }
+
+        /* For webkit browsers like Chrome and Safari */
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Ensure the sticky header has a border bottom */
+        .table thead tr th {
+            border-bottom: 2px solid #dee2e6;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Add hover effect on table rows */
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, .075);
+        }
+
         .wallet-container {
             max-width: 400px;
             margin: 50px auto;
             background-color: white;
             border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         .wallet-header {
             background-color: #4a90e2;
             color: white;
             padding: 20px;
             text-align: center;
         }
+
         .balance-section {
             padding: 20px;
             text-align: center;
         }
+
         .card-section {
             background-color: #f8f9fa;
             padding: 20px;
         }
+
         .transaction-section {
             padding: 15px;
         }
     </style>
 </head>
+
 <body>
-    <%-include('../partials/header')%>
-    <div class="container">
+    <%- include('../partials/header')%>
+        <!-- <div class="container">
         <div class="wallet-container">
             <div class="wallet-header">
                 <h2>My Digital Wallet</h2>
@@ -92,20 +128,118 @@
                 </ul>
             </div>
         </div>
-    </div>
-    <%-include('../partials/footer')%>
-    <script src="scripts/jquery-3.3.1.min.js"></script>
-  <script src="scripts/jquery-ui.js"></script>
-  <script src="scripts/popper.min.js"></script>
-  <script src="scripts/bootstrap.min.js"></script>
-  <script src="scripts/owl.carousel.min.js"></script>
-  <script src="scripts/jquery.magnific-popup.min.js"></script>
-  <script src="scripts/aos.js"></script>
-  <script src="scripts/main.js"></script>
+    </div> -->
+        <div class="container my-4">
+            <div class="row">
+                <!-- Wallet Balance Card -->
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Wallet Balance</h5>
+                            <h2 class="text-primary">₹ <%= wallet.balance.toFixed(2) %>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <!-- Bootstrap Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+                <!-- Transaction History -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Transaction History</h5>
+                        </div>
+                        <div class="card-body p-0"> <!-- Removed padding for better scrolling -->
+                            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover mb-0"> <!-- Removed bottom margin -->
+                                    <thead style="position: sticky; top: 0; background: white; z-index: 1;">
+                                        <tr>
+                                            <th class="px-3">Date</th>
+                                            <th class="px-3">Transaction ID</th>
+                                            <th class="px-3">Type</th>
+                                            <th class="px-3">Amount</th>
+                                            <th class="px-3">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (wallet.transactions && wallet.transactions.length> 0) { %>
+                                            <% wallet.transactions.sort((a, b)=> b.date - a.date).forEach(transaction =>
+                                                { %>
+                                                <tr>
+                                                    <td class="px-3">
+                                                        <%= new Date(transaction.date).toLocaleDateString() %>
+                                                    </td>
+                                                    <td class="px-3"><small class="text-muted">
+                                                            <%= transaction.transactionId %>
+                                                        </small></td>
+                                                    <td class="px-3">
+                                                        <span
+                                                            class="badge <%= transaction.type === 'Credit' ? 'bg-success' : 'bg-danger' %>">
+                                                            <%= transaction.type %>
+                                                        </span>
+                                                    </td>
+                                                    <td
+                                                        class="px-3 <%= transaction.type === 'Credit' ? 'text-success' : 'text-danger' %>">
+                                                        <%= transaction.type==='Credit' ? '+' : '-' %>₹<%=
+                                                                transaction.amount.toFixed(2) %>
+                                                    </td>
+                                                    <td class="px-3">
+                                                        <%= transaction.description || '-' %>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td colspan="5" class="text-center">No transactions found
+                                                            </td>
+                                                        </tr>
+                                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Money Modal -->
+        <div class="modal fade" id="addMoneyModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Money to Wallet</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="addMoneyForm" action="/wallet/add-money" method="POST">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Amount (₹)</label>
+                                <input type="number" class="form-control" name="amount" min="1" step="1" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Money</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <%- include('../partials/footer')%>
+            <script src="scripts/jquery-3.3.1.min.js"></script>
+            <script src="scripts/jquery-ui.js"></script>
+            <script src="scripts/popper.min.js"></script>
+            <script src="scripts/bootstrap.min.js"></script>
+            <script src="scripts/owl.carousel.min.js"></script>
+            <script src="scripts/jquery.magnific-popup.min.js"></script>
+            <script src="scripts/aos.js"></script>
+            <script src="scripts/main.js"></script>
+
+            <!-- Bootstrap JS and dependencies -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+            <!-- Bootstrap Icons -->
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
+                rel="stylesheet">
 </body>
+
 </html>

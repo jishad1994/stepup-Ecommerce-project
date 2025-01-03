@@ -152,7 +152,7 @@
                                         </span>
                                     </div>
                                     <div class="col-md-2">
-                                        <strong>$<%= order.totalPrice || "0.00" %></strong>
+                                        <strong>₹ <%= order.totalPrice || "0.00" %></strong>
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <button class="btn btn-sm btn-outline-primary"
@@ -160,8 +160,8 @@
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <% if (order.status !=="Cancelled" && order.status !=="Delivered" &&![ "Shipped"
-                                            , "Delivered" , "Cancelled" , "Return Request","Return Request Approved" ,"Return Request Rejected", "Returned"
-                                            ].includes(order.status) ) { %>
+                                            , "Delivered" , "Cancelled" , "Return Request" ,"Return Request Approved"
+                                            ,"Return Request Rejected", "Returned" ].includes(order.status) ) { %>
                                             <button class="btn btn-sm btn-outline-danger"
                                                 onclick="cancelOrder(event,'<%=order._id%>')">Cancel Order</button>
                                             <% } %>

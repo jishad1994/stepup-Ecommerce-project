@@ -45,15 +45,19 @@ const loadSignin = async (req, res) => {
 //shop all or category wise
 const shopCategory = async (req, res) => {
     try {
-        // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
         const skip = (page - 1) * limit;
 
-        // Get sort parameter from query
-        const sortOption = req.query.sort || "default";
+        const primarySort = req.query.primarySort || "default";
+        const secondarySort = req.query.secondarySort || "";
+        const searchQuery = req.query.search || "";
 
-        // Define sort configurations
+        const categoryId = req.params.id || null;
+        if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
+            return res.status(400).render("404", { error: "Invalid category ID." });
+        }
+
         const sortConfigs = {
             default: {},
             featured: { isFeatured: -1 },
@@ -66,110 +70,88 @@ const shopCategory = async (req, res) => {
             rating: { averageRating: -1 },
         };
 
-        // Get the sort configuration
-        const sortConfig = sortConfigs[sortOption];
-        const categoryId = req.params.id ? new mongoose.Types.ObjectId(req.params.id) : null;
-        console.log("hii category is ", categoryId);
-
-        //decide the category
-        var categoryTitle;
-
-        if (categoryId.toString() == "674f1f1662333c214cfac645") {
-            categoryTitle = "men";
-        } else if (categoryId.toString() == "674f1f2762333c214cfac64c") {
-            categoryTitle = "women";
-        } else if (categoryId.toString() == "674f1f3662333c214cfac653") {
-            categoryTitle = "kids";
+        let sortCriteria = {};
+        if (primarySort !== "default") {
+            sortCriteria = { ...sortConfigs[primarySort] };
         }
-        console.log("categry name is", categoryTitle);
-
-        // Build base query
-        let baseQuery = { isListed: true };
-
-        if (sortOption == "featured") {
-            baseQuery = { isListed: true, isFeatured: true };
-        }
-        if (categoryId) {
-            baseQuery.category = categoryId;
-        }
-
-        // Check if category is listed (if category is specified)
-        if (categoryId) {
-            const isListed = await Category.findOne({
-                _id: categoryId,
-                isListed: true,
+        if (secondarySort && secondarySort !== "default") {
+            Object.keys(sortConfigs[secondarySort]).forEach((key) => {
+                if (!sortCriteria[key]) {
+                    sortCriteria[key] = sortConfigs[secondarySort][key];
+                }
             });
+        }
 
+        let categoryTitle = "Shop category Wise";
+        if (categoryId) {
+            if (categoryId === "674f1f1662333c214cfac645") categoryTitle = "Men";
+            else if (categoryId === "674f1f2762333c214cfac64c") categoryTitle = "Women";
+            else if (categoryId === "674f1f3662333c214cfac653") categoryTitle = "Kids";
+        }
+
+        const baseQuery = { isListed: true };
+        if (categoryId) baseQuery.category = categoryId;
+
+        if (primarySort === "featured" || secondarySort === "featured") {
+            baseQuery.isFeatured = true;
+        }
+
+        if (searchQuery) {
+            baseQuery.$or = [
+                { productName: { $regex: searchQuery, $options: "i" } },
+                { description: { $regex: searchQuery, $options: "i" } },
+            ];
+        }
+
+        const [menCount, womenCount, kidsCount, totalProducts, products] = await Promise.all([
+            Product.countDocuments({ category: "674f1f1662333c214cfac645", isListed: true }),
+            Product.countDocuments({ category: "674f1f2762333c214cfac64c", isListed: true }),
+            Product.countDocuments({ category: "674f1f3662333c214cfac653", isListed: true }),
+            Product.countDocuments(baseQuery),
+            Product.find(baseQuery).sort(sortCriteria).skip(skip).limit(limit).lean(),
+        ]);
+
+        if (categoryId) {
+            const isListed = await Category.findOne({ _id: categoryId, isListed: true });
             if (!isListed) {
                 return res.render("shopCategory", {
+                    categoryTitle: "Invalid Category",
                     products: [],
-                    menCount: 0,
-                    womenCount: 0,
-                    kidsCount: 0,
-                    currentSort: sortOption,
-                    pagination: {
-                        currentPage: 1,
-                        hasNextPage: false,
-                        hasPrevPage: false,
-                        pages: [1],
-                        totalPages: 1,
-                    },
+                    menCount,
+                    womenCount,
+                    kidsCount,
+                    // currentSort: { primary: primarySort, secondary: secondarySort },
+                    pagination: { currentPage: 1, hasNextPage: false, hasPrevPage: false, pages: [1], totalPages: 1 },
+                    currentPrimarySort: primarySort,
+                    currentSecondarySort: secondarySort,
                 });
             }
         }
 
-        // Parallel queries for counts and products
-        const [menCount, womenCount, kidsCount, totalProducts, products] = await Promise.all([
-            Product.countDocuments({
-                category: new mongoose.Types.ObjectId("674f1f1662333c214cfac645"),
-                isListed: true,
-            }),
-            Product.countDocuments({
-                category: new mongoose.Types.ObjectId("674f1f2762333c214cfac64c"),
-                isListed: true,
-            }),
-            Product.countDocuments({
-                category: new mongoose.Types.ObjectId("674f1f3662333c214cfac653"),
-                isListed: true,
-            }),
-            Product.countDocuments(baseQuery),
-            Product.find(baseQuery).sort(sortConfig).skip(skip).limit(limit).lean(),
-        ]);
-
-        // Calculate pagination
-        const totalPages = Math.ceil(totalProducts / limit);
+        const totalPages = Math.max(1, Math.ceil(totalProducts / limit));
         const hasNextPage = page < totalPages;
         const hasPrevPage = page > 1;
 
-        // Generate page numbers
         let pages = [];
         for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
             pages.push(i);
         }
 
         res.render("shopCategory", {
-            categoryTitle: categoryTitle,
+            categoryTitle,
             products,
             menCount,
             womenCount,
             kidsCount,
-            currentSort: sortOption,
-            pagination: {
-                currentPage: page,
-                hasNextPage,
-                hasPrevPage,
-                pages,
-                totalPages,
-                nextPage: page + 1,
-                prevPage: page - 1,
-                categoryId: req.params.id,
-            },
+            // currentSort: { primary: primarySort, secondary: secondarySort },
+            pagination: { currentPage: page, hasNextPage, hasPrevPage, pages, totalPages, nextPage: page + 1, prevPage: page - 1, categoryId },
+
+            currentPrimarySort: primarySort,
+            currentSecondarySort: secondarySort,
         });
     } catch (error) {
         console.error("Error in shop category:", error.message);
-        res.status(500).render("404", {
-            error: "Failed to load the shop page. Please try again later.",
-        });
+        res.status(500).render("404", { error: "Failed to load the shop page. Please try again later." });
     }
 };
 
@@ -181,8 +163,9 @@ const loadShopAll = async (req, res) => {
         const limit = parseInt(req.query.limit) || 9;
         const skip = (page - 1) * limit;
 
-        // Get sort parameter and search query
-        const sortOption = req.query.sort || "default";
+        // Get primary and secondary sort parameters
+        const primarySort = req.query.primarySort || "default";
+        const secondarySort = req.query.secondarySort || "";
         const searchQuery = req.query.search || "";
 
         // Define sort configurations
@@ -197,10 +180,28 @@ const loadShopAll = async (req, res) => {
             priceHighToLow: { regularPrice: -1 },
             rating: { averageRating: -1 },
         };
+
+        // Combine sort criteria
+        let sortCriteria = {};
+        if (primarySort && primarySort !== "default") {
+            const primaryCriteria = sortConfigs[primarySort];
+            sortCriteria = { ...primaryCriteria };
+        }
+
+        if (secondarySort && secondarySort !== "default") {
+            const secondaryCriteria = sortConfigs[secondarySort];
+            // Combine with primary sort while ensuring unique keys
+            Object.keys(secondaryCriteria).forEach((key) => {
+                if (!sortCriteria.hasOwnProperty(key)) {
+                    sortCriteria[key] = secondaryCriteria[key];
+                }
+            });
+        }
+
         // Build base query
         let baseQuery = { isListed: true };
-        if (sortOption == "featured") {
-            baseQuery = { isListed: true, isFeatured: true };
+        if (primarySort === "featured" || secondarySort === "featured") {
+            baseQuery.isFeatured = true;
         }
 
         // Add search functionality
@@ -216,7 +217,7 @@ const loadShopAll = async (req, res) => {
         const listedCategoryIds = listedCategories.map((category) => category._id);
         baseQuery.category = { $in: listedCategoryIds };
 
-        // Parallel queries for counts and products
+        // Execute queries
         const [menCount, womenCount, kidsCount, totalProducts, products] = await Promise.all([
             Product.countDocuments({
                 category: new mongoose.Types.ObjectId("674f1f1662333c214cfac645"),
@@ -231,16 +232,12 @@ const loadShopAll = async (req, res) => {
                 isListed: true,
             }),
             Product.countDocuments(baseQuery),
-            Product.find(baseQuery).sort(sortConfigs[sortOption]).skip(skip).limit(limit).lean(),
+            Product.find(baseQuery).sort(sortCriteria).skip(skip).limit(limit).lean(),
         ]);
 
-        // Calculate pagination values
+        // Calculate pagination
         const totalPages = Math.ceil(totalProducts / limit);
-        const hasNextPage = page < totalPages;
-        const hasPrevPage = page > 1;
-
-        // Create page numbers array
-        let pages = [];
+        const pages = [];
         for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
             pages.push(i);
         }
@@ -251,12 +248,13 @@ const loadShopAll = async (req, res) => {
             menCount,
             womenCount,
             kidsCount,
-            currentSort: sortOption,
+            currentPrimarySort: primarySort,
+            currentSecondarySort: secondarySort,
             searchQuery,
             pagination: {
                 currentPage: page,
-                hasNextPage,
-                hasPrevPage,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
                 pages,
                 totalPages,
                 nextPage: page + 1,
@@ -264,13 +262,12 @@ const loadShopAll = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Error while loading shopAll page:", error.message);
+        console.error("Error in loadShopAll:", error);
         res.status(500).render("404", {
             error: "Failed to load the shop all page. Please try again later.",
         });
     }
 };
-
 //load shop single
 const loadProduct = async (req, res) => {
     try {
@@ -726,5 +723,4 @@ module.exports = {
     shopCategory,
     loadEditProfile,
     postEditProfile,
-   
 };

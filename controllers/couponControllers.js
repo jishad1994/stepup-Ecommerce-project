@@ -8,6 +8,7 @@ const Order = require("../model/orderModel.js");
 const Coupon = require("../model/couponSchema.js");
 const couponSchema = require("../model/couponSchema.js");
 const mongoose = require("mongoose");
+const { error } = require("winston");
 
 //load coupon page
 const loadAddCoupon = async (req, res) => {
@@ -26,15 +27,19 @@ const loadAddCoupon = async (req, res) => {
 //create coupon
 const postAddCoupon = async (req, res) => {
     try {
+        console.log("hii", req.body);
         // Validate input
         const { isValid, errors } = validateCouponInput(req.body);
+        //retrieve the error message
+        const errorMessage = Object.values(errors)[0];
+        console.log("hii", Object.values(errors)[0]);
         if (!isValid) {
-            return res.status(400).json({ success: false, errors });
+            return res.status(400).json({ success: false, errors ,message:errorMessage});
         }
 
         // Check for existing coupon with same code
         const existingCoupon = await Coupon.findOne({
-            code: req.body.code.toUpperCase(),
+            code: { $regex: req.body.code, $options: "i" },
         });
 
         if (existingCoupon) {
@@ -235,6 +240,9 @@ const validateCouponInput = (data) => {
 
     if (data.maxDiscountValue && (isNaN(data.maxDiscountValue) || data.maxDiscountValue < 0)) {
         errors.maxDiscountValue = "Maximum discount value must be a positive number";
+    }
+    if (data.maxDiscountValue && (isNaN(data.maxDiscountValue) || data.maxDiscountValue > data.minOrderValue)) {
+        errors.maxDiscountValue = "Max Discount Value should be less than Min order Value";
     }
 
     if (data.usageLimit && (isNaN(data.usageLimit) || data.usageLimit < 1)) {

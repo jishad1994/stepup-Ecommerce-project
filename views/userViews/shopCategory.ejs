@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/styles/css/owl.theme.default.min.css">
   <link rel="stylesheet" href="/styles/css/aos.css">
   <link rel="stylesheet" href="/styles/css/style.css">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
 </head>
 
 <body>
@@ -62,60 +63,68 @@
 
 
               <!-- search option -->
-              <div class="row mb-5">
-                <div class="col-md-12">
-                  <div class="float-md-left mb-4">
-                    <h2 class="text-black h5">Shop <%=categoryTitle%>
-                    </h2>
-                  </div>
-                  <div class="d-flex">
-                    <div class="dropdown mr-1 ml-md-auto">
-                      <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuOffset"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Sort By
-                      </button>
-                      <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-                        <a class="dropdown-item <%= locals.currentSort === 'default' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=default<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Default
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'featured' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=featured<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Featured
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'newArrivals' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=newArrivals<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          New Arrivals
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'popularity' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=popularity<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Most Popular
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'priceLowToHigh' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=priceLowToHigh<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Price: Low to High
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'priceHighToLow' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=priceHighToLow<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Price: High to Low
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'nameAZ' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=nameAZ<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Name: A to Z
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'nameZA' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=nameZA<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Name: Z to A
-                        </a>
-                        <a class="dropdown-item <%= locals.currentSort === 'rating' ? 'active' : '' %>"
-                          href="/shopall/<%= pagination.categoryId%>?sort=rating<%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                          Average Rating
-                        </a>
+              <div class="row">
+                <div class="col-md-12 mb-5">
+                  <!-- <div class="float-md-left mb-4">
+                    <h2 class="text-black h5">Shop All</h2>
+                  </div> -->
+                  <div class="d-flex justify-content-between align-items-center">
+                    <!-- Search Form -->
+                    <form action="/shopall" method="GET" class="d-flex align-items-center">
+                      <input type="hidden" name="sort" value="<%= locals.currentSort || 'default' %>">
+                      <div class="input-group mr-3" style="max-width: 300px;">
+                        <input type="text" class="form-control" placeholder="Search products..." name="search"
+                          value="<%= locals.searchQuery || '' %>">
+                        <div class="input-group-append">
+                          <button class="btn btn-primary" type="submit">
+                            <i class="icon-search"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+
+                    <!-- Sort Dropdown -->
+                    
+                    <div class="filter-section mb-4">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label for="primarySort" class="form-label">Filter</label>
+                          <select id="primarySort" class="form-control" name="primarySort">
+                            <option value="default" <%=locals.currentPrimarySort==='default' ? 'selected' : '' %>
+                              >Default</option>
+                            <option value="popularity" <%=locals.currentPrimarySort==='popularity' ? 'selected' : '' %>
+                              >Most Popular</option>
+                            <option value="featured" <%=locals.currentPrimarySort==='featured' ? 'selected' : '' %>
+                              >Featured</option>
+                            <option value="newArrivals" <%=locals.currentPrimarySort==='newArrivals' ? 'selected' : ''
+                              %>>New Arrivals</option>
+                            <option value="rating" <%=locals.currentPrimarySort==='rating' ? 'selected' : '' %>>Average
+                              Rating</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6">
+                          <label for="secondarySort" class="form-label">Sort </label>
+                          <select id="secondarySort" class="form-control" name="secondarySort">
+                            <option value="default" <%=locals.currentSecondarySort==='default' ? 'selected' : '' %>
+                              >Default</option>
+                            <option value="priceLowToHigh" <%=locals.currentSecondarySort==='priceLowToHigh'
+                              ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="priceHighToLow" <%=locals.currentSecondarySort==='priceHighToLow'
+                              ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="nameAZ" <%=locals.currentSecondarySort==='nameAZ' ? 'selected' : '' %>>Name:
+                              A to Z</option>
+                            <option value="nameZA" <%=locals.currentSecondarySort==='nameZA' ? 'selected' : '' %>>Name:
+                              Z to A</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
+                    <!--  -->
                   </div>
                 </div>
               </div>
+
+
               <!-- Product listing starts -->
               <div class="row mb-5">
                 <% products.forEach(product=> { %>
@@ -144,16 +153,18 @@
                               <% } %>
                           </div>
                           <div>
-                            <% if (product.salePrice) { %>
-                              <p class="text-muted mb-0 mr-2 text-decoration-line-through">
-                                $<%= product.regularPrice %>
-                              </p>
+                            <p class="text-muted mb-0 mr-2 text-decoration-line-through">
+                              ₹ <%= product.regularPrice %>
+                            </p>
+                            <% if (product.isOfferApplied) { %>
                               <p class="text-primary font-weight-bold">
-                                $<%= product.salePrice %>
+                                ₹ <%= product.offerPrice %><span
+                                    class="badge rounded-pill bg-info shadow  m-2 text-white p-1 "> Offer
+                                    price</span>
                               </p>
                               <% } else { %>
                                 <p class="text-primary font-weight-bold">
-                                  $<%= product.regularPrice %>
+                                  ₹ <%= product.salePrice %>
                                 </p>
                                 <% } %>
                           </div>
@@ -172,7 +183,7 @@
                       <% if (pagination.hasPrevPage) { %>
                         <li>
                           <a
-                            href="?page=<%= pagination.prevPage %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&lt;</a>
+                            href="?page=<%= pagination.prevPage %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&lt;</a>
                         </li>
                         <% } %>
 
@@ -184,7 +195,7 @@
                                 </span>
                                 <% } else { %>
                                   <a
-                                    href="?page=<%= pageNum %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">
+                                    href="?page=<%= pageNum %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">
                                     <%= pageNum %>
                                   </a>
                                   <% } %>
@@ -194,7 +205,7 @@
                               <% if (pagination.hasNextPage) { %>
                                 <li>
                                   <a
-                                    href="?page=<%= pagination.nextPage %>&sort=<%= currentSort %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&gt;</a>
+                                    href="?page=<%= pagination.nextPage %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %><%= pagination.categoryId ? '&categoryId=' + pagination.categoryId : '' %>">&gt;</a>
                                 </li>
                                 <% } %>
                     </ul>
@@ -232,6 +243,59 @@
       </div>
       <%- include("../partials/footer") %>
   </div>
+
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const primarySort = document.getElementById('primarySort');
+      const secondarySort = document.getElementById('secondarySort');
+      const searchInput = document.querySelector('input[name="search"]');
+
+      function updateProducts() {
+        const searchQuery = searchInput.value;
+        const primarySortValue = primarySort.value;
+        const secondarySortValue = secondarySort.value;
+
+        // Construct URL with all parameters
+        const url = new URL(window.location.href);
+        url.searchParams.set('primarySort', primarySortValue);
+        url.searchParams.set('secondarySort', secondarySortValue);
+        if (searchQuery) {
+          url.searchParams.set('search', searchQuery);
+        }
+
+        // Navigate to new URL
+        window.location.href = url.toString();
+      }
+
+      // Add event listeners
+      primarySort.addEventListener('change', updateProducts);
+      secondarySort.addEventListener('change', updateProducts);
+
+      // Update search form to include sort parameters
+      const searchForm = document.querySelector('form[action="/shopall"]');
+      searchForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const primarySortInput = document.createElement('input');
+        primarySortInput.type = 'hidden';
+        primarySortInput.name = 'primarySort';
+        primarySortInput.value = primarySort.value;
+
+        const secondarySortInput = document.createElement('input');
+        secondarySortInput.type = 'hidden';
+        secondarySortInput.name = 'secondarySort';
+        secondarySortInput.value = secondarySort.value;
+
+        this.appendChild(primarySortInput);
+        this.appendChild(secondarySortInput);
+        this.submit();
+      });
+    });
+
+
+    
+  </script>
 
   <script src="/scripts/jquery-ui.js"></script>
   <script src="/scripts/jquery-3.3.1.min.js"></script>

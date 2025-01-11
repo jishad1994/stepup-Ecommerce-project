@@ -5,8 +5,13 @@ const helpers = require("../helpers/helper");
 //load generator page
 const loadGeneratorPage = async (req, res) => {
     try {
+        // Render the salesReports page
         res.render("salesReports");
-    } catch (error) {}
+    } catch (error) {
+        console.error("Error loading the generator page:", error);
+
+        res.status(500).send("An error occurred while loading the page. Please try again later.");
+    }
 };
 
 //generate sales report
@@ -15,6 +20,7 @@ const generateSalesReport = async (req, res) => {
         const { reportType, startDate, endDate, format } = req.body;
         console.log("req body", req.body);
         let query = {};
+
         let dateRange = {};
 
         // Set date range based on report type
@@ -25,6 +31,7 @@ const generateSalesReport = async (req, res) => {
                     $lt: new Date(new Date(startDate).setDate(new Date(startDate).getDate() + 1)),
                 };
                 break;
+
             case "weekly":
                 dateRange = {
                     $gte: new Date(startDate),
@@ -46,8 +53,8 @@ const generateSalesReport = async (req, res) => {
         }
 
         query.createdAt = dateRange;
-        query.status = { $nin: ["Cancelled", "Returned"] }; // Exclude cancelled/returned orders
-
+        // query.status = { $nin: ["Cancelled", "Returned"] }; // Exclude cancelled/returned orders
+        query.status = "Delivered";
         // Aggregate pipeline for sales report
         const salesReport = await Order.aggregate([
             { $match: query },

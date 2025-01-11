@@ -7,6 +7,7 @@ const productControllers = require("../../controllers/productControllers");
 const stockControllers = require("../../controllers/stockControllers");
 const couponControllers = require("../../controllers/couponControllers");
 const salesReportControllers = require("../../controllers/salesReportControllers");
+const salesChartControllers = require("../../controllers/salesChartControllers")
 const multer = require("multer");
 
 //authentication routes
@@ -91,4 +92,9 @@ adminRoute.get("/couponStatusChange", adminAuth, couponControllers.changeCouponS
 
 adminRoute.get("/loadGenerateSalesReports", adminAuth, salesReportControllers.loadGeneratorPage);
 adminRoute.post("/generateSalesReports", adminAuth, salesReportControllers.generateSalesReport);
+
+//get charts
+
+adminRoute.get("/getCharts",adminAuth,salesChartControllers.getChart)
+
 module.exports = adminRoute;

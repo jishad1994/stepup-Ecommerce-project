@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success - <%= order.orderId %></title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            background-color: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-checkmark i {
+            color: white;
+            font-size: 40px;
+        }
+        .order-success-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .order-details {
+            margin: 30px 0;
+            text-align: left;
+        }
+        #downloadSpinner {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="order-success-container">
+            <div class="success-checkmark">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <h1 class="text-success text-center mb-4">Thank You for Your Order!</h1>
+            
+            <div class="order-details">
+                <h4>Order Details</h4>
+                <p><strong>Order ID:</strong> <%= order.orderId %></p>
+                <p><strong>Order Date:</strong> <%= new Date(order.invoiceDate).toLocaleDateString() %></p>
+                <p><strong>Total Amount:</strong> ₹<%= order.totalPrice.toFixed(2) %></p>
+                <p><strong>Payment Method:</strong> <%= order.paymentType %></p>
+                <p><strong>Payment Status:</strong> 
+                    <span class="<%= order.paymentStatus === 'Success' ? 'text-success' : 'text-warning' %>">
+                        <%= order.paymentStatus %>
+                    </span>
+                </p>
+                
+                <div class="shipping-details mt-4">
+                    <h5>Shipping Address:</h5>
+                    <p class="mb-0"><%= order.address.fullName %></p>
+                    <% if (order.address.landMark) { %>
+                        <p class="mb-0"><%= order.address.landMark %></p>
+                    <% } %>
+                    <p class="mb-0"><%= order.address.city %>, <%= order.address.state %> - <%= order.address.pincode %></p>
+                    <p>Phone: <%= order.address.phone %></p>
+                </div>
+            </div>
+
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
+                <% if (order.paymentType !== 'COD' && order.paymentStatus === 'Success') { %>
+                    <button onclick="downloadInvoice('<%= order._id %>','<%= order.orderId%>')" class="btn btn-primary">
+                        <span id="downloadSpinner" class="spinner-border spinner-border-sm me-2"></span>
+                        <i class="fas fa-download me-2"></i>Download Invoice
+                    </button>
+                <% } %>
+                <a href="/shopAll" class="btn btn-outline-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         async function downloadInvoice(_id,orderId) {
+            const spinner = document.getElementById('downloadSpinner');
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const response = await fetch(`/downloadInvoice/${_id}`);
+                if (!response.ok) throw new Error('Download failed');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice-${orderId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Invoice downloaded successfully',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to download invoice. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Show success message on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            Swal.fire({
+                title: 'Order Placed Successfully!',
+                text: 'Thank you for shopping with us',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        });
+    </script>
+</body>
+</html>

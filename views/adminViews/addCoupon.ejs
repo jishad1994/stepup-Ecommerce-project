@@ -299,18 +299,18 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                // Add any authorization headers if needed
-                                // 'Authorization': `Bearer ${token}`
                             },
                             body: JSON.stringify(couponData)
                         });
 
                         if (!response.ok) {
                             const error = await response.json();
+
                             if (error.code === 'DUPLICATE_CODE') {
                                 showError('coupon-code', errorMessages.code.exists);
                                 throw new Error('Duplicate coupon code');
                             }
+
                             throw new Error(error.message || 'Failed to create coupon');
                         }
 
@@ -339,7 +339,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Success',
-                            text: message ,
+                            text: message,
                         })
                     }
 
@@ -347,7 +347,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: message ,
+                            text: message,
                         })
                     }
 

@@ -5,6 +5,7 @@
   <title>StepUp</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
   <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
@@ -67,69 +68,71 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <% if (!cart || !cart.items || cart.items.length === 0) { %>
+                    <% if (!cart || !cart.items || cart.items.length===0) { %>
                       <tr>
                         <td colspan="6">
                           <h2>Your cart is empty, please add items.</h2>
                         </td>
                       </tr>
-                    <% } else { 
-                        let subtotal = 0;
-                        if (products && products.length > 0) {
-                          for (let product of products) { 
-                            let productTotal = 0;
-                  
-                            if (product.isOfferApplied && product.offerPrice && product.quantity) {
-                              productTotal = product.offerPrice * product.quantity;
-                            } else if (product.salePrice && product.quantity) {
-                              productTotal = product.salePrice * product.quantity;
-                            }
-                  
-                            subtotal += productTotal;
-                    %>
-                      <tr>
-                        <td class="product-thumbnail">
-                          <img src="<%= product.productImage && product.productImage[0] ? product.productImage[0] : '/path/to/default.jpg' %>" 
-                               alt="Image" class="img-fluid">
-                        </td>
-                        <td class="product-name">
-                          <h2 class="h5 text-black">
-                            <%= product.productName || 'Unnamed Product' %>
-                          </h2>
-                        </td>
-                  
-                        <td>
-                          ₹ <%= product.isOfferApplied ? product.offerPrice : product.salePrice %>
-                        </td>
-                        <td>
-                          <%= product.size || 'N/A' %>
-                        </td>
-                        <td>
-                          <div class="input-group mb-3" style="max-width: 120px;">
-                            <div class="input-group-prepend">
-                              <button class="btn btn-outline-primary js-btn-minus quantityBtn" 
-                                      data-productId="<%= product._id || '' %>" type="button">&minus;</button>
+                      <% } else { let subtotal=0; if (products && products.length> 0) {
+                        for (let product of products) {
+                        let productTotal = 0;
+
+                        if (product.isOfferApplied && product.offerPrice && product.quantity) {
+                        productTotal = product.offerPrice * product.quantity;
+                        } else if (product.salePrice && product.quantity) {
+                        productTotal = product.salePrice * product.quantity;
+                        }
+
+                        subtotal += productTotal;
+                        %>
+                        <tr>
+                          <td class="product-thumbnail">
+                            <img
+                              src="<%= product.productImage && product.productImage[0] ? product.productImage[0] : '/path/to/default.jpg' %>"
+                              alt="Image" class="img-fluid">
+                          </td>
+                          <td class="product-name">
+                            <h2 class="h5 text-black">
+                              <%= product.productName || 'Unnamed Product' %>
+                            </h2>
+                          </td>
+
+                          <td>
+                            ₹ <%= product.isOfferApplied ? product.offerPrice : product.salePrice %>
+                          </td>
+                          <td>
+                            <%= product.size || 'N/A' %>
+                          </td>
+                          <td>
+                            <div class="input-group mb-3" style="max-width: 120px;">
+                              <div class="input-group-prepend">
+                                <button class="btn btn-outline-primary js-btn-minus quantityBtn"
+                                  data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                  type="button">&minus;</button>
+                              </div>
+                              <input type="text" data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                class="form-control text-center product-quantity" value="<%= product.quantity %>"
+                                readonly>
+                              <div class="input-group-append">
+                                <button class="btn btn-outline-primary js-btn-plus quantityBtn"
+                                  data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                  type="button">&plus;</button>
+                              </div>
                             </div>
-                            <input type="text" data-productId="<%= product._id || '' %>" 
-                                   class="form-control text-center product-quantity" 
-                                   value="<%= product.quantity || 1 %>" disabled>
-                            <div class="input-group-append">
-                              <button class="btn btn-outline-primary js-btn-plus quantityBtn" 
-                                      data-productId="<%= product._id || '' %>" type="button">&plus;</button>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          ₹ <%= productTotal || 0 %>
-                        </td>
-                        <td>
-                          <a href="/removeFromCart?id=<%= product._id || '' %>&size=<%= product.size || '' %>" 
-                             id="removeFromCart" class="btn btn-primary btn-sm">remove</a>
-                        </td>
-                      </tr>
-                    <% } } } %>
+                          </td>
+
+                          <td>
+                            ₹ <%= productTotal || 0 %>
+                          </td>
+                          <td>
+                            <a href="/removeFromCart?id=<%= product._id || '' %>&size=<%= product.size || '' %>"
+                              id="removeFromCart" class="btn btn-primary btn-sm">remove</a>
+                          </td>
+                        </tr>
+                        <% } } } %>
                   </tbody>
-                  
+
 
                 </table>
               </div>
@@ -144,18 +147,7 @@
                     Shopping</button>
                 </div>
               </div>
-              <!-- <div class="row">
-                <div class="col-md-12">
-                  <label class="text-black h4" for="coupon">Coupon</label>
-                  <p>Enter your coupon code if you have one.</p>
-                </div>
-                <div class="col-md-8 mb-3 mb-md-0">
-                  <input type="text" class="form-control py-3" id="coupon" placeholder="Coupon Code">
-                </div>
-                <div class="col-md-4">
-                  <button class="btn btn-primary btn-sm">Apply Coupon</button>
-                </div>
-              </div> -->
+
             </div>
             <div class="col-md-6 pl-5">
               <div class="row justify-content-end">
@@ -211,77 +203,141 @@
   <script src="scripts/main.js"></script>
 
   <script>
-    const products = JSON.parse(`<%= JSON.stringify(products) %>`); // Pass `products` from the server
-    console.log('products', products);
+    // const products = JSON.parse(`<%= JSON.stringify(products) %>`); // Pass `products` from the server
+    // console.log('products', products);
 
-    window.addEventListener("DOMContentLoaded", (event) => {
-      const proceedBtnDiv = document.getElementById("proceedBtnDiv");
+    // window.addEventListener("DOMContentLoaded", (event) => {
+    //   const proceedBtnDiv = document.getElementById("proceedBtnDiv");
 
-      if (products.length === 0) {
-        proceedBtnDiv.style.display = "none";
-      }
+    //   if (products.length === 0) {
+    //     proceedBtnDiv.style.display = "none";
+    //   }
 
-      // Iterate over each product to initialize button visibility
-      products.forEach(product => {
-        const productRow = document.querySelector(`[data-productid='${product._id}']`).closest('tr');
-        const minusButton = productRow.querySelector('.js-btn-minus');
-        const plusButton = productRow.querySelector('.js-btn-plus');
-        const inputField = productRow.querySelector('.product-quantity');
+    //   // Iterate over each product to initialize button visibility
+    //   products.forEach(product => {
+    //     const productRow = document.querySelector(`[data-productid='${product._id}']`).closest('tr');
+    //     const minusButton = productRow.querySelector('.js-btn-minus');
+    //     const plusButton = productRow.querySelector('.js-btn-plus');
+    //     const inputField = productRow.querySelector('.product-quantity');
+    //     let currentQuantity = parseInt(inputField.value);
+
+    //     // Set initial button visibility based on quantity
+    //     if (currentQuantity <= 1) {
+    //       minusButton.style.display = "none"; // Hide minus button
+    //     } else {
+    //       minusButton.style.display = "block"; // Show minus button
+    //     }
+
+    //     if (currentQuantity >= 5) {
+    //       plusButton.style.display = "none"; // Hide plus button
+    //     } else {
+    //       plusButton.style.display = "block"; // Show plus button
+    //     }
+    //   });
+
+    //   // Check quantity of the product is available
+    //   document.querySelectorAll(".quantityBtn").forEach((quantityButton) => {
+    //     quantityButton.addEventListener('click', (event) => {
+    //       const button = event.target;
+    //       const productId = button.getAttribute("data-productId");
+    //       const inputField = button.closest("td").querySelector('.product-quantity');
+    //       let currentQuantity = parseInt(inputField.value);
+
+    //       // Check if the minus or plus button was clicked
+    //       if (button.classList.contains('js-btn-minus')) {
+    //         if (currentQuantity > 1) {
+    //           currentQuantity -= 1;
+    //         }
+    //       } else if (button.classList.contains('js-btn-plus')) {
+
+    //         if (currentQuantity < 5) {
+    //           currentQuantity += 1;
+    //         }
+    //       }
+
+    //       inputField.value = currentQuantity;
+
+    //       // Get the minus and plus buttons for the current row
+    //       const minusButton = button.closest('td').querySelector('.js-btn-minus');
+    //       const plusButton = button.closest('td').querySelector('.js-btn-plus');
+
+    //       // Disable the buttons if quantity is at the limits
+    //       if (currentQuantity <= 1) {
+    //         minusButton.style.display = "none"; // Hide minus button
+    //       } else {
+    //         minusButton.style.display = "block"; // Show minus button
+    //       }
+
+    //       if (currentQuantity >= 5) {
+    //         plusButton.style.display = "none"; // Hide plus button
+    //       } else {
+    //         plusButton.style.display = "block"; // Show plus button
+    //       }
+
+    //     });
+    //   });
+    // });
+
+
+    document.querySelectorAll(".quantityBtn").forEach((quantityButton) => {
+      quantityButton.addEventListener("click", async (event) => {
+        const button = event.target;
+        const productId = button.getAttribute("data-productid");
+        const size = button.getAttribute("data-size");
+        const inputField = button.closest("td").querySelector(".product-quantity");
         let currentQuantity = parseInt(inputField.value);
+        inputField.value = currentQuantity;
 
-        // Set initial button visibility based on quantity
-        if (currentQuantity <= 1) {
-          minusButton.style.display = "none"; // Hide minus button
-        } else {
-          minusButton.style.display = "block"; // Show minus button
+        if (button.classList.contains("js-btn-minus")) {
+          if (currentQuantity > 1) {
+            currentQuantity -= 1;
+          }
+        } else if (button.classList.contains("js-btn-plus")) {
+          if (currentQuantity < 5) {
+            currentQuantity += 1;
+          }
         }
 
-        if (currentQuantity >= 5) {
-          plusButton.style.display = "none"; // Hide plus button
-        } else {
-          plusButton.style.display = "block"; // Show plus button
+
+        // Update the server
+        try {
+          const response = await fetch("/updateCart", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              productId,
+              size,
+              quantity: currentQuantity,
+            }),
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            Swal.fire({
+              title: 'Error!',
+              text: result.message,
+              icon: 'Error',
+              confirmButtonText: 'OK'
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire({
+            title: 'Error',
+            text: result.message,
+            icon: 'Error',
+            confirmButtonText: 'OK'
+          });
         }
-      });
 
-      // Check quantity of the product is available
-      document.querySelectorAll(".quantityBtn").forEach((quantityButton) => {
-        quantityButton.addEventListener('click', (event) => {
-          const button = event.target;
-          const productId = button.getAttribute("data-productId");
-          const inputField = button.closest("td").querySelector('.product-quantity');
-          let currentQuantity = parseInt(inputField.value);
+        // Update button visibility
+        const minusButton = button.closest("td").querySelector(".js-btn-minus");
+        const plusButton = button.closest("td").querySelector(".js-btn-plus");
 
-          // Check if the minus or plus button was clicked
-          if (button.classList.contains('js-btn-minus')) {
-            if (currentQuantity > 1) {
-              currentQuantity -= 1;
-            }
-          } else if (button.classList.contains('js-btn-plus')) {
-            if (currentQuantity < 5) {
-              currentQuantity += 1;
-            }
-          }
-
-          inputField.value = currentQuantity;
-
-          // Get the minus and plus buttons for the current row
-          const minusButton = button.closest('td').querySelector('.js-btn-minus');
-          const plusButton = button.closest('td').querySelector('.js-btn-plus');
-
-          // Disable the buttons if quantity is at the limits
-          if (currentQuantity <= 1) {
-            minusButton.style.display = "none"; // Hide minus button
-          } else {
-            minusButton.style.display = "block"; // Show minus button
-          }
-
-          if (currentQuantity >= 5) {
-            plusButton.style.display = "none"; // Hide plus button
-          } else {
-            plusButton.style.display = "block"; // Show plus button
-          }
-
-        });
+        minusButton.style.display = currentQuantity > 1 ? "block" : "none";
+        plusButton.style.display = currentQuantity < 5 ? "block" : "none";
       });
     });
 

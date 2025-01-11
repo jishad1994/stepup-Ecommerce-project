@@ -294,12 +294,10 @@
       // Event listener for saved address selection
       savedAddressSelect.addEventListener('change', function () {
         const selectedAddressId = this.value;
-        console.log(selectedAddressId);
         if (selectedAddressId) {
 
 
           const address = savedAddresses.find(a => a._id === selectedAddressId);
-          console.log('address is ', address);
 
           if (address) {
             // Populate form fields
@@ -508,115 +506,106 @@
 
                 if (paymentMethod == "Online") {                                            // if online payment
 
-                  const amount = document.getElementById("final-amount").innerText
-
-                  const response = await fetch("/rzpCreateOrder", {
+                  const placeOrderResponse = await fetch("/placeOrder", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: amount, currency: "INR" }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
                   });
-                  const data = await response.json();
 
-                  if (data.success) {
+                  const orderData = await placeOrderResponse.json();
 
-                    // Launch Razorpay payment modal
-                    const options = {
-                      key: data.rzp_key,
-                      amount: data.amount,
-                      currency: data.currency,
-                      name: "StepUp Ecommerce",
-                      description: "Purchase Description",
-                      order_id: data.orderId,
-                      handler: async function (response) {
-                        // Send payment details to backend for verification
-                        const verifyResponse = await fetch("/rzpVerifyPayment", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                          }),
-                        });
+                  if (orderData.success) {
+                    console.log("Order placed successfully. Proceeding to payment...");
 
+                    // Proceed to Razorpay payment
+                    const amount = orderData.amount
 
-                        var verifyData = await verifyResponse.json();
-                        console.log('hii verify data is ', verifyData);
+                    const response = await fetch("/rzpCreateOrder", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        amount: amount,
+                        currency: "INR",
+                        orderId: orderData.orderId, 
+                      }),
+                    });
 
-                        //proceed to place the order
-                        if (verifyData.success) {
-                          Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: ' Payment Successfull..Placing Order',
-                            showConfirmButton: false,
-                            timer: 2000,
+                    const data = await response.json();
 
-                          }).then(async () => {
+                    if (data.success) {
+                      const options = {
+                        key: data.rzp_key,
+                        amount: data.amount,
+                        currency: data.currency,
+                        name: "StepUp Ecommerce",
+                        description: "Purchase",
+                        order_id: data.orderId,
 
-                            console.log("payment success full proceeding to place order")
+                        handler: async function (response) {
+                          // Send payment details to backend for verification and order update
+                          const verifyResponse = await fetch("/rzpVerifyPayment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              razorpay_order_id: response.razorpay_order_id,
+                              razorpay_payment_id: response.razorpay_payment_id,
+                              razorpay_signature: response.razorpay_signature,
+                              orderId: orderData.orderId, // Pass backend order ID
+                              _id:orderData._id //sending order id to update the payment status
 
-                            // Append payment details to formData
-                            formData.razorpay_order_id = verifyData.razorpay_order_id;
-                            formData.razorpay_payment_id = verifyData.razorpay_payment_id;
-
-
-                            // // Process the order
-                            const response = await fetch("/placeOrder", {
-                              method: "POST",
-                              headers: {
-                                'Content-Type': 'application/json'
-                              },
-                              body: JSON.stringify(formData),
-                            });
-                            const data = await response.json();
-                            console.log(data);
-
-                            if (data.success) {
-                              Swal.fire({
-                                icon: 'success',
-                                title: 'Success',
-                                text: `${data.message}`,
-                              }).then(() => {
-                                // Redirect to orders page
-                                window.location.href = '/orders';
-                              });
-                            } else {
-                              Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: data.message,
-                              });
-                            }
-
-                          })
-                          // Redirect or update UI accordingly
-                        } else {
-                          Swal.fire({
-                            icon: 'error',
-                            title: 'failure',
-                            text: 'Your payment is failed! Please try again.',
+                            }),
                           });
-                        }
 
-                      },
-                      prefill: {
-                        name: document.getElementById("fullName").value,
-                        email: "customer@example.com", // Add email field to form if needed
-                        contact: document.getElementById("phone").value,
-                      },
-                      theme: { color: "#3399cc" },
-                    };
-                    const rzp = new Razorpay(options);
-                    rzp.open();
+                          const verifyData = await verifyResponse.json();
+
+                          if (verifyData.success) {
+                            Swal.fire({
+                              icon: "success",
+                              title: "Payment Successful",
+                              text: "Your payment has been processed successfully!",
+                              showConfirmButton: false,
+                              timer: 2000,
+                            }).then(() => {
+                              window.location.href = `/loadSuccessPage/${orderData._id}`; 
+                            });
+                          } else {
+                            Swal.fire({
+                              icon: "error",
+                              title: "Payment Failed",
+                              text: "Your payment was unsuccessful. Please try again. ",
+                            }).then(() => {
+                              window.location.href = `/loadSuccessPage/${orderData._id}`; // Redirect to orders page
+                            });
+                          }
+                        },
+                        prefill: {
+                          name: document.getElementById("fullName").value,
+                          email: "customer@example.com", // Add email field to form if needed
+                          contact: document.getElementById("phone").value,
+                        },
+                        theme: { color: "#3399cc" },
+                      };
+
+                      const rzp = new Razorpay(options);
+                      rzp.open();
+                    } else {
+                      Swal.fire({
+                        icon: "error",
+                        title: "Razorpay Order Creation Failed",
+                        text: "Unable to create Razorpay order. Please try again.",
+                      });
+                    }
                   } else {
 
                     Swal.fire({
-                      icon: 'error',
-                      title: 'failure',
-                      text: "Failed to create Razorpay order.",
+                      icon: "error",
+                      title: "Order Placement Failed",
+                      text: orderData.message || "Unable to place your order. Please try again.",
                     });
                   }
+
 
 
                 } else if (paymentMethod === 'Wallet') {                            // order placement by walllet

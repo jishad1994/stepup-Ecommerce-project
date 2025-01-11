@@ -4,6 +4,8 @@ const Order = require("../model/orderModel");
 const Product = require("../model/productModel");
 const mongoose = require("mongoose");
 const Category = require("../model/categoryModel");
+const Wallet = require("../model/walletModel");
+const crypto = require("crypto");
 
 const loadAdminLogin = async (req, res) => {
     try {
@@ -84,13 +86,89 @@ const loadErrorpage = async (req, res) => {
 const loadAdminDashboard = async (req, res) => {
     try {
         if (req.session.admin) {
+
+            const timeFilter = req.query.timeFilter || "monthly";
+
+        // Create date filter based on selected time period
+        const dateFilter = getDateFilter(timeFilter);
+
+        // Get top products
+        const topProducts = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: dateFilter,
+                    "items.status": { $ne: "Cancelled" },
+                },
+            },
+            { $unwind: "$items" },
+            {
+                $group: {
+                    _id: "$items.productId",
+                    count: { $sum: "$items.quantity" },
+                },
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "product",
+                },
+            },
+            { $unwind: "$product" },
+            {
+                $project: {
+                    name: "$product.name",
+                    count: 1,
+                },
+            },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+        ]);
+
+        // Get top categories
+        const topCategories = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: dateFilter,
+                    "items.status": { $ne: "Cancelled" },
+                },
+            },
+            { $unwind: "$items" },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.productId",
+                    foreignField: "_id",
+                    as: "product",
+                },
+            },
+            { $unwind: "$product" },
+            {
+                $group: {
+                    _id: "$product.category",
+                    count: { $sum: "$items.quantity" },
+                },
+            },
+            {
+                $project: {
+                    name: "$_id",
+                    count: 1,
+                    _id: 0,
+                },
+            },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+        ]);
+
+
             console.log("admis session is:", req.session.admin);
-            return res.render("dashBoard");
+            return res.render("dashBoard",{ topProducts, topCategories});
         } else {
             res.redirect("/admin/login");
         }
     } catch (error) {
-        console.log("an error occured while loading dashboard page");
+        console.log("an error occured while loading dashboard page",error.message);
         res.render("404");
     }
 };
@@ -258,7 +336,7 @@ const showOrderDetails = async (req, res) => {
             };
         });
 
-        console.log("the order object is :", order.items);
+        console.log("the order object is :", order);
 
         // Find the user associated with the order or use default values
         const user = (await User.findById(order.userId)) || { name: "Unknown", email: "Unknown" };
@@ -312,7 +390,9 @@ const changeOrderStatus = async (req, res) => {
             //change all status of products
             await Promise.all(
                 order.items.map(async (item) => {
-                    item.status = "Active";
+                    if (!["Cancelled", "Returned"].includes(item.status)) {
+                        item.status = "Active";
+                    }
                 })
             );
         }
@@ -356,46 +436,86 @@ const loadOrderReqs = async (req, res) => {
     }
 };
 
+//approve or reject order return
 const orderApproveOrReject = async (req, res) => {
     try {
-        console.log("approve or reject");
         const { orderId } = req.params;
         const { status, note } = req.body;
 
-        const order = await Order.findById(orderId);
-
-        if (!order) {
-            return res.status(404).json({ success: false, message: "Order not found" });
+        if (!orderId || !status) {
+            return res.status(400).json({ success: false, message: "Order ID and status are required." });
         }
 
+        if (!["Approved", "Rejected"].includes(status)) {
+            return res.status(400).json({ success: false, message: "Invalid status. Must be 'Approved' or 'Rejected'." });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found." });
+        }
+
+        // Update return request
         order.returnRequest.adminResponse = {
             status,
             responseDate: new Date(),
-            note,
+            note: note || "", // Optional note
         };
-
         order.returnRequest.status = status;
 
+        // Update order status
         order.status = status === "Approved" ? "Return Request Approved" : "Return Request Rejected";
 
+        // Update item statuses
         const itemStatus = status === "Approved" ? "Return Approved" : "Return Rejected";
-        const requestStatus = status === "Approved" ? "Approved" : "Rejected";
+        order.items.forEach((item) => {
+            item.status = itemStatus;
+            item.returnRequest.status = status;
+        });
 
-        await Promise.all(
-            order.items.map((item) => {
-                item.status = itemStatus;
-                item.returnRequest.status = requestStatus;
-            })
-        );
+        // Refund to wallet if approved
+        if (status === "Approved") {
+            const wallet = await Wallet.findOne({ userId: order.userId });
+            if (!wallet) {
+                return res.status(404).json({ success: false, message: "Wallet not found for the user." });
+            }
+
+            const transactionId = await generateUniqueTransactionId();
+            wallet.balance += order.totalPrice;
+
+            wallet.transactions.push({
+                transactionId,
+                type: "Credit",
+                amount: order.totalPrice,
+                description: "Order Return Refund",
+            });
+
+            await wallet.save();
+        }
 
         await order.save();
 
-        res.json({ success: true, message: "Return request updated successfully" });
+        res.json({ success: true, message: "Return request updated successfully." });
     } catch (error) {
         console.error("Error updating return request:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
+
+// Helper function to generate a unique transaction ID
+async function generateUniqueTransactionId() {
+    let transactionId;
+    do {
+        const timestamp = Date.now().toString();
+        const randomString = crypto.randomBytes(4).toString("hex");
+        transactionId = `TXN-${timestamp}-${randomString}`;
+
+        const exists = await Wallet.findOne({ "transactions.transactionId": transactionId });
+        if (!exists) break;
+    } while (true);
+
+    return transactionId;
+}
 
 //loda item return reqs page
 const loadItemReturnReqs = async (req, res) => {
@@ -496,7 +616,7 @@ const loadItemReturnReqs = async (req, res) => {
         res.status(500).send("Internal server error");
     }
 };
-
+//approve or reject item return
 const itemApproveOrReject = async (req, res) => {
     try {
         const { orderId, itemId } = req.query;
@@ -532,9 +652,24 @@ const itemApproveOrReject = async (req, res) => {
 
             // Recalculate totals considering returns
             const refundAmount = await calculateRefundAmount(orderId, itemId);
-            console.log("refund amount", refundAmount);
             order.totalPrice = Number(order.totalPrice - refundAmount);
-            console.log("hii", order.totalPrice);
+            order.totalItems -= item.quantity;
+            const wallet = await Wallet.findOne({ userId: order.userId });
+            if (!wallet) {
+                return res.status(404).json({ success: false, message: "Wallet not found for the user." });
+            }
+
+            const transactionId = await generateUniqueTransactionId();
+            wallet.balance += refundAmount;
+
+            wallet.transactions.push({
+                transactionId,
+                type: "Credit",
+                amount: refundAmount,
+                description: "Item Return Refund",
+            });
+
+            await wallet.save();
         }
 
         await order.save();
@@ -624,3 +759,30 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
         throw error;
     }
 };
+
+
+
+// Helper function to get date filter based on selected time period
+function getDateFilter(timeFilter) {
+    const now = new Date();
+    const startDate = new Date();
+
+    switch (timeFilter) {
+        case "daily":
+            startDate.setHours(0, 0, 0, 0);
+            break;
+        case "weekly":
+            startDate.setDate(now.getDate() - 7);
+            break;
+        case "monthly":
+            startDate.setMonth(now.getMonth() - 1);
+            break;
+        case "yearly":
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
+        default:
+            startDate.setMonth(now.getMonth() - 1); // Default to monthly
+    }
+
+    return { $gte: startDate, $lte: now };
+}

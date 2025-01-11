@@ -34,7 +34,7 @@ const addCategory = async (req, res) => {
             return res.status(400).json({ success: false, message: "please fill the necessary datails" });
         }
 
-        const isCategoryExists = await Category.findOne({ name });
+        const isCategoryExists = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
 
         if (isCategoryExists) {
             return res.status(400).json({ success: false, message: "category already exists" });

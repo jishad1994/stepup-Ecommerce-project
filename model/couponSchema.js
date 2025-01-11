@@ -43,9 +43,19 @@ const couponSchema = new mongoose.Schema(
             type: Number,
             default: null, // Number of times this coupon can be used in total.
         },
+        usedCount: {
+            type: Number,
+            default: 0, // Initialize to 0.
+            validate: {
+                validator: function (value) {
+                    return this.usageLimit === null || value <= this.usageLimit;
+                },
+                message: "Used count cannot exceed usage limit.",
+            },
+        },
         userUsageLimit: {
             type: Number,
-            default: 1, 
+            default: 1,
         },
         startDate: {
             type: Date,
@@ -54,14 +64,20 @@ const couponSchema = new mongoose.Schema(
         endDate: {
             type: Date,
             required: true,
+            validate: {
+                validator: function (value) {
+                    return value > this.startDate;
+                },
+                message: "End date must be after start date.",
+            },
         },
         isActive: {
             type: Boolean,
-            default: true, 
+            default: true,
         },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Admin", 
+            ref: "Admin",
             required: false,
         },
     },
@@ -69,5 +85,19 @@ const couponSchema = new mongoose.Schema(
         timestamps: true, // Automatically add `createdAt` and `updatedAt`.
     }
 );
+
+// Virtual to determine active status based on date
+couponSchema.virtual("isCurrentlyActive").get(function () {
+    const now = new Date();
+    return this.isActive && now >= this.startDate && now <= this.endDate;
+});
+
+// Pre-save middleware for validations
+couponSchema.pre("save", function (next) {
+    if (this.usageLimit && this.usedCount > this.usageLimit) {
+        return next(new Error("Used count cannot exceed usage limit."));
+    }
+    next();
+});
 
 module.exports = mongoose.model("Coupon", couponSchema);

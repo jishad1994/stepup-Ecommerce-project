@@ -73,6 +73,12 @@ const cancelOrder = async (req, res) => {
 
         // Cancel the order
         order.status = "Cancelled";
+        //update the status of each item
+        await Promise.all(
+            order.items.map(async (item) => {
+                item.status = "Cancelled";
+            })
+        );
         await order.save();
 
         // Refund if payment was via Wallet or Online
@@ -188,7 +194,7 @@ const showDetails = async (req, res) => {
         res.render("orderDetails", { order, products });
     } catch (error) {
         console.log("internal server error");
-        return res.status(500).json({ success: false, message: "inteernal server error" });
+        return res.status(500).json({ success: false, message: "internal server error" });
     }
 };
 
@@ -197,8 +203,13 @@ const cancelSingleItem = async (req, res) => {
     try {
         const { orderId, itemId } = req.query;
 
-        if (!orderId || !itemId) {
-            return res.status(400).json({ success: false, message: "Order ID and Item ID are required." });
+        if (!orderId || !itemId || !mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(itemId)) {
+            return res.status(400).json({ success: false, message: "Invalid Order ID or Item ID." });
+        }
+
+        const userId = req.user?._id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Authentication required." });
         }
 
         const order = await Order.findById(orderId);
@@ -213,61 +224,74 @@ const cancelSingleItem = async (req, res) => {
             });
         }
 
-        // Find the item to cancel
+        const wallet = await Wallet.findOne({ userId });
+
         const item = order.items.id(itemId);
         if (!item) {
             return res.status(404).json({ success: false, message: "Item not found in order." });
         }
 
-        // Update the item status to "Cancelled"
+        // Cancel the item
         item.status = "Cancelled";
 
-        // Recalculate active items and order totals
         const activeItems = order.items.filter((item) => item.status !== "Cancelled");
-
         order.totalItems = activeItems.reduce((total, item) => total + item.quantity, 0);
+
         let subtotal = activeItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
-        // Handle coupon re-application
+        // Handle coupon
         if (order.couponApplied && order.couponDetails) {
             const coupon = await Coupon.findOne({ code: order.couponDetails.couponName });
-            if (!coupon) {
-                order.couponApplied = false;
-                order.couponDetails = null;
-            } else if (subtotal < coupon.minOrderValue) {
-                // If subtotal is below the minimum order value, remove the coupon
-                order.couponApplied = false;
-                order.couponDetails = null;
-            } else {
-                // If the subtotal qualifies, recalculate the discount
+            if (coupon && subtotal >= coupon.minOrderValue) {
                 const { discountType, discountValue, maxDiscountValue } = coupon;
-
                 let discountAmount = 0;
+
                 if (discountType === "percentage") {
-                    discountAmount = (subtotal * discountValue) / 100;
-                    if (maxDiscountValue) {
-                        discountAmount = Math.min(discountAmount, maxDiscountValue);
-                    }
+                    discountAmount = Math.min((subtotal * discountValue) / 100, maxDiscountValue || Infinity);
                 } else if (discountType === "flat") {
                     discountAmount = discountValue;
                 }
 
                 order.couponDetails.discountAmount = discountAmount;
                 subtotal -= discountAmount;
+            } else {
+                order.couponApplied = false;
+                order.couponDetails = null;
             }
         }
 
-        // Add shipping fee
         subtotal += order.shippingFee || 0;
+        const refundAmount = order.totalPrice - Math.max(0, subtotal);
 
-        // Ensure totalPrice does not go below 0
+        if (["Online", "Wallet"].includes(order.paymentType) && refundAmount > 0) {
+            const transactionId = await generateUniqueTransactionId();
+            wallet.balance += refundAmount;
+            wallet.transactions.push({
+                transactionId,
+                type: "Credit",
+                amount: refundAmount,
+                description: "Item cancellation refund",
+            });
+            await wallet.save();
+        }
+
         order.totalPrice = Math.max(0, subtotal);
 
-        // If all items are cancelled, cancel the entire order
         if (activeItems.length === 0) {
             order.status = "Cancelled";
             order.couponApplied = false;
             order.couponDetails = null;
+        }
+
+        const product = await Product.findById(item.productId);
+        if (product) {
+            product.purchaseCount = Math.max(0, product.purchaseCount - item.quantity);
+
+            const stockItem = product.stock.find((stock) => stock.size === item.size);
+            if (stockItem) {
+                stockItem.quantity += item.quantity;
+            }
+            await product.save();
         }
 
         await order.save();
@@ -287,6 +311,7 @@ const cancelSingleItem = async (req, res) => {
     }
 };
 
+//return order
 const returnOrder = async (req, res) => {
     try {
         const orderId = req.query.orderId;
@@ -375,6 +400,36 @@ const returnItem = async (req, res) => {
     }
 };
 
+//load success page
+const loadSuccessPage = async (req, res) => {
+    try {
+        const { _id } = req.params;
+
+        if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+            console.log(`Invalid or missing order ID: ${_id}`);
+            return res.status(400).json({ success: false, message: "Invalid or missing order ID in the request parameters" });
+        }
+
+        const order = await Order.findById(_id);
+
+        if (!order) {
+            console.log(`Order not found for ID: ${_id}`);
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // Check user authorization (if applicable)
+        if (order.userId.toString() !== req.user._id.toString()) {
+            console.log(`Unauthorized access to order: ${_id}`);
+            return res.status(403).json({ success: false, message: "Unauthorized access to the order" });
+        }
+
+        res.render("successPage", { order });
+    } catch (error) {
+        console.error(`Error while loading success page for order ID: ${req.params._id}`, error);
+        res.status(500).json({ success: false, message: "Internal Server Error while loading the success page" });
+    }
+};
+
 module.exports = {
     loadOrders,
     cancelOrder,
@@ -382,4 +437,5 @@ module.exports = {
     cancelSingleItem,
     returnOrder,
     returnItem,
+    loadSuccessPage
 };

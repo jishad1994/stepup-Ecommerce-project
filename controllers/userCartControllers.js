@@ -69,6 +69,9 @@ const addToCart = async (req, res) => {
     try {
         console.log("Add to cart controller triggered");
         const { email } = req.user;
+        if (!email) {
+            return res.redirect("/login");
+        }
 
         // Find user by email
         const user = await User.findOne({ email });
@@ -207,8 +210,60 @@ const removeFromCart = async (req, res) => {
     }
 };
 
+const updateCart = async (req, res) => {
+    try {
+        const { productId, size, quantity } = req.body;
+        console.log(req.body);
+
+        // Validate quantity
+        if (quantity < 1 || quantity > 5) {
+            return res.status(400).json({ success: false, message: "Invalid quantity" });
+        }
+
+        // Validate inputs
+        if (!productId || !size) {
+            return res.status(400).json({ success: false, message: "Invalid request" });
+        }
+
+        // Get the user's cart
+        const userId = req.user._id;
+        const cart = await Cart.findOne({ userId });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: "Cart not found" });
+        }
+
+        // Find the item in the cart
+        const item = cart.items.find((item) => item.productId.toString() === productId && item.size === size);
+        if (!item) {
+            return res.status(404).json({ message: "Product not found in cart" });
+        }
+
+        // Get the product to check stock
+        const product = await Product.findOne({ _id: item.productId });
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not available" });
+        }
+
+        // Find the size's stock
+        const sizeStock = product.stock.find((s) => s.size === size);
+        if (!sizeStock || sizeStock.quantity < quantity) {
+            return res.status(400).json({ success: false, message: "Insufficient stock for selected size" });
+        }
+
+        // Update quantity in cart
+        item.quantity = quantity;
+        await cart.save();
+
+        return res.status(200).json({ success: true, message: "Cart updated successfully", cart });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 module.exports = {
     addToCart,
     loadCartPage,
     removeFromCart,
+    updateCart,
 };

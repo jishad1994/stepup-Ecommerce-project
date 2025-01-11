@@ -1,7 +1,8 @@
 const express = require("express");
 const route = express.Router();
 const userController = require("C:/Users/Jishad/Desktop/stepUp/controllers/userControllers.js");
-const userAuth = require("C:/Users/Jishad/Desktop/stepUp/middlewares/userAuth.js");
+// const userAuth = require("C:/Users/Jishad/Desktop/stepUp/middlewares/userAuth.js");
+const userAuth = require("../../middlewares/userAuth")
 const passport = require("../../config/passport");
 const env = require("dotenv");
 const cartControllers = require("../../controllers/userCartControllers");
@@ -11,6 +12,8 @@ const checkoutControllers = require("../../controllers/checkoutControllers");
 const addressControllers = require("../../controllers/addressControllers");
 const orderControllers = require("../../controllers/orderControllers");
 const productControllers = require("../../controllers/productControllers");
+const paymentControllers = require("../../controllers/paymentControllers");
+const  invoiceControllers = require("../../controllers/invoiceControllers")
 
 route.use((req, res, next) => {
     console.log(` request type: ${req.method} | request url:${req.url} `);
@@ -21,8 +24,13 @@ route.use((req, res, next) => {
 route.post("/rzpCreateOrder", userAuth, checkoutControllers.rzpCreateOrder);
 route.post("/rzpVerifyPayment", userAuth, checkoutControllers.rzpVerifyPayment);
 
+
+//razorpay repayment
+route.post("/reTryRzpCreateOrder",userAuth,paymentControllers.reTryRzpCreateOrder)
+route.post("/reTryRzpVerifyPayment",userAuth,paymentControllers.reTryRzpVerifyPayment)
+
 //authentication controllers
-route.get("/", userAuth, userController.loadHomePage);
+route.get("/", userController.loadHomePage);
 route.get("/signup", userController.loadSignup);
 route.post("/signup", userController.signup);
 route.get("/login", userController.loadSignin);
@@ -48,6 +56,8 @@ route.get("/product/:id", userController.loadProduct);
 route.get("/cart", userAuth, cartControllers.loadCartPage);
 route.post("/addToCart", userAuth, cartControllers.addToCart);
 route.get("/removeFromCart", userAuth, cartControllers.removeFromCart);
+route.post("/updateCart", userAuth, cartControllers.updateCart);
+
 
 //address routes
 route.post("/addAddress", userAuth, addressControllers.addAddress);
@@ -85,6 +95,14 @@ route.get("/orderConfirmation", userAuth, userController.orderConfirmed);
 route.post("/cancelSingleItem", userAuth, orderControllers.cancelSingleItem);
 route.post("/returnOrder", userAuth, orderControllers.returnOrder);
 route.post("/returnItem", userAuth, orderControllers.returnItem);
+
+
+//load successpage after order oplacement
+route.get("/loadSuccessPage/:_id",userAuth,orderControllers.loadSuccessPage)
+
+//download Invoice
+route.get("/downloadInvoice/:_id",userAuth,invoiceControllers.downloadInvoice)
+
 
 //wallet controllers
 route.get("/wallet", userAuth, userController.wallet);

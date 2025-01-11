@@ -54,6 +54,7 @@
                                 <div id="yearly_input" class="mb-4" style="display: none;">
                                     <label class="form-label">Select Year</label>
                                     <select class="form-select" id="yearly_date">
+                                        <option value="2025">2025</option>
                                         <option value="2024">2024</option>
                                         <option value="2023">2023</option>
                                         <option value="2022">2022</option>
@@ -255,11 +256,11 @@
                                         </tr>
                                         <tr>
                                             <td>Total Sales</td>
-                                            <td>$${reportData.summary.totalSales.toFixed(2)}</td>
+                                            <td>₹ ${reportData.summary.totalSales.toFixed(2)}</td>
                                         </tr>
                                         <tr>
                                             <td>Total Shipping</td>
-                                            <td>$${reportData.summary.totalShipping.toFixed(2)}</td>
+                                            <td>₹ ${reportData.summary.totalShipping.toFixed(2)}</td>
                                         </tr>
                                         <tr>
                                             <td>Orders with Discount</td>
@@ -267,7 +268,7 @@
                                         </tr>
                                         <tr>
                                             <td>Total Discount Amount</td>
-                                            <td>$${reportData.summary.totalDiscount.toFixed(2)}</td>
+                                            <td>₹ ${reportData.summary.totalDiscount.toFixed(2)}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -290,8 +291,8 @@
                                                 <tr>
                                                     <td>${day._id}</td>
                                                     <td>${day.orders}</td>
-                                                    <td>$${day.revenue.toFixed(2)}</td>
-                                                    <td>$${day.discount.toFixed(2)}</td>
+                                                    <td>₹ ${day.revenue.toFixed(2)}</td>
+                                                    <td>₹ ${day.discount.toFixed(2)}</td>
                                                 </tr>
                                             `).join('')}
                                         </tbody>

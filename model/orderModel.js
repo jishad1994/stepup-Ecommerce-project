@@ -5,7 +5,7 @@ const orderSchema = new Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "user",
             required: true,
         },
         orderId: {
@@ -63,7 +63,12 @@ const orderSchema = new Schema(
             type: Number,
             required: true,
         },
-        paymentType: { type: String, enum: ["COD", "Online","Wallet"], default: "COD" },
+        paymentType: { type: String, enum: ["COD", "Online", "Wallet"], default: "COD" },
+        paymentStatus: {
+            type: String,
+            enum: ["Failed", "Not Paid","Processing", "Success"],
+            default: "Processing",
+        },
         paymentDetails: {
             paymentId: { type: String },
             orderId: { type: String },

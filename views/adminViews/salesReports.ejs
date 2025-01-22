@@ -9,6 +9,24 @@
     <link rel="shortcut icon" type="image/x-icon" href="/images/admin/imgs/theme/favicon.svg" />
     <link href="/styles/admin/css/main.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .modal-body h6 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .modal-body table {
+            font-size: 0.9rem;
+        }
+
+        .table th,
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -126,7 +144,7 @@
                     }
                 }
 
-               
+
                 document.addEventListener('DOMContentLoaded', function () {
                     const reportForm = document.getElementById('sales_report_form');
                     const previewBtn = document.getElementById('preview_report');
@@ -237,98 +255,192 @@
                     // Helper function to show preview modal
                     function showPreviewModal(reportData) {
                         const modal = document.createElement('div');
-                        modal.innerHTML = `
-            <div class="modal fade" id="previewModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Sales Report</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-12">
-                                    <h6>Summary</h6>
-                                    <table class="table table-bordered">
-                                        <tr>
-                                            <td>Total Orders</td>
-                                            <td>${reportData.summary.totalOrders}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Total Sales</td>
-                                            <td>₹ ${reportData.summary.totalSales.toFixed(2)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Total Shipping</td>
-                                            <td>₹ ${reportData.summary.totalShipping.toFixed(2)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Orders with Discount</td>
-                                            <td>${reportData.summary.discountedOrders}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Total Discount Amount</td>
-                                            <td>₹ ${reportData.summary.totalDiscount.toFixed(2)}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+                        modal.innerHTML =
 
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h6>Daily Breakdown</h6>
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Orders</th>
-                                                <th>Revenue</th>
-                                                <th>Discount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${reportData.dailyBreakdown.map(day => `
-                                                <tr>
-                                                    <td>${day._id}</td>
-                                                    <td>${day.orders}</td>
-                                                    <td>₹ ${day.revenue.toFixed(2)}</td>
-                                                    <td>₹ ${day.discount.toFixed(2)}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
 
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h6>Popular Products</h6>
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Product</th>
-                                                <th>Quantity Sold</th>
-                                                <th>Revenue</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${reportData.popularProducts.map(product => `
-                                                <tr>
-                                                    <td>${product.productDetails[0]?.productName || 'N/A'}</td>
-                                                    <td>${product.totalQuantity}</td>
-                                                    <td>₹${product.totalRevenue.toFixed(2)}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                            `<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sales Report Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Report Title and Date Range -->
+                <div class="row">
+                    <div class="col-12 text-center mb-4">
+                        <h4 class="text-primary">Sales Analytics Report</h4>
+                        <p class="text-muted">
+                            Report Type: <strong>${reportData.dateRange.reportType}</strong><br />
+                            Period: <strong>${new Date(reportData.dateRange.start).toLocaleDateString()} - ${new Date(reportData.dateRange.end).toLocaleDateString()}</strong>
+                        </p>
                     </div>
                 </div>
-            </div>
-        `;
 
+                <!-- Executive Summary -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-dark">Executive Summary</h6>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td>Total Orders</td>
+                                <td>${reportData.summary.totalOrders}</td>
+                            </tr>
+                            <tr>
+                                <td>Net Revenue</td>
+                                <td>₹ ${reportData.summary.netRevenue.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <td>Average Order Value</td>
+                                <td>₹ ${reportData.summary.averageOrderValue.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Customers</td>
+                                <td>${reportData.summary.uniqueCustomerCount}</td>
+                            </tr>
+                            <tr>
+                                <td>Revenue per Customer</td>
+                                <td>₹ ${reportData.summary.revenuePerCustomer.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <td>Discount Rate</td>
+                                <td>${reportData.summary.discountRate.toFixed(2)}%</td>
+                            </tr>
+                            <tr>
+                                <td>Items per Order</td>
+                                <td>${reportData.summary.averageItemsPerOrder.toFixed(2)}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                 <!-- Orders List -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-dark">Orders List</h6>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Order Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Payment Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportData.orderList.map(order => `
+                                    <tr>
+                                        <td>${order.orderId}</td>
+                                        <td>${order.userId?.name || 'N/A'}</td>
+                                        <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                                        <td>₹ ${order.totalPrice.toFixed(2)}</td>
+                                        <td>${order.paymentType}</td>
+                                        <td>${order.status}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Daily Breakdown -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-dark">Daily Breakdown</h6>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Orders</th>
+                                    <th>Revenue</th>
+                                    <th>Discount</th>
+                                    <th>Net Revenue</th>
+                                    <th>Shipping</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportData.dailyBreakdown.map(day => `
+                                    <tr>
+                                        <td>${day._id}</td>
+                                        <td>${day.orders}</td>
+                                        <td>₹ ${day.revenue.toFixed(2)}</td>
+                                        <td>₹ ${day.discount.toFixed(2)}</td>
+                                        <td>₹ ${day.netRevenue.toFixed(2)}</td>
+                                        <td>₹ ${day.shipping.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Popular Products -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-dark">Popular Products</h6>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Return Rate</th>
+                                    <th>Unique Customers</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportData.popularProducts.map(product => `
+                                    <tr>
+                                        <td>${product.productDetails[0]?.productName || 'N/A'}</td>
+                                        <td>${product.totalQuantity}</td>
+                                        <td>₹ ${product.totalRevenue.toFixed(2)}</td>
+                                        <td>${(product.returnRate * 100).toFixed(2)}%</td>
+                                        <td>${product.uniqueCustomerCount}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payment Analysis -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-dark">Payment Analysis</h6>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Payment Method</th>
+                                    <th>Orders</th>
+                                    <th>Total Amount</th>
+                                    <th>Average Amount</th>
+                                    <th>Success Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportData.paymentAnalysis.map(payment => `
+                                    <tr>
+                                        <td>${payment._id}</td>
+                                        <td>${payment.count}</td>
+                                        <td>₹ ${payment.totalAmount.toFixed(2)}</td>
+                                        <td>₹ ${payment.averageAmount.toFixed(2)}</td>
+                                        <td>${(payment.successRate * 100).toFixed(2)}%</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+
+`       
                         document.body.appendChild(modal);
                         const modalElement = new bootstrap.Modal(document.getElementById('previewModal'));
                         modalElement.show();

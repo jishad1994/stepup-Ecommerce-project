@@ -79,10 +79,9 @@ const cancelOrder = async (req, res) => {
                 item.status = "Cancelled";
             })
         );
-        await order.save();
 
         // Refund if payment was via Wallet or Online
-        if (["Wallet", "Online"].includes(order.paymentType)) {
+        if (["Online", "Wallet", "card", "netbanking", "wallet", "upi", "emi"].includes(order.paymentType)) {
             const userId = req.user?._id;
             if (!userId) {
                 return res.status(401).json({ success: false, message: "User authentication required." });
@@ -104,7 +103,11 @@ const cancelOrder = async (req, res) => {
             });
 
             await wallet.save();
+
+            order.paymentStatus = "Refunded";
         }
+
+        await order.save();
 
         // Update product stock and purchase count
         const productUpdates = order.items.map((item) => ({
@@ -263,7 +266,10 @@ const cancelSingleItem = async (req, res) => {
         subtotal += order.shippingFee || 0;
         const refundAmount = order.totalPrice - Math.max(0, subtotal);
 
-        if (["Online", "Wallet"].includes(order.paymentType) && refundAmount > 0) {
+        if (
+            ["Online", "Wallet", "card", "netbanking", "wallet", "upi", "emi"].includes(order.paymentType) &&
+            refundAmount > 0
+        ) {
             const transactionId = await generateUniqueTransactionId();
             wallet.balance += refundAmount;
             wallet.transactions.push({
@@ -407,7 +413,9 @@ const loadSuccessPage = async (req, res) => {
 
         if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
             console.log(`Invalid or missing order ID: ${_id}`);
-            return res.status(400).json({ success: false, message: "Invalid or missing order ID in the request parameters" });
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid or missing order ID in the request parameters" });
         }
 
         const order = await Order.findById(_id);
@@ -437,5 +445,5 @@ module.exports = {
     cancelSingleItem,
     returnOrder,
     returnItem,
-    loadSuccessPage
+    loadSuccessPage,
 };

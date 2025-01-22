@@ -46,7 +46,7 @@ const postAdminLogin = async (req, res) => {
         }
 
         // Compare password
-        const isPasswordMatch = await bcrypt.compare(password, isAdmin.password);
+        const isPasswordMatch = bcrypt.compare(password, isAdmin.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
                 success: false,
@@ -85,9 +85,7 @@ const loadErrorpage = async (req, res) => {
 //load admin dashbaord
 const loadAdminDashboard = async (req, res) => {
     try {
-        if (req.session.admin) {
-
-            const timeFilter = req.query.timeFilter || "monthly";
+        const timeFilter = req.query.timeFilter || "monthly";
 
         // Create date filter based on selected time period
         const dateFilter = getDateFilter(timeFilter);
@@ -97,7 +95,7 @@ const loadAdminDashboard = async (req, res) => {
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $ne: "Cancelled" },
+                    "items.status": { $nin: ["Cancelled", "Returned"] },
                 },
             },
             { $unwind: "$items" },
@@ -118,7 +116,7 @@ const loadAdminDashboard = async (req, res) => {
             { $unwind: "$product" },
             {
                 $project: {
-                    name: "$product.name",
+                    name: "$product.productName",
                     count: 1,
                 },
             },
@@ -126,12 +124,14 @@ const loadAdminDashboard = async (req, res) => {
             { $limit: 10 },
         ]);
 
+        console.log("top products are", topProducts);
+
         // Get top categories
         const topCategories = await Order.aggregate([
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $ne: "Cancelled" },
+                    "items.status": { $nin: ["Cancelled", "Returned"] },
                 },
             },
             { $unwind: "$items" },
@@ -151,24 +151,54 @@ const loadAdminDashboard = async (req, res) => {
                 },
             },
             {
+                $lookup: {
+                    from: "categories",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "category",
+                },
+            },
+            { $unwind: "$category" },
+            {
                 $project: {
-                    name: "$_id",
+                    name: "$category.name",
                     count: 1,
-                    _id: 0,
+                    _id: 1,
                 },
             },
             { $sort: { count: -1 } },
             { $limit: 10 },
         ]);
 
+        //find total revenue
 
-            console.log("admis session is:", req.session.admin);
-            return res.render("dashBoard",{ topProducts, topCategories});
-        } else {
-            res.redirect("/admin/login");
+        const totalRevenueWithShippingCharge = await Order.aggregate([
+            {
+                $match: { paymentStatus: "Success", status: { $nin: ["Cancelled", "Returned"] } },
+            },
+            {
+                $group: {
+                    _id: null,
+                    sum: { $sum: "$totalPrice" },
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        //finding total Product
+
+        const totalProducts = await Product.countDocuments({ status: "Available" });
+
+        // Check if totalRevenueWithShippingCharge has results
+        let totalRevenue = 0;
+        let totalOrders = 0;
+        if (totalRevenueWithShippingCharge.length > 0) {
+            totalRevenue = totalRevenueWithShippingCharge[0].sum - totalRevenueWithShippingCharge[0].count * 10;
+            totalOrders = totalRevenueWithShippingCharge[0].count;
         }
+        return res.render("dashBoard", { topProducts, topCategories, totalRevenue, totalOrders, totalProducts });
     } catch (error) {
-        console.log("an error occured while loading dashboard page",error.message);
+        console.log("an error occured while loading dashboard page", error.message);
         res.render("404");
     }
 };
@@ -492,6 +522,7 @@ const orderApproveOrReject = async (req, res) => {
 
             await wallet.save();
         }
+        order.paymentStatus = "Refunded";
 
         await order.save();
 
@@ -644,14 +675,18 @@ const itemApproveOrReject = async (req, res) => {
 
         // Recalculate order totals if return is approved
         if (status === "Approved") {
-            const activeItems = order.items.filter((i) => !["Cancelled", "Return Approved", "Returned"].includes(i.status));
+            const activeItems = order.items.filter(
+                (i) => !["Cancelled", "Return Approved", "Returned", "Return Rejected"].includes(i.status)
+            );
 
             if (activeItems.length === 0) {
                 order.status = "Returned";
+                order.paymentStatus="Refunded"
             }
 
             // Recalculate totals considering returns
             const refundAmount = await calculateRefundAmount(orderId, itemId);
+            console.log("refund amound is", refundAmount);
             order.totalPrice = Number(order.totalPrice - refundAmount);
             order.totalItems -= item.quantity;
             const wallet = await Wallet.findOne({ userId: order.userId });
@@ -676,7 +711,7 @@ const itemApproveOrReject = async (req, res) => {
 
         res.json({ success: true, message: "Return request updated successfully" });
     } catch (error) {
-        console.error("Error updating return request:", error);
+        console.error("Error updating return request:", error.message);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
@@ -704,6 +739,8 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
     try {
         // Fetch the complete order
         const order = await Order.findById(orderId);
+
+        console.dir(order);
         if (!order) {
             throw new Error("Order not found");
         }
@@ -718,28 +755,40 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
         // Calculate basic refund amount for the item
         const itemTotal = returnedItem.price * returnedItem.quantity;
 
+
         // If no coupon was applied, return the item total
         if (!order.couponApplied) {
+            console.log("returned item total");
             return itemTotal;
         }
 
         // Calculate remaining order total without the returned item
-        const remainingItemsTotal = order.totalPrice - itemTotal;
+        let remainingItemsTotal;
+        if (order.items.length == 1) {
+            remainingItemsTotal = 10; //shipping charge
+        } else {
+            remainingItemsTotal = order.totalPrice - itemTotal;
+        }
+
+        console.log("remaining item total", remainingItemsTotal);
 
         // Handle coupon adjustments
         const couponDetails = order.couponDetails;
         let refundAmount = itemTotal;
 
         if (couponDetails.discountType === "percentage") {
+            console.log("discount type is percentage ");
             // Calculate proportional discount for the returned item
-            const percentageDiscount = (itemTotal * couponDetails.percentage) / 100;
+            const percentageDiscount = (itemTotal * couponDetails.discountAmount) / 100;
+            console.log("percentage discount", percentageDiscount);
             refundAmount = itemTotal - percentageDiscount;
 
             // If there was a maximum discount cap
-            if (couponDetails.discountAmount) {
-                const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
-                refundAmount = itemTotal - proportionalDiscount;
-            }
+            // if (couponDetails.discountAmount) {
+            //     const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
+            //     refundAmount = itemTotal - proportionalDiscount;
+            //     console.log("refund amound is now",refundAmount)
+            // }
         } else if (couponDetails.discountType === "flat") {
             // Calculate proportional flat discount
             const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
@@ -748,10 +797,11 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
 
         // Check if remaining order still qualifies for coupon
         const coupon = await mongoose.model("Coupon").findById(couponDetails.couponId);
-        if (coupon && remainingItemsTotal < coupon.minOrderValue) {
-            // If remaining items don't qualify for coupon, return full item price
-            refundAmount = itemTotal;
-        }
+        // if (coupon && remainingItemsTotal < coupon.minOrderValue) {
+        //     // If remaining items don't qualify for coupon, return full item price
+        //     refundAmount = itemTotal;
+        // }
+        console.log("finally", Math.round(refundAmount * 100) / 100);
 
         return Math.round(refundAmount * 100) / 100; // Round to 2 decimal places
     } catch (error) {
@@ -759,8 +809,6 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
         throw error;
     }
 };
-
-
 
 // Helper function to get date filter based on selected time period
 function getDateFilter(timeFilter) {

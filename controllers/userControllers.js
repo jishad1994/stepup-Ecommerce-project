@@ -144,7 +144,16 @@ const shopCategory = async (req, res) => {
             womenCount,
             kidsCount,
             // currentSort: { primary: primarySort, secondary: secondarySort },
-            pagination: { currentPage: page, hasNextPage, hasPrevPage, pages, totalPages, nextPage: page + 1, prevPage: page - 1, categoryId },
+            pagination: {
+                currentPage: page,
+                hasNextPage,
+                hasPrevPage,
+                pages,
+                totalPages,
+                nextPage: page + 1,
+                prevPage: page - 1,
+                categoryId,
+            },
 
             currentPrimarySort: primarySort,
             currentSecondarySort: secondarySort,
@@ -155,7 +164,7 @@ const shopCategory = async (req, res) => {
     }
 };
 
-//shop all
+//shop all controler
 const loadShopAll = async (req, res) => {
     try {
         // Pagination parameters
@@ -163,48 +172,67 @@ const loadShopAll = async (req, res) => {
         const limit = parseInt(req.query.limit) || 9;
         const skip = (page - 1) * limit;
 
-        // Get primary and secondary sort parameters
-        const primarySort = req.query.primarySort || "default";
-        const secondarySort = req.query.secondarySort || "";
+        // Get filter parameters
+        const sort = req.query.sort || "default";
+        const minPrice = parseInt(req.query.minPrice) || 0;
+        const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
+        const categories = req.query.categories ? req.query.categories.split(",") : [];
+        const isOfferApplied = req.query.isOfferApplied;
+        const status = req.query.status;
         const searchQuery = req.query.search || "";
+        console.log("search query:", searchQuery);
+        console.log("categories:", categories);
+        console.log("sort is:", sort);
 
         // Define sort configurations
+
         const sortConfigs = {
             default: {},
             featured: { isFeatured: -1 },
             newArrivals: { createdAt: -1 },
-            nameAZ: { productName: 1 },
-            nameZA: { productName: -1 },
-            popularity: { purchaseCount: -1 },
-            priceLowToHigh: { regularPrice: 1 },
-            priceHighToLow: { regularPrice: -1 },
+            priceLowToHigh: { salePrice: 1 },
+            priceHighToLow: { salePrice: -1 },
             rating: { averageRating: -1 },
+            popularity: { purchaseCount: -1 },
         };
 
-        // Combine sort criteria
-        let sortCriteria = {};
-        if (primarySort && primarySort !== "default") {
-            const primaryCriteria = sortConfigs[primarySort];
-            sortCriteria = { ...primaryCriteria };
-        }
+        // Initialize base query
+        let baseQuery = {
+            isListed: true,
+            regularPrice: { $gte: minPrice },
+        };
 
-        if (secondarySort && secondarySort !== "default") {
-            const secondaryCriteria = sortConfigs[secondarySort];
-            // Combine with primary sort while ensuring unique keys
-            Object.keys(secondaryCriteria).forEach((key) => {
-                if (!sortCriteria.hasOwnProperty(key)) {
-                    sortCriteria[key] = secondaryCriteria[key];
-                }
-            });
-        }
-
-        // Build base query
-        let baseQuery = { isListed: true };
-        if (primarySort === "featured" || secondarySort === "featured") {
+        // Add condition for "featured"
+        if (sort === "featured") {
             baseQuery.isFeatured = true;
         }
 
-        // Add search functionality
+        // Add condition for "offer applied"
+        if (isOfferApplied) {
+            baseQuery.isOfferApplied = true;
+        }
+
+        // Add condition for "status"
+        if (status) {
+            baseQuery.status = "Available";
+        }
+
+        // Handle combined conditions
+        if (isOfferApplied && status) {
+            baseQuery.isOfferApplied = true;
+            baseQuery.status = "Available";
+        }
+
+        if (maxPrice !== Number.MAX_SAFE_INTEGER) {
+            baseQuery.regularPrice.$lte = maxPrice;
+        }
+
+        if (categories.length > 0) {
+            baseQuery.category = {
+                $in: categories.map((cat) => new mongoose.Types.ObjectId(cat)),
+            };
+        }
+
         if (searchQuery) {
             baseQuery.$or = [
                 { productName: { $regex: searchQuery, $options: "i" } },
@@ -212,12 +240,7 @@ const loadShopAll = async (req, res) => {
             ];
         }
 
-        // Get listed categories
-        const listedCategories = await Category.find({ isListed: true });
-        const listedCategoryIds = listedCategories.map((category) => category._id);
-        baseQuery.category = { $in: listedCategoryIds };
-
-        // Execute queries
+        // Get listed categories for sidebar counts
         const [menCount, womenCount, kidsCount, totalProducts, products] = await Promise.all([
             Product.countDocuments({
                 category: new mongoose.Types.ObjectId("674f1f1662333c214cfac645"),
@@ -232,7 +255,7 @@ const loadShopAll = async (req, res) => {
                 isListed: true,
             }),
             Product.countDocuments(baseQuery),
-            Product.find(baseQuery).sort(sortCriteria).skip(skip).limit(limit).lean(),
+            Product.find(baseQuery).sort(sortConfigs[sort]).skip(skip).limit(limit).lean(),
         ]);
 
         // Calculate pagination
@@ -242,14 +265,15 @@ const loadShopAll = async (req, res) => {
             pages.push(i);
         }
 
+        
+
         // Render the page
         res.render("shopAll", {
             products,
             menCount,
             womenCount,
             kidsCount,
-            currentPrimarySort: primarySort,
-            currentSecondarySort: secondarySort,
+            currentSort: sort,
             searchQuery,
             pagination: {
                 currentPage: page,
@@ -260,6 +284,15 @@ const loadShopAll = async (req, res) => {
                 nextPage: page + 1,
                 prevPage: page - 1,
             },
+            // Pass current filter values to maintain state
+            filters: {
+                minPrice,
+                maxPrice,
+                categories,
+                status,
+                isOfferApplied,
+                sort,
+            },
         });
     } catch (error) {
         console.error("Error in loadShopAll:", error);
@@ -268,12 +301,13 @@ const loadShopAll = async (req, res) => {
         });
     }
 };
+
 //load shop single
 const loadProduct = async (req, res) => {
     try {
         const _id = req.params.id; // Extract product ID from request parameters
         console.log("load product controller worked ");
-        const product = await Product.findOne({ _id }); // Fetch the product details by ID
+        const product = await Product.findOne({ _id:req.params.id ,isListed:true}); // Fetch the product details by ID
 
         if (!product) {
             return res.status(404).render("404");

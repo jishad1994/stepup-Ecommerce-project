@@ -117,6 +117,14 @@ const updateCategory = async (req, res) => {
             });
         }
 
+        if (categoryOffer >= 80 ) {
+            return res.status(400).json({
+                success: false,
+                message: "Category Offer Cannot Be Given More Than 80 %.",
+            });
+        }
+
+
         // Check if the new name already exists (excluding the current category)
         const existingCategory = await Category.findOne({ name });
         if (existingCategory && existingCategory?.name !== originalName) {

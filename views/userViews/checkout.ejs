@@ -76,17 +76,17 @@
 
                       <!-- Address Type Selection -->
                       <div class="mb-3">
-                        <label class="form-label">Address Type</label>
-                        <div class="btn-group" role="group">
+                        <label class="form-label mb-2">Address Type</label>
+                        <div class="btn-group d-flex justify-content-between" role="group" style="max-width: 400px;">
                           <input type="radio" class="btn-check" name="addressType" id="homeAddress" value="Home"
                             checked>
-                          <label class="btn btn-outline-primary" for="homeAddress">Home</label>
+                          <label class="btn btn-outline-primary  " for="homeAddress">Home</label>
 
                           <input type="radio" class="btn-check" name="addressType" id="workAddress" value="Work">
-                          <label class="btn btn-outline-primary" for="workAddress">Work</label>
+                          <label class="btn btn-outline-primary " for="workAddress">Work</label>
 
                           <input type="radio" class="btn-check" name="addressType" id="otherAddress" value="Other">
-                          <label class="btn btn-outline-primary" for="otherAddress">Other</label>
+                          <label class="btn btn-outline-primary " for="otherAddress">Other</label>
                         </div>
                       </div>
 
@@ -199,6 +199,8 @@
                               <% }); %>
                           </select>
                           <button id="applyCouponBtn" class="btn btn-primary mt-3">Apply Coupon</button>
+                          <button id="removeCouponBtn" class="btn btn-primary mt-3" style="display: none;">Remove
+                            Coupon</button>
                         </div>
                       </div>
 
@@ -214,37 +216,62 @@
                         <div class="card-body">
                           <h5 class="card-title">Your Items</h5>
 
+
                           <ul class="list-group mb-3" id="orderItems">
-                            <%products.forEach((product,index)=>{%>
-                              <li class="list-group-item d-flex justify-content-between">
-                                <span>
-                                  <%=product.productName%>
-                                </span>
+                            <%orderItems.forEach((product,index)=>{%>
+                              <li class="list-group-item">
+                                <!-- Product Name and Main Price -->
+                                <div class="d-flex justify-content-between align-items-start">
+                                  <span>
+                                    <%=product.productName%>
+                                  </span>
+                                  <strong>
+                                    <%if(product.isOfferApplied){%>
+                                      ₹<%=cart.items[index].quantity * product.offerPrice%>
+                                        <%}else{%>
+                                          ₹<%=cart.items[index].quantity * product.salePrice%>
+                                            <%}%>
+                                              (<%=cart.items[index].quantity%>
+                                                <%= cart.items[index].quantity> 1 ? 'items' : 'item' %>)
+                                  </strong>
+                                </div>
 
-                                <%if(product.isOfferApplied){%>
-
-                                  <strong>₹<%=cart.items[index].quantity * product.offerPrice%>(
-                                      <%= cart.items[index].quantity%> items)</strong>
-                                  <%}else{%>
-
-                                    <strong>₹<%=cart.items[index].quantity * product.salePrice%>(
-                                        <%=cart.items[index].quantity%> items)</strong>
-                                    <%}%>
-                                      <%})%>
+                                <!-- GST Details -->
+                                <div class="mt-2 text-muted small">
+                                  <div class="d-flex justify-content-between">
+                                    <span>Base Price:</span>
+                                    <span>₹<%=product.gstDetails.basePrice%></span>
+                                  </div>
+                                  <div class="d-flex justify-content-between">
+                                    <span>GST (<%=product.gstDetails.percentage%>%):</span>
+                                    <span>₹<%=product.gstDetails.gstAmount%></span>
+                                  </div>
+                                </div>
                               </li>
+                              <%})%>
                           </ul>
 
+
                           <ul>
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item  d-flex justify-content-between">
                               <span>Shipping</span>
                               <strong id="shipping-charge">₹ 10.00</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                               <strong>Discount</strong>
-                              <strong id="discount-amount"> </strong>
+
+                              <strong id="discount-amount" class="text-success">-₹0.00</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                              <strong>Total</strong>
+                              <strong>Sub Total</strong>
+                              <strong id="total-basePrice"> ₹ <%= totalBasePrice%> </strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                              <strong>GST</strong>
+                              <strong id="total-gstAmount"> ₹ <%= totalGstAmount%> </strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                              <strong>Grand Total</strong>
                               <strong id="final-amount"> ₹ <%=cart.finalAmount + 10%> </strong>
                             </li>
                           </ul>
@@ -272,8 +299,19 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+
       const form = document.getElementById('checkoutForm');
       const savedAddressSelect = document.getElementById('savedAddressSelect');
+
+      //apply coupon btn
+
+      const applyCouponBtn = document.getElementById("applyCouponBtn")
+      const removeCouponBtn = document.getElementById("removeCouponBtn")
+
+      removeCouponBtn.addEventListener("click", (event) => {
+
+        window.location.reload();
+      })
 
       // Safely parse saved addresses
       let savedAddresses = [];
@@ -308,7 +346,7 @@
             document.getElementById('altPhone').value = address.altPhone || '';
             document.getElementById('pincode').value = address.pincode;
             document.getElementById('phone').value = address.phone;
-            document.getElementById('landmark').value = address.landmark || '';
+            document.getElementById('landmark').value = address.landMark || '';
           }
         }
       });
@@ -359,10 +397,13 @@
               icon: 'success',
               title: 'Success',
               text: "Coupon Applied Successfully",
+              showConfirmButton:false
             }).then(() => {
               // Update UI with new values
               const totalAmount = document.getElementById('final-amount');
               const discountElement = document.getElementById('discount-amount');
+              removeCouponBtn.style.display = "block";
+              applyCouponBtn.style.display = "none";
 
               if (totalAmount) {
                 totalAmount.innerText = `₹ ${data.totalAmount.toFixed(2)}`;
@@ -485,6 +526,14 @@
                 <span>${document.getElementById("shipping-charge").innerText}</span>
               </div>
               <div class="flex justify-between font-semibold">
+                <span>Total GST:</span>
+                <span>${document.getElementById("total-gstAmount").innerText}</span>
+              </div>
+              <div class="flex justify-between font-semibold">
+                <span>Total Base Price:</span>
+                <span>${document.getElementById("total-basePrice").innerText}</span>
+              </div>
+              <div class="flex justify-between font-semibold">
                 <span>Total:</span>
                 <span>${document.getElementById("final-amount").innerText}</span>
               </div>
@@ -528,7 +577,7 @@
                       body: JSON.stringify({
                         amount: amount,
                         currency: "INR",
-                        orderId: orderData.orderId, 
+                        orderId: orderData.orderId,
                       }),
                     });
 
@@ -553,7 +602,7 @@
                               razorpay_payment_id: response.razorpay_payment_id,
                               razorpay_signature: response.razorpay_signature,
                               orderId: orderData.orderId, // Pass backend order ID
-                              _id:orderData._id //sending order id to update the payment status
+                              _id: orderData._id //sending order id to update the payment status
 
                             }),
                           });
@@ -568,7 +617,7 @@
                               showConfirmButton: false,
                               timer: 2000,
                             }).then(() => {
-                              window.location.href = `/loadSuccessPage/${orderData._id}`; 
+                              window.location.href = `/loadSuccessPage/${orderData._id}`;
                             });
                           } else {
                             Swal.fire({
@@ -580,6 +629,39 @@
                             });
                           }
                         },
+
+
+                        // Add modal dismiss handler
+                        modal: {
+                          ondismiss: async function () {
+                            try {
+
+
+
+
+                              Swal.fire({
+                                icon: "info",
+                                title: "Payment Cancelled",
+                                text: "Your payment has been cancelled. The order will not be processed.",
+                                showConfirmButton: true
+                              }).then(() => {
+                                window.location.href = `/showDetails/${orderData._id}`;
+                              });
+
+                            } catch (error) {
+                              console.error("Error cancelling order:", error);
+                              Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: "There was an error cancelling your order. Please contact support if needed.",
+                              });
+                            }
+                          }
+                        },
+
+
+                        // 
+
                         prefill: {
                           name: document.getElementById("fullName").value,
                           email: "customer@example.com", // Add email field to form if needed
@@ -602,7 +684,7 @@
                     Swal.fire({
                       icon: "error",
                       title: "Order Placement Failed",
-                      text: orderData.message || "Unable to place your order. Please try again.",
+                      text: orderData.message || "Please try again.",
                     });
                   }
 
@@ -632,7 +714,7 @@
                       timer: 2000,
                     }).then(() => {
                       // Redirect to orders page
-                      window.location.href = '/orders'; // redierct to orders
+                      window.location.href = `/loadSuccessPage/${data._id}`; // Redirect to orders page
                     });
                   } else {
                     Swal.fire({
@@ -669,7 +751,7 @@
                       timer: 2000,
                     }).then(() => {
                       // Redirect to orders page
-                      window.location.href = '/orders'; // Add your redirect URL
+                      window.location.href = `/loadSuccessPage/${data._id}`; // Redirect to orders page
                     });
                   } else {
                     Swal.fire({

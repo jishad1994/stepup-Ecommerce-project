@@ -76,6 +76,7 @@ const addToCart = async (req, res) => {
         // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
+            consoe.log("no user found")
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
@@ -96,8 +97,8 @@ const addToCart = async (req, res) => {
             return res.status(400).json({ success: false, message: "You cannot add more than 5 quantity" });
         }
 
-        // Fetch and validate the product
-        const product = await Product.findById(productId);
+        // Fetch and validate the product.
+        const product = await Product.findOne({_id:productId, isListed:true});
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found in the database" });
         }

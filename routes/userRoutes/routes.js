@@ -2,7 +2,7 @@ const express = require("express");
 const route = express.Router();
 const userController = require("C:/Users/Jishad/Desktop/stepUp/controllers/userControllers.js");
 // const userAuth = require("C:/Users/Jishad/Desktop/stepUp/middlewares/userAuth.js");
-const userAuth = require("../../middlewares/userAuth")
+const {fetchIsUserAuthenticated,isUserAuthenticated:userAuth} = require("../../middlewares/userAuth")
 const passport = require("../../config/passport");
 const env = require("dotenv");
 const cartControllers = require("../../controllers/userCartControllers");
@@ -27,7 +27,7 @@ route.post("/rzpVerifyPayment", userAuth, checkoutControllers.rzpVerifyPayment);
 
 //razorpay repayment
 route.post("/reTryRzpCreateOrder",userAuth,paymentControllers.reTryRzpCreateOrder)
-route.post("/reTryRzpVerifyPayment",userAuth,paymentControllers.reTryRzpVerifyPayment)
+route.post("/reTryRzpVerifyPayment",userAuth ,paymentControllers.reTryRzpVerifyPayment)
 
 //authentication controllers
 route.get("/", userController.loadHomePage);
@@ -48,13 +48,12 @@ route.get("/loadProfileEdit", userAuth, userController.loadEditProfile);
 route.put("/postEditProfile", userAuth, userController.postEditProfile);
 
 //product controllers
-route.get("/shopall/:id", userController.shopCategory);
 route.get("/shopall", userController.loadShopAll);
 route.get("/product/:id", userController.loadProduct);
 
 //cart controllers
 route.get("/cart", userAuth, cartControllers.loadCartPage);
-route.post("/addToCart", userAuth, cartControllers.addToCart);
+route.post("/addToCart",fetchIsUserAuthenticated, cartControllers.addToCart);
 route.get("/removeFromCart", userAuth, cartControllers.removeFromCart);
 route.post("/updateCart", userAuth, cartControllers.updateCart);
 
@@ -78,9 +77,9 @@ route.post("/passwordResetResendOTP", passwordControllers.passwordResetResendOTP
 
 //wishlist routes
 
-route.get("/wishlist", userAuth, wishlistControllers.loadWishlist);
-route.post("/addToWishlist", userAuth, wishlistControllers.addToWishlist);
-route.delete("/deleteWishlist", userAuth, wishlistControllers.deleteWishlist);
+route.get("/wishlist",userAuth, wishlistControllers.loadWishlist);
+route.post("/addToWishlist",  fetchIsUserAuthenticated, wishlistControllers.addToWishlist);
+route.delete("/deleteWishlist", fetchIsUserAuthenticated, wishlistControllers.deleteWishlist);
 
 //checkout routes
 route.post("/applyCoupon", userAuth, checkoutControllers.applyCoupon);

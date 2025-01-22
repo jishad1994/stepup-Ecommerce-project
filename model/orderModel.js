@@ -32,6 +32,33 @@ const orderSchema = new Schema(
                     required: true,
                     min: 0,
                 },
+                gstDetails: {
+                    percentage: {
+                        type: Number,
+                        required: true,
+                        enum: [5, 18],
+                        default: function () {
+                            return this.price <= 1000 ? 5 : 18; // 5% for <= 1000, 18% for > 1000
+                        },
+                    },
+                    gstAmount: {
+                        type: Number,
+                        required: true,
+                        default: function () {
+                            const gstRate = this.price <= 1000 ? 0.05 : 0.18; // Select GST rate based on price
+                            return +((this.price * gstRate) / (1 + gstRate)).toFixed(2); // Calculate GST from inclusive price
+                        },
+                    },
+                    basePrice: {
+                        type: Number,
+                        required: true,
+                        default: function () {
+                            const gstRate = this.price <= 1000 ? 0.05 : 0.18; // Select GST rate based on price
+                            return +(this.price / (1 + gstRate)).toFixed(2); // Calculate base price excluding GST
+                        },
+                    },
+                },
+
                 size: {
                     type: String,
                     required: true,
@@ -63,10 +90,10 @@ const orderSchema = new Schema(
             type: Number,
             required: true,
         },
-        paymentType: { type: String, enum: ["COD", "Online", "Wallet"], default: "COD" },
+        paymentType: { type: String, enum: ["COD", "Online", "Wallet", "card", "netbanking", "wallet", "upi", "emi"], default: "COD" },
         paymentStatus: {
             type: String,
-            enum: ["Failed", "Not Paid","Processing", "Success"],
+            enum: ["Failed", "Not Paid", "Processing", "Success", "Refunded"],
             default: "Processing",
         },
         paymentDetails: {
@@ -241,3 +268,4 @@ const orderSchema = new Schema(
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;
+

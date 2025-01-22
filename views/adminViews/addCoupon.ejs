@@ -224,7 +224,7 @@
                             await submitCoupon();
                         } catch (error) {
                             console.error('Error submitting coupon:', error);
-                            showGeneralError('Failed to create coupon. Please try again.');
+                            showGeneralError( error.message ||'Failed to create coupon. Please try again.');
                         }
                     });
 
@@ -305,14 +305,16 @@
 
                         if (!response.ok) {
                             const error = await response.json();
-
-                            if (error.code === 'DUPLICATE_CODE') {
+                            console.log("error is ",error.message)
+                            if (error.code === "Coupon code already exists" ) {
                                 showError('coupon-code', errorMessages.code.exists);
                                 throw new Error('Duplicate coupon code');
                             }
 
+
+
                             throw new Error(error.message || 'Failed to create coupon');
-                        }
+                        }   
 
                         const result = await response.json();
                         showSuccess('Coupon created successfully!');

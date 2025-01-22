@@ -16,31 +16,22 @@ const adminRoutes = require("./routes/adminRoutes/adminRoutes.js");
 const PORT = process.env.PORT;
 const SECTRET_KEY = process.env.SECTRET_KEY;
 
-
-
-
-
-
-
-
-
 // View Engine
 app.set("view engine", "ejs");
 
 app.use(cookieParser()); // Enable cookie parsing middleware
 
-
 // Session Management
 app.use(
     session({
-        name:"session_id",
+        name: "session_id",
         secret: SECTRET_KEY,
         resave: false,
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
             secure: false,
-            maxAge: 60 * 1000 * 60, // 1 hour
+            maxAge: 60 * 1000 * 60 * 7, // 7 hour
         },
     })
 );
@@ -63,12 +54,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(nocache());
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render("error", { message: "Internal Server Error" });
-});
-
 // Assign User to Response Locals
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
@@ -85,4 +70,10 @@ app.use("/admin", adminRoutes);
 // Start Server
 app.listen(PORT, () => {
     console.log(`Port is connected at ${PORT}`);
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).render("error", { message: "Internal Server Error" });
 });

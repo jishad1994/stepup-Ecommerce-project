@@ -73,6 +73,8 @@ const addProducts = async (req, res) => {
         if (!category) errors.push("Category is required");
         if (!req.files || req.files.length < 3) errors.push("Minimum 3 images required");
 
+        if (productOffer && productOffer >= 90) errors.push("Product Offer Cannot Be Given More Than 90 %");
+
         //check the product name alreday exists
 
         const isNameExists = await Product.findOne({ productName: { $regex: `^${title}$`, $options: "i" } });
@@ -328,6 +330,7 @@ const editProduct = async (req, res) => {
             product.productOffer = productOffer;
             product.offerPrice = product.salePrice * (1 - productOffer / 100); // Calculate discounted price
         } else {
+            console.log("no product offer found");
             product.isOfferApplied = false;
             product.productOffer = 0;
             product.offerPrice = 0;

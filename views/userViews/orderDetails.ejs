@@ -183,6 +183,7 @@
                                     } else if (order.paymentStatus === 'Not Paid') { %> text-warning fw-bold ms-2 <% 
                                     } else if (order.paymentStatus === 'Processing') { %> text-primary fw-bold ms-2<% 
                                     } else if (order.paymentStatus === 'Success') { %> text-success fw-bold ms-2<% 
+                                    } else if (order.paymentStatus === 'Refunded') { %> text-success fw-bold ms-2<% 
                                     } %>"
                                     
                                     >
@@ -201,6 +202,7 @@
                       
 
                         <div class="col-md-6">
+                           <% if(!["Returned","Cancelled","Return Request Approved"].includes(order.status)){%>
                             <h4>Order Summary</h4>
                             <p><strong>Total Items:</strong>
                                 <%= order.totalItems %>
@@ -213,7 +215,10 @@
                                 <p><strong>Coupon:</strong> Applied</p>
 
                                 <% } %>
-                                <% if (order.paymentType !== 'COD' && order.paymentStatus === 'Success') { %>
+                                <% if (order.paymentType !== 'COD' && order.paymentStatus === 'Success' && order.paymentStatus !== 'Refunded' && !["Cancelled","Returned"].includes(order.status)) { %>
+
+
+                            <%}%>
                     <button onclick="downloadInvoice('<%= order._id %>','<%= order.orderId%>')" class="btn btn-primary">
                         <span id="downloadSpinner" class="spinner-border spinner-border-sm me-2"></span>
                         <i class="fas fa-download me-2"></i>Download Invoice
@@ -241,7 +246,7 @@
                                         | <strong>Price:</strong> ₹ <%= item.price.toFixed(2) %>
                                             | <strong>Subtotal:</strong> ₹ <%= (item.quantity * item.price).toFixed(2)
                                                 %>
-                                                | <strong>Status:</strong> <span class="item-status">
+                                                | <strong>Status:</strong> <span class="item-status <%= item.status === 'Active' ? 'text-success' : '' %> <%= item.status === 'Cancelled' ? 'text-danger' : '' %>">
                                                     <%= item.status || 'Active' %>
                                                 </span>
                                 </p>
@@ -768,16 +773,7 @@
             }
         }
 
-        // Show success message on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            Swal.fire({
-                title: 'Order Placed Successfully!',
-                text: 'Thank you for shopping with us',
-                icon: 'success',
-                timer: 3000,
-                showConfirmButton: false
-            });
-        });
+       
 
                 
 

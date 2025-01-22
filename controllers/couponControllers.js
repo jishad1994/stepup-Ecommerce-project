@@ -27,12 +27,14 @@ const loadAddCoupon = async (req, res) => {
 //create coupon
 const postAddCoupon = async (req, res) => {
     try {
-        console.log("hii", req.body);
+        
         // Validate input
         const { isValid, errors } = validateCouponInput(req.body);
         //retrieve the error message
         const errorMessage = Object.values(errors)[0];
-        console.log("hii", Object.values(errors)[0]);
+        console.log("is valid",isValid)
+        console.log("error is",errorMessage)
+        console.log("error message is",errorMessage)
         if (!isValid) {
             return res.status(400).json({ success: false, errors ,message:errorMessage});
         }
@@ -46,6 +48,7 @@ const postAddCoupon = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 errors: { code: "Coupon code already exists" },
+                message:"Coupon code already exists" 
             });
         }
 
@@ -200,61 +203,103 @@ module.exports = {
     changeCouponStatus,
 };
 
+
+
+
 // Validation helper functions
 const validateCouponInput = (data) => {
     const errors = {};
+    
+    // Helper function to check if a value is a valid positive number
+    const isPositiveNumber = (value) => {
+        const num = parseFloat(value);
+        return !isNaN(num) && num > 0;
+    };
 
-    // Validate required fields
-    if (!data.code || typeof data.code !== "string" || data.code.trim() === "") {
+    // Helper function to validate date string
+    const isValidDate = (dateString) => {
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
+    };
+
+    // Validate code
+    if (!data.code?.trim()) {
         errors.code = "Coupon code is required";
     } else if (!/^[A-Za-z@#*0-9]+$/.test(data.code)) {
-        errors.code = "Coupon code must be alphanumeric";
+        errors.code = "Coupon code must be alphanumeric with allowed special characters (@#*)";
     }
 
-    if (!data.discountType || !["percentage", "flat"].includes(data.discountType)) {
+    // Validate discount type
+    if (!data.discountType || !["percentage", "flat"].includes(data.discountType.toLowerCase())) {
         errors.discountType = "Valid discount type (percentage/flat) is required";
     }
 
-    if (!data.discountValue || isNaN(data.discountValue) || data.discountValue <= 0) {
-        errors.discountValue = "Valid discount value is required";
-    } else if (data.discountType === "percentage" && data.discountValue > 100) {
+    // Validate discount value
+    if (!data.discountValue) {
+        errors.discountValue = "Discount value is required";
+    } else if (!isPositiveNumber(data.discountValue)) {
+        errors.discountValue = "Discount value must be a positive number";
+    } else if (
+        data.discountType?.toLowerCase() === "percentage" && 
+        parseFloat(data.discountValue) > 100
+    ) {
         errors.discountValue = "Percentage discount cannot exceed 100%";
     }
 
-    if (!data.startDate || !Date.parse(data.startDate)) {
+    // Validate dates
+    if (!data.startDate || !isValidDate(data.startDate)) {
         errors.startDate = "Valid start date is required";
     }
 
-    if (!data.endDate || !Date.parse(data.endDate)) {
+    if (!data.endDate || !isValidDate(data.endDate)) {
         errors.endDate = "Valid end date is required";
     }
 
-    if (Date.parse(data.endDate) <= Date.parse(data.startDate)) {
-        errors.endDate = "End date must be after start date";
+    if (isValidDate(data.startDate) && isValidDate(data.endDate)) {
+        const start = new Date(data.startDate);
+        const end = new Date(data.endDate);
+        if (end <= start) {
+            errors.endDate = "End date must be after start date";
+        }
     }
 
-    // Validate numeric fields
-    if (data.minOrderValue && (isNaN(data.minOrderValue) || data.minOrderValue < 0)) {
-        errors.minOrderValue = "Minimum order value must be a positive number";
+    // Validate order values
+    if (data.minOrderValue !== undefined && data.minOrderValue !== '') {
+        if (!isPositiveNumber(data.minOrderValue)) {
+            errors.minOrderValue = "Minimum order value must be a positive number";
+        }
     }
 
-    if (data.maxDiscountValue && (isNaN(data.maxDiscountValue) || data.maxDiscountValue < 0)) {
-        errors.maxDiscountValue = "Maximum discount value must be a positive number";
-    }
-    if (data.maxDiscountValue && (isNaN(data.maxDiscountValue) || data.maxDiscountValue > data.minOrderValue)) {
-        errors.maxDiscountValue = "Max Discount Value should be less than Min order Value";
+    if (data.maxDiscountValue !== undefined && data.maxDiscountValue !== '') {
+        if (!isPositiveNumber(data.maxDiscountValue)) {
+            errors.maxDiscountValue = "Maximum discount value must be a positive number";
+        }
+        
+        if (data.minOrderValue && isPositiveNumber(data.minOrderValue) && 
+            parseFloat(data.maxDiscountValue) >= parseFloat(data.minOrderValue)) {
+            errors.maxDiscountValue = "Maximum discount value must be less than minimum order value";
+        }
     }
 
-    if (data.usageLimit && (isNaN(data.usageLimit) || data.usageLimit < 1)) {
-        errors.usageLimit = "Usage limit must be at least 1";
+    // Validate usage limits
+    if (data.usageLimit !== undefined && data.usageLimit !== '') {
+        const limit = parseInt(data.usageLimit);
+        if (isNaN(limit) || limit < 1) {
+            errors.usageLimit = "Usage limit must be at least 1";
+        }
     }
 
-    if (data.userUsageLimit && (isNaN(data.userUsageLimit) || data.userUsageLimit < 1)) {
-        errors.userUsageLimit = "User usage limit must be at least 1";
+    if (data.userUsageLimit !== undefined && data.userUsageLimit !== '') {
+        const limit = parseInt(data.userUsageLimit);
+        if (isNaN(limit) || limit < 1) {
+            errors.userUsageLimit = "User usage limit must be at least 1";
+        }
     }
+
+    console.log("errors are",errors)
 
     return {
         isValid: Object.keys(errors).length === 0,
-        errors,
+        errors
     };
 };

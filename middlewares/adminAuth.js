@@ -1,7 +1,11 @@
 const User = require("../model/userModel");
+const mongoose = require("mongoose")
 //admin authentication
 const adminAuth = async (req, res, next) => {
     try {
+
+        console.log("admin session is",req.session)
+        const userId = req.session.id;
         const admin = await User.findOne({ isAdmin: true });
 
         if (!admin) {

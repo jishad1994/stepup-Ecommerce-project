@@ -14,7 +14,7 @@ const getChart = async (req, res) => {
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $ne: "Cancelled" },
+                    "items.status": { $nin: ["Cancelled", "Returned"] },
                 },
             },
             { $unwind: "$items" },
@@ -35,7 +35,7 @@ const getChart = async (req, res) => {
             { $unwind: "$product" },
             {
                 $project: {
-                    name: "$product.name",
+                    name: "$product.productName",
                     count: 1,
                 },
             },
@@ -43,12 +43,14 @@ const getChart = async (req, res) => {
             { $limit: 10 },
         ]);
 
+        console.log("top products are", topProducts);
+
         // Get top categories
         const topCategories = await Order.aggregate([
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $ne: "Cancelled" },
+                    "items.status": { $nin: ["Cancelled", "Returned"] },
                 },
             },
             { $unwind: "$items" },
@@ -68,10 +70,19 @@ const getChart = async (req, res) => {
                 },
             },
             {
+                $lookup: {
+                    from: "categories",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "category",
+                },
+            },
+            { $unwind: "$category" },
+            {
                 $project: {
-                    name: "$_id",
+                    name: "$category.name",
                     count: 1,
-                    _id: 0,
+                    _id: 1,
                 },
             },
             { $sort: { count: -1 } },

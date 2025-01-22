@@ -162,7 +162,7 @@
                       <span class="text-black">Subtotal</span>
                     </div>
                     <div class="col-md-6 text-right">
-                      <strong class="text-black">
+                      <strong class="subTotal" class="text-black">
                         ₹ <%= subtotal %>
                       </strong>
                     </div>
@@ -172,7 +172,7 @@
                       <span class="text-black">Total</span>
                     </div>
                     <div class="col-md-6 text-right">
-                      <strong class="text-black">
+                      <strong class="text-black subTotal">
                         ₹ <%= subtotal %>
                       </strong>
                     </div>
@@ -206,77 +206,7 @@
     // const products = JSON.parse(`<%= JSON.stringify(products) %>`); // Pass `products` from the server
     // console.log('products', products);
 
-    // window.addEventListener("DOMContentLoaded", (event) => {
-    //   const proceedBtnDiv = document.getElementById("proceedBtnDiv");
-
-    //   if (products.length === 0) {
-    //     proceedBtnDiv.style.display = "none";
-    //   }
-
-    //   // Iterate over each product to initialize button visibility
-    //   products.forEach(product => {
-    //     const productRow = document.querySelector(`[data-productid='${product._id}']`).closest('tr');
-    //     const minusButton = productRow.querySelector('.js-btn-minus');
-    //     const plusButton = productRow.querySelector('.js-btn-plus');
-    //     const inputField = productRow.querySelector('.product-quantity');
-    //     let currentQuantity = parseInt(inputField.value);
-
-    //     // Set initial button visibility based on quantity
-    //     if (currentQuantity <= 1) {
-    //       minusButton.style.display = "none"; // Hide minus button
-    //     } else {
-    //       minusButton.style.display = "block"; // Show minus button
-    //     }
-
-    //     if (currentQuantity >= 5) {
-    //       plusButton.style.display = "none"; // Hide plus button
-    //     } else {
-    //       plusButton.style.display = "block"; // Show plus button
-    //     }
-    //   });
-
-    //   // Check quantity of the product is available
-    //   document.querySelectorAll(".quantityBtn").forEach((quantityButton) => {
-    //     quantityButton.addEventListener('click', (event) => {
-    //       const button = event.target;
-    //       const productId = button.getAttribute("data-productId");
-    //       const inputField = button.closest("td").querySelector('.product-quantity');
-    //       let currentQuantity = parseInt(inputField.value);
-
-    //       // Check if the minus or plus button was clicked
-    //       if (button.classList.contains('js-btn-minus')) {
-    //         if (currentQuantity > 1) {
-    //           currentQuantity -= 1;
-    //         }
-    //       } else if (button.classList.contains('js-btn-plus')) {
-
-    //         if (currentQuantity < 5) {
-    //           currentQuantity += 1;
-    //         }
-    //       }
-
-    //       inputField.value = currentQuantity;
-
-    //       // Get the minus and plus buttons for the current row
-    //       const minusButton = button.closest('td').querySelector('.js-btn-minus');
-    //       const plusButton = button.closest('td').querySelector('.js-btn-plus');
-
-    //       // Disable the buttons if quantity is at the limits
-    //       if (currentQuantity <= 1) {
-    //         minusButton.style.display = "none"; // Hide minus button
-    //       } else {
-    //         minusButton.style.display = "block"; // Show minus button
-    //       }
-
-    //       if (currentQuantity >= 5) {
-    //         plusButton.style.display = "none"; // Hide plus button
-    //       } else {
-    //         plusButton.style.display = "block"; // Show plus button
-    //       }
-
-    //     });
-    //   });
-    // });
+    const subtotal = document.getElementById("subTotal");
 
 
     document.querySelectorAll(".quantityBtn").forEach((quantityButton) => {
@@ -301,6 +231,8 @@
 
         // Update the server
         try {
+
+
           const response = await fetch("/updateCart", {
             method: "POST",
             headers: {
@@ -314,14 +246,20 @@
           });
 
           const result = await response.json();
-          if (!response.ok) {
+          if (!response.ok) {        
             Swal.fire({
               title: 'Error!',
               text: result.message,
               icon: 'Error',
               confirmButtonText: 'OK'
             });
+          } else {
+
+            subtotal.value = `<= JSON.stringify(cart.totalPrice)>`
+
           }
+
+
         } catch (error) {
           console.error(error);
           Swal.fire({

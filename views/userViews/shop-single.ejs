@@ -148,7 +148,7 @@
     #addToWishlistBtn {
       margin-top: 20px;
       /* Adds 20px space between the buttons */
-      background-color: rgb(244, 124, 242);
+      background-color: rgb(139, 135, 139);
       /* Sets the background color to pink */
       color: white;
       /* Adjusts the text color for better visibility */
@@ -292,23 +292,24 @@
               <span class="text-decoration-line-through text-muted me-2" id="regularPrice">₹ <%= product.regularPrice %>
               </span>
               <% if(product.isOfferApplied){%>
-                <span class="text-danger fw-bold" id="offerPrice">₹ <%= product.offerPrice %></span><span class="badge rounded-pill bg-info shadow  m-2 text-white p-1 "> Offer
+                <span class="text-danger fw-bold" id="offerPrice">₹ <%= product.offerPrice %></span><span
+                  class="badge rounded-pill bg-info shadow  m-2 text-white p-1 "> Offer
                   price</span>
                 <%}else{%>
-              <span class="text-danger fw-bold" id="salePrice">₹ <%= product.salePrice %></span>
-              <span class="badge bg-danger ms-2">
-                <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% OFF
-              </span>
-              <%}%>
-              <br>
-              <%if (product.status=='Available' ){%>
-                <span class="available-badge">Available</span>
-                <%}else{%>
-                  <span class="outOfStock-badge">out of stock</span>
+                  <span class="text-danger fw-bold" id="salePrice">₹ <%= product.salePrice %></span>
+                  <span class="badge bg-danger ms-2">
+                    <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% OFF
+                  </span>
                   <%}%>
-                    <% } else { %>
-                      <span class="text-muted">Price Not Available</span>
-                      <% } %>
+                    <br>
+                    <%if (product.status=='Available' ){%>
+                      <span class="available-badge">Available</span>
+                      <%}else{%>
+                        <span class="outOfStock-badge">out of stock</span>
+                        <%}%>
+                          <% } else { %>
+                            <span class="text-muted">Price Not Available</span>
+                            <% } %>
           </div>
 
           <!-- Description -->
@@ -609,12 +610,42 @@
               });
 
             } catch (error) {
-              console.error('Cart error:', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to add to cart'
-              });
+              console.error('Cart error:', error.message);
+
+              if (error.message == "No auth token found, user unauthenticated") {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to add to cart.please Login'
+                }).then(() => {
+
+                  window.location.href = "/login";
+                })
+
+
+              } else if (error.message == "Product not found in the database") {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Product Is Currently UnAvailable',
+                  showConfirmButton: false, timer: 3000
+                }).then(() => {
+
+                  window.location.href = "/shopall";
+                })
+
+
+              } else {
+
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: error.message || 'Failed to add to cart.please Login'
+                })
+
+
+              }
+
             }
           };
 

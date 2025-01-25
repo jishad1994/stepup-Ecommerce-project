@@ -4,206 +4,458 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - StepUp</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles/css/login.css">
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .login-container {
+            display: flex;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-form {
+            flex: 1;
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        .login-image {
+            flex: 1;
+            background: linear-gradient(135deg, #0daf64, #2575fc);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .login-image h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .login-image p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2575fc;
+            margin-bottom: 20px;
+        }
+
+        .logo span {
+            color: #6a11cb;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #welcomeSlogan {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .password-input-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #777;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: #2575fc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #1a5bbf;
+        }
+
+        .social-login {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .social-login p {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #555;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .social-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .signup-link a {
+            color: #2575fc;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .login-image {
+            flex: 1;
+            background-image: url('./images/loginHero.jpeg');
+            /* Replace with your image path */
+            background-size: cover;
+            /* Ensures the image covers the entire section */
+            background-position: center;
+            /* Centers the image */
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            /* For overlay */
+        }
+
+        /* Optional: Add an overlay for better text readability */
+        .login-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            /* Dark overlay with 50% opacity */
+            z-index: 1;
+        }
+
+        .login-image h2,
+        .login-image p {
+            position: relative;
+            z-index: 2;
+            /* Ensures text is above the overlay */
+        }
+
+        .login-image h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .login-image p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
         <div class="login-container">
+            <!-- Login Form Section -->
             <div class="login-form">
                 <div class="logo">step<span>Up</span></div>
-                <h2>Login to your account</h2>
+                <h2>Login to Your Account</h2>
 
+                <!-- Error Message -->
+                <div class="error-message text-danger" id="loginError"></div>
 
-                <div class="error-message text-danger" id="loginError">
-
-                </div>
-
-
+                <!-- Login Form -->
                 <form id="loginForm" method="post" action="/login">
+                    <!-- Email Input -->
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
                         <div class="error-message" id="emailError"></div>
                     </div>
+
+                    <!-- Password Input -->
                     <div class="form-group">
                         <label for="password">Password</label>
                         <div class="password-input-container">
-                            <input type="password" id="password" name="password" required>
+                            <input type="password" id="password" name="password" placeholder="Enter your password"
+                                required>
                             <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
                         </div>
                         <div class="error-message" id="passwordError"></div>
                     </div>
+
+                    <!-- Submit Button -->
                     <button type="submit" class="btn">Login</button>
 
+                    <!-- Social Login Section -->
                     <div class="social-login">
                         <p>Or log in with</p>
                         <div class="social-buttons">
-                            <a href="/signup/googleAuth" style="text-decoration: none;" class="social-btn">
-                                <i class="fab fa-google"></i> Google
+                            <a href="/signup/googleAuth" class="social-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="25" height="25"
+                                    viewBox="0 0 48 48">
+                                    <path fill="#FFC107"
+                                        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
+                                    </path>
+                                    <path fill="#FF3D00"
+                                        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
+                                    </path>
+                                    <path fill="#4CAF50"
+                                        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z">
+                                    </path>
+                                    <path fill="#1976D2"
+                                        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z">
+                                    </path>
+                                </svg> Google
                             </a>
+
 
                         </div>
                     </div>
 
+                    <!-- Signup and Forgot Password Links -->
                     <div class="signup-link">
                         Don't have an account? <a href="/signup">Sign up</a>
                     </div>
                     <div class="signup-link">
-                        Forgot Password..? <a href="/passwordReset">Reset Password</a>
+                        Forgot Password? <a href="/passwordReset">Reset Password</a>
                     </div>
                 </form>
             </div>
 
+            <!-- Welcome Section -->
             <div class="login-image">
-                <h2>Welcome Back to stepUp!</h2>
+                <h2 id="welcomeSlogan">Welcome Back to StepUp!</h2>
+                <p>Your journey to success starts here.</p>
             </div>
         </div>
     </div>
-</body>
 
+    <!-- Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('loginForm');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('password');
 
-<!-- script -->
+            // Password visibility toggle
+            passwordToggle.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                passwordToggle.classList.toggle('fa-eye');
+                passwordToggle.classList.toggle('fa-eye-slash');
+            });
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('loginForm');
-        const passwordToggle = document.getElementById('passwordToggle');
-        const passwordInput = document.getElementById('password');
+            // Validation functions
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
 
-        // Password visibility toggle
-        passwordToggle.addEventListener('click', function () {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            passwordToggle.classList.toggle('fa-eye');
-            passwordToggle.classList.toggle('fa-eye-slash');
-        });
+            function validatePassword(password) {
+                return password.length >= 8; // Simplified password validation for login
+            }
 
-        // Validation functions
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
+            // Real-time validation
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function () {
+                    const errorElement = document.getElementById(`${input.id}Error`);
 
-        function validatePassword(password) {
-            return password.length >= 8; // Simplified password validation for login
-        }
+                    switch (input.id) {
+                        case 'email':
+                            if (!validateEmail(input.value)) {
+                                errorElement.textContent = 'Please enter a valid email address';
+                                errorElement.style.display = 'block';
+                            } else {
+                                errorElement.style.display = 'none';
+                            }
+                            break;
 
-        // Real-time validation
-        const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', function () {
-                const errorElement = document.getElementById(`${input.id}Error`);
+                        case 'password':
+                            if (!validatePassword(input.value)) {
+                                errorElement.textContent = 'Password must be at least 8 characters long';
+                                errorElement.style.display = 'block';
+                            } else {
+                                errorElement.style.display = 'none';
+                            }
+                            break;
+                    }
+                });
+            });
 
-                switch (input.id) {
-                    case 'email':
-                        if (!validateEmail(input.value)) {
-                            errorElement.textContent = 'Please enter a valid email address';
-                            errorElement.style.display = 'block';
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                // Validate all fields
+                let isValid = true;
+
+                if (!validateEmail(email)) {
+                    document.getElementById('emailError').style.display = 'block';
+                    isValid = false;
+                }
+
+                if (!validatePassword(password)) {
+                    document.getElementById('passwordError').style.display = 'block';
+                    isValid = false;
+                }
+
+                if (isValid) {
+                    try {
+                        const response = await fetch('/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email, password })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Successful login
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Login Successful!',
+                                text: 'Welcome to StepUp',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.href = '/';
+                            });
+                        } else if (data.message === 'Your account is blocked. Please contact support.') {
+                            // Handle user blocked
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Account Blocked',
+                                text: 'Your account is blocked. Please contact support.',
+                            });
                         } else {
-                            errorElement.style.display = 'none';
-                        }
-                        break;
+                            // Handle login errors
+                            if (data.errors) {
+                                if (data.errors.email) {
+                                    const emailError = document.getElementById('emailError');
+                                    emailError.textContent = data.errors.email;
+                                    emailError.style.display = 'block';
+                                }
 
-                    case 'password':
-                        if (!validatePassword(input.value)) {
-                            errorElement.textContent = 'Password must be at least 8 characters long';
-                            errorElement.style.display = 'block';
-                        } else {
-                            errorElement.style.display = 'none';
+                                if (data.errors.password) {
+                                    const passwordError = document.getElementById('passwordError');
+                                    passwordError.textContent = data.errors.password;
+                                    passwordError.style.display = 'block';
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Login Failed',
+                                    text: 'Invalid login credentials. Please try again.',
+                                });
+                            }
                         }
-                        break;
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred. Please try again later.',
+                        });
+                    }
                 }
             });
         });
-
-        // Form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Validate all fields
-            let isValid = true;
-
-            if (!validateEmail(email)) {
-                document.getElementById('emailError').style.display = 'block';
-                isValid = false;
-            }
-
-            if (!validatePassword(password)) {
-                document.getElementById('passwordError').style.display = 'block';
-                isValid = false;
-            }
-
-            if (isValid) {
-                try {
-                    const response = await fetch('/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ email, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        // Successful login
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Login Successful!',
-                            text: 'Welcome To StepUp',   
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.href = '/';
-                        });
-                    } else if (data.message === 'Your account is blocked. Please contact support.') {
-                        // Handle user blocked
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Account Blocked',
-                            text: 'Your account is blocked. Please contact support.',
-                        });
-                    } else {
-                        // Handle login errors
-                        if (data.errors) {
-                            if (data.errors.email) {
-                                const emailError = document.getElementById('emailError');
-                                emailError.textContent = data.errors.email;
-                                emailError.style.display = 'block';
-                            }
-
-                            if (data.errors.password) {
-                                const passwordError = document.getElementById('passwordError');
-                                passwordError.textContent = data.errors.password;
-                                passwordError.style.display = 'block';
-                            }
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Login Failed',
-                                text: 'Invalid login credentials. Please try again.',
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred. Please try again later.',
-                    });
-                }
-            }
-        });
-    });
-</script>
-
+    </script>
+</body>
 
 </html>

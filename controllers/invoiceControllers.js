@@ -130,28 +130,9 @@ const generateInvoice = async (order) => {
         { totalBasePrice: 0, totalGstAmount: 0 }
     );
 
-    // Summary Section
-    // tableY += 20;
-    // doc.fontSize(10)
-    //     .font(notoSansRegular)
-    //     .text("Subtotal:", 350, tableY)
-    //     .text(formatCurrency(order.totalPrice - order.shippingFee), 480, tableY);
+  
 
-    // tableY += 20;
-    // doc.text("Shipping Fee:", 350, tableY).text(formatCurrency(order.shippingFee), 480, tableY);
-
-    // if (order.couponApplied) {
-    //     tableY += 20;
-    //     doc.text("Discount:", 350, tableY).text(` -${formatCurrency(order.couponDetails.discountAmount)}`, 480, tableY);
-    // }
-
-    // drawHorizontalLine(tableY + 15);
-
-    // tableY += 30;
-    // doc.fontSize(12)
-    //     .font(notoSansRegular)
-    //     .text("Total: ₹", 350, tableY)
-    //     .text(formatCurrency(order.totalPrice), 480, tableY);
+    
 
     // Summary Section
     tableY += 20;
@@ -212,7 +193,6 @@ const downloadInvoice = async (req, res) => {
 
         // Find and populate order with necessary data
         const order = await Order.findById(req.params._id).populate("userId").populate("items.productId").lean();
-        console.log("order is", order);
 
         if (!order) {
             return res.status(404).json({
@@ -227,10 +207,7 @@ const downloadInvoice = async (req, res) => {
         console.log("file name is", fileName);
         filePath = path.join(__dirname, "..", "public", "invoices", fileName);
         console.log("file path is", filePath);
-        // Verify file exists before attempting download
-        if (!fs.existsSync(filePath)) {
-            throw new Error("Generated invoice file not found");
-        }
+        
 
         // Set response headers
         res.setHeader("Content-Type", "application/pdf");

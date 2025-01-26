@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles/css/login.css">
+     <!-- tab logo -->
+  <link rel="icon" type="image/png" href="/images/logo/tabLogo.png">
 
     <style>
         /* General Styles */
@@ -209,18 +211,7 @@
             /* For overlay */
         }
 
-        /* Optional: Add an overlay for better text readability */
-        .login-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            /* Dark overlay with 50% opacity */
-            z-index: 1;
-        }
+
 
         .login-image h2,
         .login-image p {
@@ -314,7 +305,6 @@
             <!-- Welcome Section -->
             <div class="login-image">
                 <h2 id="welcomeSlogan">Welcome Back to StepUp!</h2>
-                <p>Your journey to success starts here.</p>
             </div>
         </div>
     </div>

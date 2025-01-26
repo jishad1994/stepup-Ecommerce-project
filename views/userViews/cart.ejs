@@ -6,6 +6,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <!-- tab logo -->
+   <link rel="icon" type="image/png" href="/images/logo/tabLogo.png">
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
   <link rel="stylesheet" href="styles/fonts/icomoon/style.css">
@@ -37,161 +39,152 @@
 
   <div class="site-wrap">
     <%- include("../partials/header") %>
-      <div class="bg-light py-3">
+    <div class="bg-light py-4">
         <div class="container">
-          <div class="row">
-            <div class="col-md-12 mb-0"><a href="/">Home</a> <span class="mx-2 mb-0">/</span> <strong
-                class="text-black">Cart</strong></div>
-          </div>
+            <div class="row">
+                <div class="col-md-12 mb-0">
+                    <a href="/" class="text-decoration-none text-secondary">Home</a>
+                    <span class="mx-2 text-muted">/</span>
+                    <strong class="text-black">Cart</strong>
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <div class="d-flex justify-content-center align-items-center">
-        <h2 class="text-center mb-5 cart-heading">Your Shopping Cart</h2>
-      </div>
-
-      <div class="site-section">
+    <div class="site-section">
         <div class="container">
-          <div class="row mb-5">
-            <form class="col-md-12" method="post">
-              <div class="site-blocks-table">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th class="product-thumbnail">Image</th>
-                      <th class="product-name">Product</th>
-                      <th class="product-price">Price</th>
-                      <th class="product-size">Size</th>
-                      <th class="product-quantity">Quantity</th>
-                      <th class="product-total">Total</th>
-                      <th class="product-remove">Remove</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% if (!cart || !cart.items || cart.items.length===0) { %>
-                      <tr>
-                        <td colspan="6">
-                          <h2>Your cart is empty, please add items.</h2>
-                        </td>
-                      </tr>
-                      <% } else { let subtotal=0; if (products && products.length> 0) {
-                        for (let product of products) {
-                        let productTotal = 0;
+            <div class="d-flex justify-content-center align-items-center mb-5">
+                <h2 class="text-center display-5 font-weight-bold text-black">Your Shopping Cart</h2>
+            </div>
 
-                        if (product.isOfferApplied && product.offerPrice && product.quantity) {
-                        productTotal = product.offerPrice * product.quantity;
-                        } else if (product.salePrice && product.quantity) {
-                        productTotal = product.salePrice * product.quantity;
-                        }
+            <div class="row mb-5">
+                <form class="col-md-12" method="post">
+                    <div class="site-blocks-table">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="product-thumbnail">Image</th>
+                                    <th class="product-name">Product</th>
+                                    <th class="product-price">Price</th>
+                                    <th class="product-size">Size</th>
+                                    <th class="product-quantity">Quantity</th>
+                                    <th class="product-total">Total</th>
+                                    <th class="product-remove">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (!cart || !cart.items || cart.items.length===0) { %>
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <h3 class="text-muted">Your cart is empty. Start shopping now!</h3>
+                                            <a href="/shopall" class="btn btn-primary mt-3">Continue Shopping</a>
+                                        </td>
+                                    </tr>
+                                <% } else { 
+                                    let subtotal = 0;
+                                    if (products && products.length > 0) {
+                                        for (let product of products) {
+                                            let productTotal = 0;
 
-                        subtotal += productTotal;
-                        %>
-                        <tr>
-                          <td class="product-thumbnail">
-                            <img
-                              src="<%= product.productImage && product.productImage[0] ? product.productImage[0] : '/path/to/default.jpg' %>"
-                              alt="Image" class="img-fluid">
-                          </td>
-                          <td class="product-name">
-                            <h2 class="h5 text-black">
-                              <%= product.productName || 'Unnamed Product' %>
-                            </h2>
-                          </td>
+                                            if (product.isOfferApplied && product.offerPrice && product.quantity) {
+                                                productTotal = product.offerPrice * product.quantity;
+                                            } else if (product.salePrice && product.quantity) {
+                                                productTotal = product.salePrice * product.quantity;
+                                            }
 
-                          <td>
-                            ₹ <%= product.isOfferApplied ? product.offerPrice : product.salePrice %>
-                          </td>
-                          <td>
-                            <%= product.size || 'N/A' %>
-                          </td>
-                          <td>
-                            <div class="input-group mb-3" style="max-width: 120px;">
-                              <div class="input-group-prepend">
-                                <button class="btn btn-outline-primary js-btn-minus quantityBtn"
-                                  data-productid="<%= product._id %>" data-size="<%= product.size %>"
-                                  type="button">&minus;</button>
-                              </div>
-                              <input type="text" data-productid="<%= product._id %>" data-size="<%= product.size %>"
-                                class="form-control text-center product-quantity" value="<%= product.quantity %>"
-                                readonly>
-                              <div class="input-group-append">
-                                <button class="btn btn-outline-primary js-btn-plus quantityBtn"
-                                  data-productid="<%= product._id %>" data-size="<%= product.size %>"
-                                  type="button">&plus;</button>
-                              </div>
-                            </div>
-                          </td>
+                                            subtotal += productTotal;
+                                %>
+                                <tr>
+                                    <td class="product-thumbnail">
+                                        <img src="<%= product.productImage && product.productImage[0] ? product.productImage[0] : '/path/to/default.jpg' %>"
+                                            alt="<%= product.productName || 'Unnamed Product' %>" class="img-fluid rounded" style="max-width: 100px;">
+                                    </td>
+                                    <td class="product-name">
+                                        <h2 class="h5 text-black mb-0"><%= product.productName || 'Unnamed Product' %></h2>
+                                    </td>
+                                    <td class="product-price">
+                                        ₹ <%= product.isOfferApplied ? product.offerPrice : product.salePrice %>
+                                    </td>
+                                    <td class="product-size">
+                                        <%= product.size || 'N/A' %>
+                                    </td>
+                                    <td class="product-quantity">
+                                        <div class="input-group" style="max-width: 120px;">
+                                            <div class="input-group-prepend">
+                                                <button class="btn btn-outline-secondary js-btn-minus quantityBtn"
+                                                    data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                                    type="button">&minus;</button>
+                                            </div>
+                                            <input type="text" data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                                class="form-control text-center product-quantity" value="<%= product.quantity %>"
+                                                readonly>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary js-btn-plus quantityBtn"
+                                                    data-productid="<%= product._id %>" data-size="<%= product.size %>"
+                                                    type="button">&plus;</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="product-total">
+                                        ₹ <%= productTotal || 0 %>
+                                    </td>
+                                    <td class="product-remove">
+                                        <a href="/removeFromCart?id=<%= product._id || '' %>&size=<%= product.size || '' %>"
+                                            class="btn btn-danger btn-sm">Remove</a>
+                                    </td>
+                                </tr>
+                                <% } } } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
 
-                          <td>
-                            ₹ <%= productTotal || 0 %>
-                          </td>
-                          <td>
-                            <a href="/removeFromCart?id=<%= product._id || '' %>&size=<%= product.size || '' %>"
-                              id="removeFromCart" class="btn btn-primary btn-sm">remove</a>
-                          </td>
-                        </tr>
-                        <% } } } %>
-                  </tbody>
-
-
-                </table>
-              </div>
-            </form>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="row mb-5">
+            <div class="row">
                 <div class="col-md-6">
-                  <button class="btn btn-outline-primary btn-sm btn-block" onclick="window.location='/shopall'">Continue
-                    Shopping</button>
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary btn-block" onclick="window.location='/shopall'">Continue Shopping</button>
+                        </div>
+                    </div>
                 </div>
-              </div>
-
-            </div>
-            <div class="col-md-6 pl-5">
-              <div class="row justify-content-end">
-                <div class="col-md-7">
-                  <div class="row">
-                    <div class="col-md-12 text-right border-bottom mb-5">
-                      <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
+                <div class="col-md-6 pl-5">
+                    <div class="row justify-content-end">
+                        <div class="col-md-7">
+                            <div class="row">
+                                <div class="col-md-12 text-right border-bottom mb-4">
+                                    <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <span class="text-black">Subtotal</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <strong class="text-black subTotal">₹ <%= subtotal %></strong>
+                                </div>
+                            </div>
+                            <div class="row mb-5">
+                                <div class="col-md-6">
+                                    <span class="text-black">Total</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <strong class="text-black subTotal">₹ <%= subtotal %></strong>
+                                </div>
+                            </div>
+                            <div id="proceedBtnDiv" class="row">
+                                <div class="col-md-12">
+                                    <button class="btn btn-primary btn-lg btn-block" onclick="window.location='/Checkout'">Proceed To Checkout</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <span class="text-black">Subtotal</span>
-                    </div>
-                    <div class="col-md-6 text-right">
-                      <strong class="subTotal" class="text-black">
-                        ₹ <%= subtotal %>
-                      </strong>
-                    </div>
-                  </div>
-                  <div class="row mb-5">
-                    <div class="col-md-6">
-                      <span class="text-black">Total</span>
-                    </div>
-                    <div class="col-md-6 text-right">
-                      <strong class="text-black subTotal">
-                        ₹ <%= subtotal %>
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div id="proceedBtnDiv" class="row">
-                    <div class="col-md-12">
-                      <button class="btn btn-primary btn-lg py-3 btn-block"
-                        onclick="window.location='/Checkout'">Proceed To Checkout</button>
-                    </div>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-      <%- include("../partials/footer") %>
-  </div>
+    </div>
+    <%- include("../partials/footer") %>
+</div>
 
   <script src="scripts/jquery-3.3.1.min.js"></script>
   <script src="scripts/jquery-ui.js"></script>

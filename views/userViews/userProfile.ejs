@@ -10,6 +10,8 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
         rel="stylesheet">
+         <!-- tab logo -->
+  <link rel="icon" type="image/png" href="/images/logo/tabLogo.png">
 <!-- sweet alert cdn -->
        
 
@@ -24,67 +26,157 @@
     <link rel="stylesheet" href="styles/css/style.css">
 
     <style>
-        body {
-            background-color: #f4f6f9;
-        }
+        /* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    color: #333;
+}
 
-        .account-container {
-            max-width: 1000px;
-            margin: 50px auto;
-        }
+.container.account-container {
+    padding: 40px 0;
+}
 
-        .sidebar {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+/* Sidebar Styles */
+.sidebar {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: 100%;
+}
 
-        .sidebar .nav-link {
-            color: #333;
-            padding: 10px 15px;
-            border-radius: 5px;
-        }
+.sidebar .profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
 
-        .sidebar .nav-link.active {
-            background-color: #4a90e2;
-            color: white;
-        }
+.sidebar h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
 
-        .sidebar .nav-link:hover {
-            background-color: #f0f0f0;
-        }
+.sidebar .text-muted {
+    font-size: 0.9rem;
+    color: #666;
+}
 
-        .profile-header {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+.sidebar .nav {
+    margin-top: 20px;
+}
 
-        .profile-picture {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s ease, color 0.3s ease;
+}
 
-        .content-section {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    background: #2575fc;
+    color: #fff;
+}
 
-        .order-item {
-            border-bottom: 1px solid #e0e0e0;
-            padding: 15px 0;
-        }
+.sidebar .nav-link i {
+    margin-right: 10px;
+}
 
-        .order-item:last-child {
-            border-bottom: none;
-        }
+.sidebar .nav-link.text-danger {
+    color: #ff4d4d;
+}
+
+.sidebar .nav-link.text-danger:hover {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+/* Profile Header Styles */
+.profile-header {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.profile-header p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.profile-header .btn {
+    background: #2575fc;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.profile-header .btn:hover {
+    background: #1a5bbf;
+}
+
+/* Content Section Styles */
+.content-section {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.content-section h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.content-section p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.content-section p strong {
+    color: #333;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-bottom: 20px;
+    }
+
+    .profile-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .profile-header .btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .content-section .col-md-6 {
+        margin-bottom: 20px;
+    }
+}
     </style>
 </head>
 
@@ -131,23 +223,7 @@
                             <p><strong>Email:</strong> <%=user.email%></p>
                             <p><strong>Phone:</strong> <%=user.phone%></p>
                         </div>
-                        <!-- <div class="col-md-6 mb-3">
-                            <h5>Recent Orders</h5>
-                            <div class="order-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>Order #12345</span>
-                                    <span class="badge bg-success">Delivered</span>
-                                </div>
-                                <small class="text-muted">June 15, 2024 | $129.99</small>
-                            </div>
-                            <div class="order-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>Order #12344</span>
-                                    <span class="badge bg-warning">Processing</span>
-                                </div>
-                                <small class="text-muted">May 28, 2024 | $79.50</small>
-                            </div>
-                        </div> -->
+                      
                     </div>
                 </div>
             </div>

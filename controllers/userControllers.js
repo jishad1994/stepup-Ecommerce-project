@@ -180,9 +180,6 @@ const loadShopAll = async (req, res) => {
         const isOfferApplied = req.query.isOfferApplied;
         const status = req.query.status;
         const searchQuery = req.query.search || "";
-        console.log("search query:", searchQuery);
-        console.log("categories:", categories);
-        console.log("sort is:", sort);
 
         // Define sort configurations
 
@@ -306,7 +303,6 @@ const loadShopAll = async (req, res) => {
 const loadProduct = async (req, res) => {
     try {
         const _id = req.params.id; // Extract product ID from request parameters
-        console.log("load product controller worked ");
         const product = await Product.findOne({ _id:req.params.id ,isListed:true}); // Fetch the product details by ID
 
         if (!product) {
@@ -317,7 +313,6 @@ const loadProduct = async (req, res) => {
         const stock = product.stock.map((stockItem) => {
             return { size: stockItem.size, quantity: stockItem.quantity };
         });
-        console.log("hii stcock is :", stock);
         res.render("shop-single", {
             product,
             stock: JSON.stringify(stock), //for quantity showing purposeb while selecting size
@@ -380,10 +375,8 @@ const wallet = async (req, res) => {
 
 const userProfile = async (req, res) => {
     try {
-        console.log("entered user profile controller");
         const email = req.user.email; //set while userauth
         const user = await User.findOne({ email });
-        console.log("current user is:", user.name);
 
         res.render("userProfile", { user });
     } catch (error) {
@@ -409,7 +402,6 @@ const logout = async (req, res) => {
             sameSite: "strict",
         });
 
-        console.log("User logged out, auth token cleared.");
         return res.redirect("/");
     } catch (error) {
         console.error("Error during logout:", error);
@@ -516,7 +508,6 @@ const loadOtpPage = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
     try {
-        console.log("OTP verification request received.");
 
         const { OTP } = req.body;
 
@@ -542,7 +533,6 @@ const verifyOTP = async (req, res) => {
             });
         }
 
-        console.log("OTP matches and verification successful.");
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
@@ -557,7 +547,6 @@ const verifyOTP = async (req, res) => {
         });
         const savedUser = await user.save();
 
-        console.log("Saving wallet for user with ID:", savedUser._id);
 
         // Create a wallet for the user
         const wallet = new Wallet({ userId: savedUser._id });
@@ -624,8 +613,6 @@ const postLogin = async (req, res) => {
             });
         }
 
-        // Successful login
-        console.log("User logged in successfully");
 
         // Creating user session
 
@@ -717,14 +704,12 @@ const postEditProfile = async (req, res) => {
 
         // Check if the update was successful
         if (updateResult.modifiedCount > 0) {
-            console.log("Profile update successful");
             return res.status(200).json({
                 success: true,
                 message: "User Profile Updated Successfully",
             });
         } else {
             // Handle case where no document was modified
-            console.log("No document was updated");
             return res.status(404).json({
                 success: false,
                 message: "User not found or no changes made",

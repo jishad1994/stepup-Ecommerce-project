@@ -15,6 +15,194 @@
   <link rel="stylesheet" href="/styles/css/owl.theme.default.min.css">
   <link rel="stylesheet" href="/styles/css/aos.css">
   <link rel="stylesheet" href="/styles/css/style.css">
+   <!-- tab logo -->
+   <link rel="icon" type="image/png" href="/images/logo/tabLogo.png">
+  <style>
+    /* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    color: #333;
+}
+
+.site-wrap {
+    overflow-x: hidden;
+}
+
+/* Header Styles */
+header {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+}
+
+/* Hero Section */
+.site-blocks-cover {
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #fff;
+    position: relative;
+}
+
+.site-blocks-cover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.site-blocks-cover h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.site-blocks-cover p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.site-blocks-cover .btn {
+    background: #2575fc;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.site-blocks-cover .btn:hover {
+    background: #1a5bbf;
+}
+
+/* Features Section */
+.site-section.site-section-sm.site-blocks-1 {
+    padding: 60px 0;
+    background: #f9f9f9;
+}
+
+.site-section.site-section-sm.site-blocks-1 .icon {
+    font-size: 2rem;
+    color: #2575fc;
+}
+
+.site-section.site-section-sm.site-blocks-1 h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.site-section.site-section-sm.site-blocks-1 p {
+    font-size: 1rem;
+    color: #666;
+}
+
+/* Categories Section */
+.site-section.site-blocks-2 {
+    padding: 60px 0;
+}
+
+.block-2-item {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.block-2-item img {
+    transition: transform 0.3s ease;
+}
+
+.block-2-item:hover img {
+    transform: scale(1.1);
+}
+
+.block-2-item .text {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: #fff;
+}
+
+.block-2-item .text h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.block-2-item .text span {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* Sale Section */
+.site-section.block-8 {
+    padding: 60px 0;
+    background: #f9f9f9;
+}
+
+.site-section.block-8 h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.site-section.block-8 p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.site-section.block-8 .btn {
+    background: #2575fc;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.site-section.block-8 .btn:hover {
+    background: #1a5bbf;
+}
+
+
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .site-blocks-cover h1 {
+        font-size: 2rem;
+    }
+
+    .site-blocks-cover p {
+        font-size: 1rem;
+    }
+
+    .site-section.site-section-sm.site-blocks-1 .col-md-6 {
+        margin-bottom: 30px;
+    }
+
+    .site-section.site-blocks-2 .col-sm-6 {
+        margin-bottom: 30px;
+    }
+
+    .site-section.block-8 .col-md-12 {
+        margin-bottom: 30px;
+    }
+}
+  </style>
  
 </head>
 
@@ -102,7 +290,7 @@
                 </figure>
                 <div class="text">
                   <span class="text-uppercase">Collections</span>
-                  <h3>Children</h3>
+                  <h3>Kids</h3>
                 </div>
               </a>
             </div>
@@ -134,12 +322,10 @@
             </div>
             <div class="col-md-12 col-lg-5 text-center pl-md-5">
               <h2><a href="#">50% less in all items</a></h2>
-              <p class="post-meta mb-4">By <a href="#">Carl Smith</a> <span class="block-8-sep">&bullet;</span>
-                September
-                3, 2018</p>
+              
               <p>Upgrade your style with 50% off all shoes—comfort and elegance at half the price. Grab your perfect
                 pair today!</p>
-              <p><a href="#" class="btn btn-primary btn-sm">Shop Now</a></p>
+              <p><a href="/shopall" class="btn btn-primary btn-sm">Shop Now</a></p>
             </div>
           </div>
         </div>
@@ -158,20 +344,36 @@
   <script src="scripts/aos.js"></script>
   <script src="scripts/main.js"></script>
   <script>
+   
+
     const userIcon = document.getElementById('user-icon');
-    const dropdown = document.getElementById('user-dropdown');
+const dropdown = document.getElementById('user-dropdown');
 
-    userIcon.addEventListener('mouseover', function (event) {
-      event.preventDefault();
-      dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
-    });
+// Show dropdown on hover or focus
+userIcon.addEventListener('mouseenter', showDropdown);
+userIcon.addEventListener('focus', showDropdown);
 
-    window.addEventListener('click', function (event) {
-      if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
-        dropdown.style.display = 'none';
-      }
-    });
+// Hide dropdown on mouse leave or blur
+userIcon.addEventListener('mouseleave', hideDropdown);
+dropdown.addEventListener('mouseleave', hideDropdown);
+userIcon.addEventListener('blur', hideDropdown);
 
+// Hide dropdown when clicking outside
+document.addEventListener('click', function (event) {
+    if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
+        hideDropdown();
+    }
+});
+
+// Function to show dropdown
+function showDropdown() {
+    dropdown.style.display = 'block';
+}
+
+// Function to hide dropdown
+function hideDropdown() {
+    dropdown.style.display = 'none';
+}
 
 
 

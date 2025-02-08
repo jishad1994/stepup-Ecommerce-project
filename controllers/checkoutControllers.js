@@ -270,6 +270,11 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Please fill all the required details." });
         }
 
+        if (!phone || phone.length !== 10) {
+
+            return res.status(400).json({ success: false, message: "Please fill a Valid Phone Number." });
+        }
+
         // Fetch the user ID
         const userId = req.user?._id;
         if (!userId) {
@@ -344,14 +349,12 @@ const placeOrder = async (req, res) => {
                 discountAmount = (cartTotal * coupon.discountValue) / 100;
                 console.log("discount amount", discountAmount);
 
-                console.log("max discount value and its type", coupon.maxDiscountValue, typeof maxDiscountValue);
                 if (coupon.maxDiscountValue > 0) {
                     discountAmount = Math.min(discountAmount, coupon.maxDiscountValue);
                     console.log("final discount amount from math min:", discountAmount);
                 }
             } else {
                 discountAmount = coupon.discountValue;
-                console.log("final discount amount from else caes:", discountAmount);
             }
 
             // Ensure discount doesn't exceed cart total
@@ -650,7 +653,7 @@ const placeOrder = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Error placing order:", error);
+        console.error("Error placing order:", error.message);
         return res.status(500).json({ success: false, message: "Internal server error. Please try again later." });
     }
 };
@@ -687,6 +690,23 @@ const applyCoupon = async (req, res) => {
 
         console.log("coupon is", coupon);
 
+        //count the coupon usage
+        const countCouponUsage = async (userId, couponId) => {
+            try {
+                const count = await Order.countDocuments({
+                    userId: userId,
+                    couponApplied: true,
+                    "couponDetails.couponId": couponId,
+                });
+
+                console.log(`Coupon ${couponId} has been used ${count} times by user ${userId}`);
+                return count;
+            } catch (error) {
+                console.error("Error counting coupon usage:", error);
+                throw error;
+            }
+        };
+
         if (!coupon) {
             return res.status(404).json({
                 success: false,
@@ -694,8 +714,14 @@ const applyCoupon = async (req, res) => {
             });
         }
 
+        //user usage count of the coupon
+
+        const couponUsageCount = await countCouponUsage(userId, couponId);
+
+        console.log("coupon usage count", couponUsageCount);
+
         // Check coupon usage limits
-        if (coupon.userUsageLimit && coupon.usedCount >= coupon.userUsageLimit) {
+        if (coupon.userUsageLimit < couponUsageCount && coupon.usedCount >= coupon.usageLimit) {
             return res.status(400).json({
                 success: false,
                 message: "Coupon usage limit exceeded",

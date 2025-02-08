@@ -647,14 +647,14 @@ const loadItemReturnReqs = async (req, res) => {
         res.status(500).send("Internal server error");
     }
 };
-//approve or reject item return
+
+//ITEM APPROVE OR REJECT
 const itemApproveOrReject = async (req, res) => {
     try {
         const { orderId, itemId } = req.query;
         const { status, note } = req.body;
 
         const order = await Order.findById(orderId);
-
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
@@ -673,35 +673,51 @@ const itemApproveOrReject = async (req, res) => {
         item.returnRequest.status = status;
         item.status = status === "Approved" ? "Return Approved" : "Return Rejected";
 
-        // Recalculate order totals if return is approved
+        // **Process refund only if return is approved**
+
         if (status === "Approved") {
+            let refundAmount = 0;
+            if (order.totalItems == 1) {
+                refundAmount = order.totalPrice - 10;
+            } else {
+                refundAmount = await calculateRefundAmount(orderId, itemId);
+                console.log("Final Refund Amount:", refundAmount);
+            }
+
+            // **Deduct refundAmount from totalPrice ensuring we never go negative**
+            order.totalPrice = Math.max(order.totalPrice - refundAmount, 0);
+            order.totalItems -= item.quantity;
+
+            // **Check if all items are returned**
             const activeItems = order.items.filter(
                 (i) => !["Cancelled", "Return Approved", "Returned", "Return Rejected"].includes(i.status)
             );
 
             if (activeItems.length === 0) {
                 order.status = "Returned";
-                order.paymentStatus="Refunded"
+                order.paymentStatus = "Refunded";
             }
 
-            // Recalculate totals considering returns
-            const refundAmount = await calculateRefundAmount(orderId, itemId);
-            console.log("refund amound is", refundAmount);
-            order.totalPrice = Number(order.totalPrice - refundAmount);
-            order.totalItems -= item.quantity;
-            const wallet = await Wallet.findOne({ userId: order.userId });
+            // **Update Wallet Balance**
+            let wallet = await Wallet.findOne({ userId: order.userId });
             if (!wallet) {
-                return res.status(404).json({ success: false, message: "Wallet not found for the user." });
+                wallet = new Wallet({
+                    userId: order.userId,
+                    balance: 0,
+                    transactions: [],
+                });
             }
 
+            // **Generate unique transaction ID**
             const transactionId = await generateUniqueTransactionId();
-            wallet.balance += refundAmount;
 
+            wallet.balance += refundAmount;
             wallet.transactions.push({
                 transactionId,
                 type: "Credit",
                 amount: refundAmount,
-                description: "Item Return Refund",
+                description: `Refund for returned item from Order #${order.orderId}`,
+                date: new Date(),
             });
 
             await wallet.save();
@@ -709,7 +725,7 @@ const itemApproveOrReject = async (req, res) => {
 
         await order.save();
 
-        res.json({ success: true, message: "Return request updated successfully" });
+        res.json({ success: true, message: `Return request ${status.toLowerCase()} successfully` });
     } catch (error) {
         console.error("Error updating return request:", error.message);
         res.status(500).json({ success: false, message: "Internal server error" });
@@ -735,80 +751,129 @@ module.exports = {
 };
 
 //calculate refund amount
+
 const calculateRefundAmount = async (orderId, returnedItemId) => {
     try {
         // Fetch the complete order
         const order = await Order.findById(orderId);
-
-        console.dir(order);
-        if (!order) {
-            throw new Error("Order not found");
-        }
+        if (!order) throw new Error("Order not found");
 
         // Find the returned item in the order
         const returnedItem = order.items.find((item) => item._id.toString() === returnedItemId);
+        if (!returnedItem) throw new Error("Item not found in order");
 
-        if (!returnedItem) {
-            throw new Error("Item not found in order");
-        }
-
-        // Calculate basic refund amount for the item
+        // Calculate base refund amount (pre-discount price)
         const itemTotal = returnedItem.price * returnedItem.quantity;
+        console.log("itemTotal", itemTotal);
 
+        // If no coupon was applied, return the full item price
+        if (!order.couponApplied) return itemTotal;
 
-        // If no coupon was applied, return the item total
-        if (!order.couponApplied) {
-            console.log("returned item total");
-            return itemTotal;
+        // Remaining total after removing this item
+        let remainingItemsTotal = order.totalPrice - (order.couponDetails.discountAmount || 0) - itemTotal;
+        if (order.items.length === 1) {
+            remainingItemsTotal = 10; // Assume minimum order amount after return
         }
 
-        // Calculate remaining order total without the returned item
-        let remainingItemsTotal;
-        if (order.items.length == 1) {
-            remainingItemsTotal = 10; //shipping charge
-        } else {
-            remainingItemsTotal = order.totalPrice - itemTotal;
-        }
-
-        console.log("remaining item total", remainingItemsTotal);
-
-        // Handle coupon adjustments
+        // Handle discount adjustments
         const couponDetails = order.couponDetails;
         let refundAmount = itemTotal;
 
         if (couponDetails.discountType === "percentage") {
-            console.log("discount type is percentage ");
-            // Calculate proportional discount for the returned item
-            const percentageDiscount = (itemTotal * couponDetails.discountAmount) / 100;
-            console.log("percentage discount", percentageDiscount);
-            refundAmount = itemTotal - percentageDiscount;
+            console.log("Discount type is percentage");
 
-            // If there was a maximum discount cap
-            // if (couponDetails.discountAmount) {
-            //     const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
-            //     refundAmount = itemTotal - proportionalDiscount;
-            //     console.log("refund amound is now",refundAmount)
-            // }
+            // Calculate the proportional discount percentage
+            const effectiveDiscountPercentage = (couponDetails.discountAmount / order.totalPrice) * 100;
+            console.log("effectiveDiscountPercentage:", effectiveDiscountPercentage);
+            // Apply the same percentage discount to the returned item
+            const discountOnItem = (itemTotal * effectiveDiscountPercentage) / 100;
+
+            console.log("discountOnItem", discountOnItem);
+            refundAmount = itemTotal - discountOnItem;
         } else if (couponDetails.discountType === "flat") {
-            // Calculate proportional flat discount
-            const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
+            console.log("Discount type is flat");
+
+            // Proportional discount for this item
+            const proportionalDiscount =
+                (itemTotal / (order.totalPrice + couponDetails.discountAmount)) * couponDetails.discountAmount;
             refundAmount = itemTotal - proportionalDiscount;
         }
 
-        // Check if remaining order still qualifies for coupon
+        // Check if coupon should be removed based on minimum order value
         const coupon = await mongoose.model("Coupon").findById(couponDetails.couponId);
-        // if (coupon && remainingItemsTotal < coupon.minOrderValue) {
-        //     // If remaining items don't qualify for coupon, return full item price
-        //     refundAmount = itemTotal;
-        // }
-        console.log("finally", Math.round(refundAmount * 100) / 100);
 
+        // if (coupon && remainingItemsTotal < coupon.minOrderValue) {
+        //     console.log("Remaining order value is below minimum for coupon. Removing discount.");
+        //     refundAmount = itemTotal; // Refund full item price since discount is removed
+        // }
+
+        console.log("Final Refund Amount:", Math.round(refundAmount * 100) / 100);
         return Math.round(refundAmount * 100) / 100; // Round to 2 decimal places
     } catch (error) {
         console.error("Error calculating refund amount:", error);
         throw error;
     }
 };
+
+// const calculateRefundAmount = async (orderId, returnedItemId) => {
+//     try {
+//         // Fetch the complete order
+//         const order = await Order.findById(orderId);
+//         if (!order) throw new Error("Order not found");
+
+//         // Find the returned item in the order
+//         const returnedItem = order.items.find((item) => item._id.toString() === returnedItemId);
+//         if (!returnedItem) throw new Error("Item not found in order");
+
+//         // Calculate basic refund amount for the item
+//         const itemTotal = returnedItem.price * returnedItem.quantity;
+
+//         // If no coupon was applied, return the item total
+//         if (!order.couponApplied) return itemTotal;
+
+//         // Calculate remaining order total without the returned item
+//         let remainingItemsTotal = order.totalPrice - itemTotal;
+//         if (order.items.length === 1) {
+//             remainingItemsTotal = 10; // Assume minimum shipping charge remains
+//         }
+
+//         // Handle coupon adjustments
+//         const couponDetails = order.couponDetails;
+//         let refundAmount = itemTotal;
+
+//         if (couponDetails.discountType === "percentage") {
+//             console.log("Discount type is percentage");
+
+//             // Calculate discount on the returned item proportionally
+//             const percentageDiscount = (itemTotal * couponDetails.discountAmount) / 100;
+
+//             console.log("discount percentage is:",percentageDiscount)
+//             refundAmount = itemTotal - percentageDiscount;
+
+//         } else if (couponDetails.discountType === "flat") {
+//             console.log("Discount type is flat");
+
+//             // Calculate how much discount was applied per unit of total price
+//             const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
+//             refundAmount = itemTotal - proportionalDiscount;
+//         }
+
+//         // Fetch the coupon to check minimum order value
+//         const coupon = await mongoose.model("Coupon").findById(couponDetails.couponId);
+
+//         // If remaining items total is less than coupon minOrderValue, remove the coupon discount
+//         if (coupon && remainingItemsTotal < coupon.minOrderValue) {
+//             console.log("Remaining order value is below minimum for coupon. Refunding full item price.");
+//             refundAmount = itemTotal;
+//         }
+
+//         console.log("Final Refund Amount:", Math.round(refundAmount * 100) / 100);
+//         return Math.round(refundAmount * 100) / 100; // Round to 2 decimal places
+//     } catch (error) {
+//         console.error("Error calculating refund amount:", error);
+//         throw error;
+//     }
+// };
 
 // Helper function to get date filter based on selected time period
 function getDateFilter(timeFilter) {

@@ -182,42 +182,49 @@
               </div>
 
                  <!-- Pagination (optional) -->
-                 <div class="row" data-aos="fade-up">
-                  <div class="col-md-12 text-center">
-                    <div class="site-block-27">
-                      <ul>
-                        <% if (pagination.hasPrevPage) { %>
-                          <li>
-                            <a
-                              href="/shopall?page=<%= pagination.prevPage %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %>">&lt;</a>
-                          </li>
-                          <% } %>
-  
-                            <% pagination.pages.forEach(pageNum=> { %>
-                              <li class="<%= pageNum === pagination.currentPage ? 'active' : '' %>">
-                                <% if (pageNum===pagination.currentPage) { %>
-                                  <span>
-                                    <%= pageNum %>
-                                  </span>
-                                  <% } else { %>
-                                    <a
-                                      href="/shopall?page=<%= pageNum %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %>">
-                                      <%= pageNum %>
-                                    </a>
-                                    <% } %>
-                              </li>
-                              <% }); %>
-  
-                                <% if (pagination.hasNextPage) { %>
-                                  <li>
-                                    <a
-                                      href="/shopall?page=<%= pagination.nextPage %><%= locals.currentSort ? '&sort=' + currentSort : '' %><%= locals.searchQuery ? '&search=' + searchQuery : '' %>">&gt;</a>
-                                  </li>
-                                  <% } %>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+                 
+                 <% 
+                 let queryParams = new URLSearchParams();
+                 if (locals.currentSort) queryParams.append("sort", locals.currentSort);
+                 if (locals.searchQuery) queryParams.append("search", locals.searchQuery);
+                 if (locals.filters.minPrice) queryParams.append("minPrice", locals.filters.minPrice);
+                 if (locals.filters.maxPrice) queryParams.append("maxPrice", locals.filters.maxPrice);
+                 if (locals.filters.categories && locals.filters.categories.length) queryParams.append("categories", locals.filters.categories.join(","));
+                 if (locals.filters.status) queryParams.append("status", locals.filters.status);
+                 if (locals.filters.isOfferApplied) queryParams.append("isOfferApplied", locals.filters.isOfferApplied);
+               %>
+               
+               <div class="row" data-aos="fade-up">
+                 <div class="col-md-12 text-center">
+                   <div class="site-block-27">
+                     <ul>
+                       <% if (pagination.hasPrevPage) { %>
+                         <li>
+                           <a href="/shopall?page=<%= pagination.prevPage %>&<%= queryParams.toString() %>">&lt;</a>
+                         </li>
+                       <% } %>
+               
+                       <% pagination.pages.forEach(pageNum => { %>
+                         <li class="<%= pageNum === pagination.currentPage ? 'active' : '' %>">
+                           <% if (pageNum === pagination.currentPage) { %>
+                             <span><%= pageNum %></span>
+                           <% } else { %>
+                             <a href="/shopall?page=<%= pageNum %>&<%= queryParams.toString() %>"><%= pageNum %></a>
+                           <% } %>
+                         </li>
+                       <% }); %>
+               
+                       <% if (pagination.hasNextPage) { %>
+                         <li>
+                           <a href="/shopall?page=<%= pagination.nextPage %>&<%= queryParams.toString() %>">&gt;</a>
+                         </li>
+                       <% } %>
+                     </ul>
+                   </div>
+                 </div>
+               </div>
+               
+                
 
             </div>
 
@@ -430,6 +437,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('onSaleCheck').checked = urlParams.get('isOfferApplied') === 'true';
     }
 });
+
+
+function getPageUrl(pageNumber) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNumber);
+        return url.toString();
+    }
   </script>
 </body>
 

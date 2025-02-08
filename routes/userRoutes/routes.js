@@ -2,9 +2,9 @@ const express = require("express");
 const route = express.Router();
 const userController = require("C:/Users/Jishad/Desktop/stepUp/controllers/userControllers.js");
 // const userAuth = require("C:/Users/Jishad/Desktop/stepUp/middlewares/userAuth.js");
-const {fetchIsUserAuthenticated,isUserAuthenticated:userAuth} = require("../../middlewares/userAuth")
+const { fetchIsUserAuthenticated, isUserAuthenticated: userAuth } = require("../../middlewares/userAuth");
 const passport = require("../../config/passport");
-const env = require("dotenv");
+const env = require("dotenv").config();
 const cartControllers = require("../../controllers/userCartControllers");
 const passwordControllers = require("../../controllers/passwordControllers");
 const wishlistControllers = require("../../controllers/wishlistControllers");
@@ -13,7 +13,7 @@ const addressControllers = require("../../controllers/addressControllers");
 const orderControllers = require("../../controllers/orderControllers");
 const productControllers = require("../../controllers/productControllers");
 const paymentControllers = require("../../controllers/paymentControllers");
-const  invoiceControllers = require("../../controllers/invoiceControllers")
+const invoiceControllers = require("../../controllers/invoiceControllers");
 
 route.use((req, res, next) => {
     console.log(` request type: ${req.method} | request url:${req.url} `);
@@ -24,10 +24,9 @@ route.use((req, res, next) => {
 route.post("/rzpCreateOrder", userAuth, checkoutControllers.rzpCreateOrder);
 route.post("/rzpVerifyPayment", userAuth, checkoutControllers.rzpVerifyPayment);
 
-
 //razorpay repayment
-route.post("/reTryRzpCreateOrder",userAuth,paymentControllers.reTryRzpCreateOrder)
-route.post("/reTryRzpVerifyPayment",userAuth ,paymentControllers.reTryRzpVerifyPayment)
+route.post("/reTryRzpCreateOrder", userAuth, paymentControllers.reTryRzpCreateOrder);
+route.post("/reTryRzpVerifyPayment", userAuth, paymentControllers.reTryRzpVerifyPayment);
 
 //authentication controllers
 route.get("/", userController.loadHomePage);
@@ -53,10 +52,9 @@ route.get("/product/:id", userController.loadProduct);
 
 //cart controllers
 route.get("/cart", userAuth, cartControllers.loadCartPage);
-route.post("/addToCart",fetchIsUserAuthenticated, cartControllers.addToCart);
+route.post("/addToCart", fetchIsUserAuthenticated, cartControllers.addToCart);
 route.get("/removeFromCart", userAuth, cartControllers.removeFromCart);
 route.post("/updateCart", userAuth, cartControllers.updateCart);
-
 
 //address routes
 route.post("/addAddress", userAuth, addressControllers.addAddress);
@@ -77,8 +75,8 @@ route.post("/passwordResetResendOTP", passwordControllers.passwordResetResendOTP
 
 //wishlist routes
 
-route.get("/wishlist",userAuth, wishlistControllers.loadWishlist);
-route.post("/addToWishlist",  fetchIsUserAuthenticated, wishlistControllers.addToWishlist);
+route.get("/wishlist", userAuth, wishlistControllers.loadWishlist);
+route.post("/addToWishlist", fetchIsUserAuthenticated, wishlistControllers.addToWishlist);
 route.delete("/deleteWishlist", fetchIsUserAuthenticated, wishlistControllers.deleteWishlist);
 
 //checkout routes
@@ -95,17 +93,15 @@ route.post("/cancelSingleItem", userAuth, orderControllers.cancelSingleItem);
 route.post("/returnOrder", userAuth, orderControllers.returnOrder);
 route.post("/returnItem", userAuth, orderControllers.returnItem);
 
-
 //load successpage after order oplacement
-route.get("/loadSuccessPage/:_id",userAuth,orderControllers.loadSuccessPage)
+route.get("/loadSuccessPage/:_id", userAuth, orderControllers.loadSuccessPage);
 
 //download Invoice
-route.get("/downloadInvoice/:_id",userAuth,invoiceControllers.downloadInvoice)
-
+route.get("/downloadInvoice/:_id", userAuth, invoiceControllers.downloadInvoice);
 
 //wallet controllers
 route.get("/wallet", userAuth, userController.wallet);
-route.post("/placeOrderByWallet",userAuth,checkoutControllers.placeOrderByWallet)
+route.post("/placeOrderByWallet", userAuth, checkoutControllers.placeOrderByWallet);
 
 //stock availabity check route
 
@@ -115,22 +111,31 @@ route.post("/checkQuantity", userAuth, productControllers.checkStock);
 route.get("/signup/googleAuth", passport.authenticate("google", { scope: ["profile", "email"] }));
 route.get(
     "/signup/google/callback",
-    passport.authenticate("google", { successRedirect: "/", failureRedirect: "/signup", prompt: "select_account" }),
+    passport.authenticate("google", { failureRedirect: "/signup" }),
     (req, res) => {
         console.log("Authentication successful, user:", req.user);
 
-        // Use data from req.user instead of req.body
-        const { name, email } = req.user;
+        // Extract JWT token
+        const { user, token } = req.user;
 
-        console.log(`the req.user recieved from google auth is: ${req.user}`);
-        // Store authenticated user data in session
-        req.session.userdata = { name, email };
+        // Store token in a secure cookie
+        res.cookie("authToken", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 2 * 60 * 60 * 1000, // 2 hours
+        });
+
+        // Store user in session
+        req.session.userdata = { name: user.name, email: user.email };
         req.session.save((err) => {
             if (err) {
                 console.error("Error saving session:", err);
+                return res.status(500).json({ message: "Session error" });
             }
+            res.redirect("/"); // Redirect after login
         });
     }
 );
+
 
 module.exports = route;

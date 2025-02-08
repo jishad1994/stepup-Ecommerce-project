@@ -13,7 +13,10 @@ const Wallet = require("../model/walletModel.js");
 //load home apge
 const loadHomePage = async (req, res) => {
     try {
-        res.render("index");
+        const user = req.user;
+
+        
+        res.render("index", { user });
     } catch (err) {
         console.error("Error while loading the home page:", err.message);
         res.status(500).render("error", {
@@ -167,17 +170,35 @@ const shopCategory = async (req, res) => {
 //shop all controler
 const loadShopAll = async (req, res) => {
     try {
+
+        console.log("req.user ",req.user)
         // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
         const skip = (page - 1) * limit;
 
         // Get filter parameters
+
+        const filters = {};
+        if (req.query.minPrice) filters.minPrice = parseFloat(req.query.minPrice);
+        if (req.query.maxPrice && req.query.maxPrice !== "9007199254740991") {
+            filters.maxPrice = parseFloat(req.query.maxPrice);
+        }
+
+        filters.sort = req.query.sort || "default";
+        filters.categories = req.query.categories ? req.query.categories.split(",") : [];
+        filters.isOfferApplied = req.query.isOfferApplied;
+        filters.status = req.query.status;
+        filters.searchQuery = req.query.search || "";
+
+////////////
         const sort = req.query.sort || "default";
         const minPrice = parseInt(req.query.minPrice) || 0;
         const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
         const categories = req.query.categories ? req.query.categories.split(",") : [];
         const isOfferApplied = req.query.isOfferApplied;
+
+
         const status = req.query.status;
         const searchQuery = req.query.search || "";
 
@@ -262,8 +283,6 @@ const loadShopAll = async (req, res) => {
             pages.push(i);
         }
 
-        
-
         // Render the page
         res.render("shopAll", {
             products,
@@ -282,14 +301,15 @@ const loadShopAll = async (req, res) => {
                 prevPage: page - 1,
             },
             // Pass current filter values to maintain state
-            filters: {
-                minPrice,
-                maxPrice,
-                categories,
-                status,
-                isOfferApplied,
-                sort,
-            },
+            // filters: {
+            //     minPrice,
+            //     maxPrice,
+            //     categories,
+            //     status,
+            //     isOfferApplied,
+            //     sort,
+            // },
+            filters,
         });
     } catch (error) {
         console.error("Error in loadShopAll:", error);
@@ -303,7 +323,7 @@ const loadShopAll = async (req, res) => {
 const loadProduct = async (req, res) => {
     try {
         const _id = req.params.id; // Extract product ID from request parameters
-        const product = await Product.findOne({ _id:req.params.id ,isListed:true}); // Fetch the product details by ID
+        const product = await Product.findOne({ _id: req.params.id, isListed: true }); // Fetch the product details by ID
 
         if (!product) {
             return res.status(404).render("404");
@@ -334,7 +354,6 @@ const orderConfirmed = async (req, res) => {
 };
 
 //wallet
-
 const wallet = async (req, res) => {
     try {
         if (!req.user || !req.user._id) {
@@ -347,13 +366,18 @@ const wallet = async (req, res) => {
         const userId = req.user._id;
 
         // Find the wallet
-        const wallet = await Wallet.findOne({ userId });
+        let wallet = await Wallet.findOne({ userId });
 
         if (!wallet) {
-            return res.status(404).json({
-                success: false,
-                message: "Wallet not found.",
+            // Create a new wallet if not found
+            wallet = new Wallet({
+                userId,
+                balance: 0, // Initial balance
+                transactions: [],
             });
+
+            await wallet.save();
+            console.log("New wallet created:", wallet);
         }
 
         // Render the wallet page with wallet data
@@ -361,7 +385,6 @@ const wallet = async (req, res) => {
     } catch (error) {
         console.error("Error while loading wallet:", error);
 
-        // Return a server error response
         res.status(500).json({
             success: false,
             message: "Internal server error. Please try again later.",
@@ -418,12 +441,13 @@ const signup = async (req, res) => {
         const { name, password, email, phone } = req.body;
         console.log(req.body);
 
-        const emailTaken = await User.findOne({ email });
+        const emailTaken = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, "i") } });
         const numberTaken = await User.findOne({ phone });
         if (emailTaken || numberTaken) {
             let errors = {};
 
             if (emailTaken) {
+                console.log("email already taken");
                 errors.email = "Email is already in use";
             }
 
@@ -508,8 +532,9 @@ const loadOtpPage = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
     try {
-
         const { OTP } = req.body;
+        console.log("otp entered is", OTP, typeof OTP);
+        console.log("otp in the session is", req.session.userdata.OTP, typeof req.session.userdata.OTP);
 
         if (!req.session.userdata || !req.session.userdata.OTP || !req.session.userdata.expiry) {
             return res.status(400).json({
@@ -533,7 +558,6 @@ const verifyOTP = async (req, res) => {
             });
         }
 
-
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(req.session.userdata.password, salt);
@@ -546,7 +570,6 @@ const verifyOTP = async (req, res) => {
             phone: req.session.userdata.phone,
         });
         const savedUser = await user.save();
-
 
         // Create a wallet for the user
         const wallet = new Wallet({ userId: savedUser._id });
@@ -603,7 +626,7 @@ const postLogin = async (req, res) => {
         }
 
         // Compare hashed password
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        const isPasswordMatch = bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             errors.password = "Invalid password";
             return res.status(400).json({
@@ -612,7 +635,6 @@ const postLogin = async (req, res) => {
                 errors,
             });
         }
-
 
         // Creating user session
 

@@ -1,9 +1,11 @@
 const User = require("../model/userModel");
 const jwt = require("jsonwebtoken");
 
+
 const isUserAuthenticated = async (req, res, next) => {
     try {
         // Extract the token from the cookie
+        console.log("cookies are",res.cookies)
         const token = req.cookies.authToken;
         if (!token) {
             console.warn("No auth token found, user unauthenticated.");
@@ -49,6 +51,8 @@ const isUserAuthenticated = async (req, res, next) => {
 const fetchIsUserAuthenticated = async (req, res, next) => {
     try {
         // Extract the token from the cookie
+
+        console.log("cookies are",res.cookies)
         const token = req.cookies.authToken;
         if (!token) {
             console.warn("No auth token found, user unauthenticated.");

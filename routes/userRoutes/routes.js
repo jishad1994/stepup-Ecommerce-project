@@ -1,6 +1,6 @@
 const express = require("express");
 const route = express.Router();
-const userController = require("C:/Users/Jishad/Desktop/stepUp/controllers/userControllers.js");
+const userController = require("../../controllers/userControllers.js");
 // const userAuth = require("C:/Users/Jishad/Desktop/stepUp/middlewares/userAuth.js");
 const { fetchIsUserAuthenticated, isUserAuthenticated: userAuth } = require("../../middlewares/userAuth");
 const passport = require("../../config/passport");

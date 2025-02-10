@@ -505,9 +505,13 @@ const orderApproveOrReject = async (req, res) => {
 
         // Refund to wallet if approved
         if (status === "Approved") {
-            const wallet = await Wallet.findOne({ userId: order.userId });
+            let wallet = await Wallet.findOne({ userId: order.userId });
             if (!wallet) {
-                return res.status(404).json({ success: false, message: "Wallet not found for the user." });
+                wallet = new Wallet({
+                    userId: order.userId,
+                    balance: 0,
+                    transactions: [],
+                });
             }
 
             const transactionId = await generateUniqueTransactionId();

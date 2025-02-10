@@ -87,9 +87,13 @@ const cancelOrder = async (req, res) => {
                 return res.status(401).json({ success: false, message: "User authentication required." });
             }
 
-            const wallet = await Wallet.findOne({ userId });
+            let wallet = await Wallet.findOne({ userId });
             if (!wallet) {
-                return res.status(404).json({ success: false, message: "Wallet not found." });
+                wallet = new Wallet({
+                    userId: userId,
+                    balance: 0,
+                    transactions: [],
+                });
             }
 
             wallet.balance += order.totalPrice;
@@ -227,7 +231,16 @@ const cancelSingleItem = async (req, res) => {
             });
         }
 
-        const wallet = await Wallet.findOne({ userId });
+        // const wallet = await Wallet.findOne({ userId });
+
+         let wallet = await Wallet.findOne({ userId });
+                    if (!wallet) {
+                        wallet = new Wallet({
+                            userId: userId,
+                            balance: 0,
+                            transactions: [],
+                        });
+                    }
 
         const item = order.items.id(itemId);
         if (!item) {

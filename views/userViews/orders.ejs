@@ -154,7 +154,12 @@
                                         </span>
                                     </div>
                                     <div class="col-md-2">
-                                        <strong>₹ <%= order.totalPrice.toFixed() || "0.00" %></strong>
+                                        <% if (["Cancelled","Returned","Return Approved"].includes(order.status)){%>
+                                        <strong>₹ <%= "0.00" %></strong>
+
+                                        <%}else{%>
+                                            <strong>₹ <%= order.totalPrice.toFixed() || "0.00" %></strong>
+                                            <%}%>
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <button class="btn btn-sm btn-outline-primary"

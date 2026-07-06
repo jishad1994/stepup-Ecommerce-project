@@ -15,7 +15,6 @@ const loadHomePage = async (req, res) => {
     try {
         const user = req.user;
 
-        
         res.render("index", { user });
     } catch (err) {
         console.error("Error while loading the home page:", err.message);
@@ -170,8 +169,7 @@ const shopCategory = async (req, res) => {
 //shop all controler
 const loadShopAll = async (req, res) => {
     try {
-
-        console.log("req.user ",req.user)
+        console.log("req.user ", req.user);
         // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
@@ -191,13 +189,12 @@ const loadShopAll = async (req, res) => {
         filters.status = req.query.status;
         filters.searchQuery = req.query.search || "";
 
-////////////
+        ////////////
         const sort = req.query.sort || "default";
         const minPrice = parseInt(req.query.minPrice) || 0;
         const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
         const categories = req.query.categories ? req.query.categories.split(",") : [];
         const isOfferApplied = req.query.isOfferApplied;
-
 
         const status = req.query.status;
         const searchQuery = req.query.search || "";
@@ -442,6 +439,8 @@ const signup = async (req, res) => {
         console.log(req.body);
 
         const emailTaken = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, "i") } });
+        const users = await User.find();
+        console.log("the existing email user", users);
         const numberTaken = await User.findOne({ phone });
         if (emailTaken || numberTaken) {
             let errors = {};

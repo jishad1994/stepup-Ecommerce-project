@@ -4,11 +4,11 @@
     "description": "my first ecommerce project",
     "main": "app.js",
     "scripts": {
-        "start": "nodemon app.js",
+        "start": "node app.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "engines": {
-        "node": "18.x"
+        "node": "20.x"
     },
     "author": "",
     "license": "ISC",

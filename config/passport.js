@@ -9,7 +9,7 @@ passport.use(
         {
             clientID: process.env.GOOGLE_AUTH_ID,
             clientSecret: process.env.GOOGLE_AUTH_SECRET,
-            callbackURL: "http://localhost:3000/signup/google/callback",
+            callbackURL:process.env.ENVIRONMENT=='development'? "http://localhost:3000/signup/google/callback":"https://ecommerce.jishadkolapurath.online/signup/google/callback",
             prompt: "select_account",
             scope: ["openid", "profile", "email"],
         },

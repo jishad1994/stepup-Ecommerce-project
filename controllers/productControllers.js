@@ -1,19 +1,14 @@
 const Product = require("../model/productModel");
 const Category = require("../model/categoryModel");
-const fs = require("fs").promises;
-const path = require("path");
-const sharp = require("sharp");
-const { v4: uuidv4 } = require("uuid");
-const multer = require("multer");
 const { default: mongoose } = require("mongoose");
-
+const upload = require("../middlewares/multer.middleware");
 //load add products
 
 const loadAddProducts = async (req, res) => {
     try {
         //only show listed categories
         const categories = await Category.find({ isListed: true });
-
+        console.log("categories available", categories);
         res.render("addProducts", { categories });
     } catch (error) {
         console.log("error while adding products page loading", error.message);
@@ -21,39 +16,39 @@ const loadAddProducts = async (req, res) => {
     }
 };
 
-//add image multer middleware
-const upload = multer({
-    storage: multer.memoryStorage(),
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error("Invalid file type"), false);
-        }
-    },
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-    },
-});
+// //add image multer middleware
+// const upload = multer({
+//     storage: multer.memoryStorage(),
+//     fileFilter: (req, file, cb) => {
+//         const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+//         if (allowedTypes.includes(file.mimetype)) {
+//             cb(null, true);
+//         } else {
+//             cb(new Error("Invalid file type"), false);
+//         }
+//     },
+//     limits: {
+//         fileSize: 5 * 1024 * 1024, // 5MB limit
+//     },
+// });
 
-//edit image upload multer
-const editUpload = multer({
-    storage: multer.memoryStorage(),
-    fileFilter: (req, file, cb) => {
-        console.log("Received file:", file.originalname, file.mimetype); // Debug logging
-        const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/png"];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error(`Invalid file type: ${file.mimetype}`), false);
-        }
-    },
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-        files: 5, // Limit number of files
-    },
-});
+// //edit image upload multer
+// const editUpload = multer({
+//     storage: multer.memoryStorage(),
+//     fileFilter: (req, file, cb) => {
+//         console.log("Received file:", file.originalname, file.mimetype); // Debug logging
+//         const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/png"];
+//         if (allowedTypes.includes(file.mimetype)) {
+//             cb(null, true);
+//         } else {
+//             cb(new Error(`Invalid file type: ${file.mimetype}`), false);
+//         }
+//     },
+//     limits: {
+//         fileSize: 5 * 1024 * 1024, // 5MB limit
+//         files: 5, // Limit number of files
+//     },
+// });
 
 const addProducts = async (req, res) => {
     try {
@@ -95,40 +90,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        const ensureDirectoryExists = async (dirPath) => {
-            try {
-                await fs.mkdir(dirPath, { recursive: true }); // Creates the directory if it doesn't exist
-            } catch (err) {
-                console.error(`Error ensuring directory ${dirPath} exists:`, err.message);
-            }
-        };
-
-        // Ensure upload directory exists
-        const uploadDir = path.resolve(__dirname, "../public/uploads/products");
-        await ensureDirectoryExists(uploadDir);
-
-        // Process and save images
-        const imageUrls = await Promise.all(
-            req.files.map(async (file) => {
-                try {
-                    const filename = `${uuidv4()}.webp`;
-                    const outputPath = path.join(uploadDir, filename);
-
-                    await sharp(file.buffer)
-                        .resize(800, 800, {
-                            fit: sharp.fit.inside,
-                            withoutEnlargement: true,
-                        })
-                        .webp({ quality: 80 })
-                        .toFile(outputPath);
-
-                    return `/uploads/products/${filename}`;
-                } catch (err) {
-                    console.error(`Error processing file ${file.originalname}:`, err.message);
-                    throw new Error("Image processing failed");
-                }
-            })
-        );
+        const imageUrls = req.files.map((file) => file.path);
 
         // Handle product offer
 
@@ -201,11 +163,13 @@ const listProducts = async (req, res) => {
                 if (category) {
                     product.categoryName = category.name;
                 }
-            })
+            }),
         );
 
         // Get all categories for the filter dropdown
         const categories = await Category.find({});
+
+        console.log("categories", categories);
 
         // Count total products based on filter
         const totalProducts = await Product.countDocuments(query);
@@ -340,22 +304,23 @@ const editProduct = async (req, res) => {
         product.salePrice = parseFloat(salePrice);
 
         // Handle images
-        const uploadDir = path.resolve(__dirname, "../public/uploads/products");
-        const newImages = req.files.map(async (file) => {
-            const filename = `${uuidv4()}.webp`;
-            const outputPath = path.join(uploadDir, filename);
-            await sharp(file.buffer)
-                .resize(800, 800, { fit: sharp.fit.inside, withoutEnlargement: true })
-                .webp({ quality: 80 })
-                .toFile(outputPath);
-            return `/uploads/products/${filename}`;
-        });
+        // const uploadDir = path.resolve(__dirname, "../public/uploads/products");
+        // const newImages = req.files.map(async (file) => {
+        //     const filename = `${uuidv4()}.webp`;
+        //     const outputPath = path.join(uploadDir, filename);
+        //     await sharp(file.buffer)
+        //         .resize(800, 800, { fit: sharp.fit.inside, withoutEnlargement: true })
+        //         .webp({ quality: 80 })
+        //         .toFile(outputPath);
+        //     return `/uploads/products/${filename}`;
+        // });
 
         // Avoid uploading duplicate images
-        const imageUrls = await Promise.all(newImages);
-        imageUrls.forEach((imageUrl) => {
-            if (!product.productImage.includes(imageUrl)) {
-                product.productImage.push(imageUrl);
+        const imageUrls = req.files.map((file) => file.path);
+
+        imageUrls.forEach((url) => {
+            if (!product.productImage.includes(url)) {
+                product.productImage.push(url);
             }
         });
 
@@ -433,8 +398,7 @@ const checkStock = async (req, res) => {
 module.exports = {
     loadAddProducts,
     addProducts,
-    upload,
-    editUpload,
+
     listProducts,
     softDelete,
     loadEditProductsPage,

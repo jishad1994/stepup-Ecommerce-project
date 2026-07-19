@@ -14,8 +14,8 @@ passport.use(
             scope: ["openid", "profile", "email"],
         },
         async (accessToken, refreshToken, profile, done) => {
-            console.log("Google Access Token:", accessToken);
-            console.log("Google Profile:", profile);
+         
+           
 
             try {
                 let user = await User.findOne({ googleId: profile.id });
@@ -26,7 +26,7 @@ passport.use(
                     const email = profile.emails?.[0]?.value || "NoEmailProvided";
                     user = new User({ name, email, googleId: profile.id });
                     await user.save();
-                    console.log("New user saved:", user);
+                   
                 } else {
                     console.log("User already exists, logging in...", user);
                 }

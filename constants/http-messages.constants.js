@@ -1,5 +1,61 @@
-const HTTP_MESSAGES={
+const MESSAGES = Object.freeze({
+    AUTH: {
+        REQUIRED: "Authentication required. Please log in.",
+        USER_NOT_FOUND: "User account not found",
+    },
+    ADDRESS: {
+        VALIDATION_FAILED: "Validation failed",
+        VALIDATION_ERROR: "Validation error",
+        ADD_SUCCESS: "Address added successfully",
+        ADD_ERROR: "Internal server error. Unable to add address.",
+        ID_REQUIRED: "Address ID is required",
+        NOT_FOUND: "Address not found",
+        DELETE_ID_MISSING: "Couldn't find the ID of the address",
+        DELETE_SUCCESS: "Address deleted successfully",
+        UPDATE_SUCCESS: "Address updated successfully",
+        UPDATE_NO_CHANGE: "No address found or no changes made",
+        NO_ADDRESSES: "No addresses to display..please add your address",
+        LOAD_EDIT_ERROR: "An error occurred while loading the address",
+    },
+    VALIDATION: {
+        INVALID_FULL_NAME: "Invalid full name. Must be 3-50 characters.",
+        INVALID_PHONE: "Invalid primary phone number. Must be 10 digits.",
+        INVALID_CITY: "Invalid city name.",
+        INVALID_STATE: "Invalid state selection.",
+        INVALID_PINCODE: "Invalid pincode. Must be 6 digits.",
+    },
+    ADMIN: {
+        CREDENTIALS_REQUIRED: "Username and password are required.",
+        INVALID_CREDENTIALS: "Invalid credentials.",
+        LOGIN_SUCCESS: "Admin login successful.",
+        LOAD_LOGIN_ERROR: "Unable to load admin login page. Please try again later.",
+    },
+    ORDER: {
+        ID_REQUIRED: "Order ID is required",
+        NOT_FOUND: "Order not found",
+        INVALID_ID: "Invalid order ID",
+        STATUS_REQUIRED: "Please select a valid status",
+        INVALID_STATUS: "Invalid status",
+        SAME_STATUS: "Cannot change to this status",
+        STATUS_CHANGE_SUCCESS: "Status changed successfully",
+        ITEM_NOT_FOUND: "Item not found",
+        RETURN_ID_STATUS_REQUIRED: "Order ID and status are required.",
+        RETURN_INVALID_STATUS: "Invalid status. Must be 'Approved' or 'Rejected'.",
+        RETURN_UPDATE_SUCCESS: "Return request updated successfully.",
+    },
+    PAYMENT: {
+        INVALID_ORDER_OBJECT_ID: "Invalid order object id",
+        ORDER_NOT_FOUND: "Order Not found",
+        ORDER_ID_NOT_FOUND: "OrderId Not found",
+        INVALID_AMOUNT: "Invalid amount provided",
+        CREATE_ORDER_FAILED: "Failed to create order.",
+        VERIFY_SUCCESS: "Payment verified successfully.",
+        VERIFY_FAILED: "Payment verification failed.",
+        VERIFY_ERROR: "Payment verification error.",
+    },
+    COMMON: {
+        SERVER_ERROR: "Internal server error",
+    },
+});
 
-
-
-} ;
+module.exports = MESSAGES;

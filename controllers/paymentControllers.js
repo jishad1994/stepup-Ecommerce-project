@@ -12,6 +12,10 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 
+const HTTP_STATUS = require("../constants/status-codes.constants.js");
+const MESSAGES = require("../constants/http-messages.constants.js");
+const { PAYMENT_STATUS, PAYMENT_METHOD } = require("../constants/order-status.constants.js");
+
 //create azorpay instance
 const razorpay = new Razorpay({
     key_id: process.env.RZP_KEY_ID,
@@ -26,7 +30,7 @@ const reTryRzpCreateOrder = async function (req, res) {
 
         if (!_id) {
             console.log("order object id not found");
-            return res.status(400).json({ success: false, message: "Invalid order object id" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.PAYMENT.INVALID_ORDER_OBJECT_ID });
         }
 
         //find the order using id
@@ -34,13 +38,13 @@ const reTryRzpCreateOrder = async function (req, res) {
 
         if (!userOrder) {
             console.log("order  not found");
-            return res.status(400).json({ success: false, message: "Order Not found" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.PAYMENT.ORDER_NOT_FOUND });
         }
 
         const orderId = userOrder.orderId;
         if (!orderId) {
             console.log("order id not found");
-            return res.status(400).json({ success: false, message: "OrderId Not found" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.PAYMENT.ORDER_ID_NOT_FOUND });
         }
 
         //total amount to be paid
@@ -50,7 +54,7 @@ const reTryRzpCreateOrder = async function (req, res) {
 
         if (!amount || isNaN(amount) || amount <= 0) {
             console.log("invalid amount provided");
-            return res.status(400).json({ success: false, message: "Invalid amount provided" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.PAYMENT.INVALID_AMOUNT });
         }
 
         // Razorpay order options
@@ -66,17 +70,16 @@ const reTryRzpCreateOrder = async function (req, res) {
         console.log("order data recieved while creating rzp order is", order);
 
         // Send response
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK).json({
             success: true,
             orderId: order.id,
             amount: order.amount,
             currency: order.currency,
             rzp_key: process.env.RZP_KEY_ID,
-            
         });
     } catch (error) {
         console.error("Error creating Razorpay order for user:", req.user._id, error);
-        res.status(500).json({ success: false, message: "Failed to create order." });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.PAYMENT.CREATE_ORDER_FAILED });
     }
 };
 
@@ -96,34 +99,34 @@ const reTryRzpVerifyPayment = async (req, res) => {
         if (hmac === razorpay_signature) {
             // Payment verified successfully
             await Order.findByIdAndUpdate(_id, {
-                paymentStatus: "Success",
+                paymentStatus: PAYMENT_STATUS.SUCCESS,
                 paymentDetails: {
                     paymentId: razorpay_payment_id,
                     orderId: razorpay_order_id,
-                    status: "Success",
-                    paymentMethod: "razorPay",
+                    status: PAYMENT_STATUS.SUCCESS,
+                    paymentMethod: PAYMENT_METHOD.RAZORPAY,
                 },
             });
 
-            res.status(200).json({
+            res.status(HTTP_STATUS.OK).json({
                 success: true,
-                message: "Payment verified successfully.",
+                message: MESSAGES.PAYMENT.VERIFY_SUCCESS,
                 razorpay_order_id,
                 razorpay_payment_id,
             });
         } else {
-            // Payment verified successfully
+            // Signature mismatch — payment could not be verified
             await Order.findByIdAndUpdate(_id, {
-                paymentStatus: "Failed",
+                paymentStatus: PAYMENT_STATUS.FAILED,
             });
 
-            res.status(400).json({ success: false, message: "Payment verification failed." });
+            res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.PAYMENT.VERIFY_FAILED });
         }
     } catch (error) {
         console.error("Error verifying payment:", error);
-        res.status(500).json({
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Payment verification error.",
+            message: MESSAGES.PAYMENT.VERIFY_ERROR,
         });
     }
 };

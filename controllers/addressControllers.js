@@ -12,24 +12,28 @@ const Product = require("../model/productModel.js");
 const Address = require("../model/addressModel.js");
 
 ////
+const HTTP_STATUS = require("../constants/status-codes.constants.js");
+const MESSAGES = require("../constants/http-messages.constants.js");
+
+////
 //add address
 const addAddress = async (req, res) => {
     try {
         // Ensure the email is available
         const email = req.user?.email;
         if (!email) {
-            return res.status(401).json({
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
                 success: false,
-                message: "Authentication required. Please log in.",
+                message: MESSAGES.AUTH.REQUIRED,
             });
         }
 
         // Fetch user from the database
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
                 success: false,
-                message: "User account not found",
+                message: MESSAGES.AUTH.USER_NOT_FOUND,
             });
         }
 
@@ -48,23 +52,23 @@ const addAddress = async (req, res) => {
             addressDetails,
             isDefault,
         } = req.body;
-        console.log(req.body);
+        
         // Comprehensive validation
         const validationErrors = [];
 
         // Full Name validation
         if (!fullName || !/^[a-zA-Z\s'-]{3,50}$/.test(fullName)) {
-            validationErrors.push("Invalid full name. Must be 3-50 characters.");
+            validationErrors.push(MESSAGES.VALIDATION.INVALID_FULL_NAME);
         }
 
         // Phone number validations
         if (!phone || !/^\d{10}$/.test(phone)) {
-            validationErrors.push("Invalid primary phone number. Must be 10 digits.");
+            validationErrors.push(MESSAGES.VALIDATION.INVALID_PHONE);
         }
 
         // City validation
         if (!city || !/^[a-zA-Z\s]{3,}$/.test(city)) {
-            validationErrors.push("Invalid city name.");
+            validationErrors.push(MESSAGES.VALIDATION.INVALID_CITY);
         }
 
         // State validation
@@ -97,19 +101,19 @@ const addAddress = async (req, res) => {
             "Uttar Pradesh",
         ];
         if (!state || !validStates.includes(state)) {
-            validationErrors.push("Invalid state selection.");
+            validationErrors.push(MESSAGES.VALIDATION.INVALID_STATE);
         }
 
         // Pincode validation
         if (!pincode || !/^\d{6}$/.test(pincode)) {
-            validationErrors.push("Invalid pincode. Must be 6 digits.");
+            validationErrors.push(MESSAGES.VALIDATION.INVALID_PINCODE);
         }
 
         // Check for validation errors
         if (validationErrors.length > 0) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Validation failed",
+                message: MESSAGES.ADDRESS.VALIDATION_FAILED,
                 errors: validationErrors,
             });
         }
@@ -125,24 +129,24 @@ const addAddress = async (req, res) => {
             addressType,
             fullName,
             phone,
-            altPhone:altphone,
+            altPhone: altphone,
             city,
             state,
             pincode,
-            landMark:landmark,
+            landMark: landmark,
             addressDetails,
             isDefault,
             userId,
         });
 
         await address.save();
-        
-        console.log("new address saved");
-        console.log(address);
 
-        return res.status(201).json({
+    
+      
+
+        return res.status(HTTP_STATUS.CREATED).json({
             success: true,
-            message: "Address added successfully",
+            message: MESSAGES.ADDRESS.ADD_SUCCESS,
             addressId: address._id,
         });
     } catch (error) {
@@ -150,17 +154,17 @@ const addAddress = async (req, res) => {
 
         // Differentiate between validation and server errors
         if (error.name === "ValidationError") {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Validation error",
+                message: MESSAGES.ADDRESS.VALIDATION_ERROR,
                 errors: Object.values(error.errors).map((err) => err.message),
             });
         }
 
         // Generic server error
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Internal server error. Unable to add address.",
+            message: MESSAGES.ADDRESS.ADD_ERROR,
         });
     }
 };
@@ -180,8 +184,8 @@ const addresses = async (req, res) => {
         const addresses = await Address.find({ userId: user._id });
 
         if (addresses.length === 0) {
-            const message = "No addresses to display..please add your address";
-            console.log("No addresses to fetch from db");
+            const message = MESSAGES.ADDRESS.NO_ADDRESSES;
+          
             return res.render("addresses", { message });
         }
         res.render("addresses", { addresses, message: "" });
@@ -198,9 +202,9 @@ const deleteAddress = async (req, res) => {
 
         // Check if id is provided
         if (!id) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Couldn't find the ID of the address",
+                message: MESSAGES.ADDRESS.DELETE_ID_MISSING,
             });
         }
 
@@ -209,23 +213,23 @@ const deleteAddress = async (req, res) => {
 
         // Check if address was actually deleted
         if (!deletedAddress) {
-            return res.status(404).json({
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
                 success: false,
-                message: "Address not found",
+                message: MESSAGES.ADDRESS.NOT_FOUND,
             });
         }
 
         // Successful deletion
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK).json({
             success: true,
-            message: "Address deleted successfully",
+            message: MESSAGES.ADDRESS.DELETE_SUCCESS,
             deletedAddress,
         });
     } catch (error) {
         console.error("Error while deleting address:", error);
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Internal server error while deleting address",
+            message: MESSAGES.COMMON.SERVER_ERROR + " while deleting address",
         });
     }
 };
@@ -236,9 +240,9 @@ const postEditAddress = async (req, res) => {
     try {
         // Check if _id is present in the request
         if (!req.params.id) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Address ID is required",
+                message: MESSAGES.ADDRESS.ID_REQUIRED,
             });
         }
 
@@ -255,21 +259,21 @@ const postEditAddress = async (req, res) => {
         const response = await Address.updateOne({ _id }, { $set: { ...formData } });
 
         if (response.modifiedCount > 0) {
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK).json({
                 success: true,
-                message: "Address updated successfully",
+                message: MESSAGES.ADDRESS.UPDATE_SUCCESS,
             });
         } else {
-            return res.status(404).json({
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
                 success: false,
-                message: "No address found or no changes made",
+                message: MESSAGES.ADDRESS.UPDATE_NO_CHANGE,
             });
         }
     } catch (error) {
         console.error("Error while updating address:", error);
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Internal server error while updating address",
+            message: MESSAGES.COMMON.SERVER_ERROR + " while updating address",
         });
     }
 };
@@ -285,8 +289,8 @@ const loadEditAddress = async (req, res) => {
 
         // Check if address exists
         if (!address) {
-            return res.status(404).render("error", {
-                message: "Address not found",
+            return res.status(HTTP_STATUS.NOT_FOUND).render("error", {
+                message: MESSAGES.ADDRESS.NOT_FOUND,
             });
         }
 
@@ -298,8 +302,8 @@ const loadEditAddress = async (req, res) => {
         console.error("Error while loading edit address:", error);
 
         // Send a proper error response
-        res.status(500).render("error", {
-            message: "An error occurred while loading the address",
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("error", {
+            message: MESSAGES.ADDRESS.LOAD_EDIT_ERROR,
             error: error.message,
         });
     }

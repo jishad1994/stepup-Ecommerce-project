@@ -7,8 +7,9 @@ const productControllers = require("../../controllers/productControllers");
 const stockControllers = require("../../controllers/stockControllers");
 const couponControllers = require("../../controllers/couponControllers");
 const salesReportControllers = require("../../controllers/salesReportControllers");
-const salesChartControllers = require("../../controllers/salesChartControllers")
+const salesChartControllers = require("../../controllers/salesChartControllers");
 const multer = require("multer");
+const upload = require("../../middlewares/multer.middleware");
 
 //authentication routes
 
@@ -36,14 +37,14 @@ adminRoute.get("/deleteOrUndoCategory", adminAuth, categoryControllers.deleteOrU
 
 //product routes
 adminRoute.get("/addProducts", adminAuth, productControllers.loadAddProducts);
-adminRoute.post("/addProduct", adminAuth, productControllers.upload.array("images", 5), productControllers.addProducts);
+adminRoute.post("/addProduct", adminAuth, upload.array("images", 5), productControllers.addProducts);
 adminRoute.get("/listProducts", adminAuth, productControllers.listProducts);
 adminRoute.get("/softDeleteProduct", adminAuth, productControllers.softDelete);
 adminRoute.get("/editProducts", adminAuth, productControllers.loadEditProductsPage);
 adminRoute.post(
     "/editProduct",
     adminAuth,
-    productControllers.editUpload.array("images", 5),
+    upload.array("images", 5),
     (err, req, res, next) => {
         if (err instanceof multer.MulterError) {
             console.error("Multer Error:", err);
@@ -60,7 +61,7 @@ adminRoute.post(
         }
         next();
     },
-    productControllers.editProduct
+    productControllers.editProduct,
 );
 adminRoute.post("/deleteImg", adminAuth, productControllers.deleteImg);
 
@@ -95,6 +96,6 @@ adminRoute.post("/generateSalesReports", adminAuth, salesReportControllers.gener
 
 //get charts
 
-adminRoute.get("/getCharts",adminAuth,salesChartControllers.getChart)
+adminRoute.get("/getCharts", adminAuth, salesChartControllers.getChart);
 
 module.exports = adminRoute;

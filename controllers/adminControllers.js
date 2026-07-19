@@ -7,6 +7,10 @@ const Category = require("../model/categoryModel");
 const Wallet = require("../model/walletModel");
 const crypto = require("crypto");
 
+const HTTP_STATUS = require("../constants/status-codes.constants.js");
+const MESSAGES = require("../constants/http-messages.constants.js");
+const { ORDER_STATUS, ITEM_STATUS, RETURN_DECISION, VALID_ORDER_STATUSES } = require("../constants/order-status.constants.js");
+
 const loadAdminLogin = async (req, res) => {
     try {
         if (req.session.admin) {
@@ -17,40 +21,43 @@ const loadAdminLogin = async (req, res) => {
         }
     } catch (error) {
         console.error("Error while loading admin login page:", error);
-        res.render("404", { message: "Unable to load admin login page. Please try again later." });
+        res.render("404", { message: MESSAGES.ADMIN.LOAD_LOGIN_ERROR });
     }
 };
 
 //post login
 const postAdminLogin = async (req, res) => {
     try {
-        console.log("post login worked");
+        
         const { email, password } = req.body;
 
         // Validate input
         if (!email || !password) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Username and password are required.",
+                message: MESSAGES.ADMIN.CREDENTIALS_REQUIRED,
             });
         }
 
         // Check if admin exists
         const isAdmin = await User.findOne({ email, isAdmin: true });
         if (!isAdmin) {
-            console.log("admin not find condition worked");
-            return res.status(400).json({
+           
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Invalid credentials.",
+                message: MESSAGES.ADMIN.INVALID_CREDENTIALS,
             });
         }
 
         // Compare password
-        const isPasswordMatch = bcrypt.compare(password, isAdmin.password);
+        // NOTE: bcrypt.compare is async and MUST be awaited — without it,
+        // isPasswordMatch is a Promise object (always truthy), so the
+        // password check below never actually rejects a bad password.
+        const isPasswordMatch = await bcrypt.compare(password, isAdmin.password);
         if (!isPasswordMatch) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                message: "Invalid credentials.",
+                message: MESSAGES.ADMIN.INVALID_CREDENTIALS,
             });
         }
 
@@ -62,16 +69,16 @@ const postAdminLogin = async (req, res) => {
         };
 
         // Respond with success
-        console.log("admin login successfull");
-        return res.status(200).json({
+       
+        return res.status(HTTP_STATUS.OK).json({
             success: true,
-            message: "Admin login successful.",
+            message: MESSAGES.ADMIN.LOGIN_SUCCESS,
         });
     } catch (error) {
         console.error("Error during admin login:", error);
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Internal server error.",
+            message: MESSAGES.COMMON.SERVER_ERROR + ".",
         });
     }
 };
@@ -95,7 +102,7 @@ const loadAdminDashboard = async (req, res) => {
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $nin: ["Cancelled", "Returned"] },
+                    "items.status": { $nin: [ITEM_STATUS.CANCELLED, ITEM_STATUS.RETURNED] },
                 },
             },
             { $unwind: "$items" },
@@ -124,14 +131,14 @@ const loadAdminDashboard = async (req, res) => {
             { $limit: 10 },
         ]);
 
-        console.log("top products are", topProducts);
+       
 
         // Get top categories
         const topCategories = await Order.aggregate([
             {
                 $match: {
                     createdAt: dateFilter,
-                    "items.status": { $nin: ["Cancelled", "Returned"] },
+                    "items.status": { $nin: [ITEM_STATUS.CANCELLED, ITEM_STATUS.RETURNED] },
                 },
             },
             { $unwind: "$items" },
@@ -174,7 +181,10 @@ const loadAdminDashboard = async (req, res) => {
 
         const totalRevenueWithShippingCharge = await Order.aggregate([
             {
-                $match: { paymentStatus: "Success", status: { $nin: ["Cancelled", "Returned"] } },
+                $match: {
+                    paymentStatus: "Success",
+                    status: { $nin: [ORDER_STATUS.CANCELLED, ORDER_STATUS.RETURNED] },
+                },
             },
             {
                 $group: {
@@ -253,7 +263,7 @@ const userInfo = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).render("error", { error: "An error occurred" });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("error", { error: MESSAGES.COMMON.SERVER_ERROR });
     }
 };
 
@@ -261,7 +271,7 @@ const userInfo = async (req, res) => {
 
 const blockUser = async (req, res) => {
     try {
-        console.log("blocking user");
+       
         const id = req.query.id;
 
         await User.updateOne({ _id: id }, { $set: { isBlocked: true } });
@@ -331,14 +341,14 @@ const showOrderDetails = async (req, res) => {
 
         if (!id) {
             console.error("No order ID found in params");
-            return res.status(400).json({ success: false, message: "Order ID is required" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.ID_REQUIRED });
         }
 
         // Find the order
         const order = await Order.findById(id);
         if (!order) {
             console.error("Order not found");
-            return res.status(404).json({ success: false, message: "Order not found" });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.ORDER.NOT_FOUND });
         }
 
         // Fetch the product IDs from the order
@@ -379,7 +389,7 @@ const showOrderDetails = async (req, res) => {
         });
     } catch (error) {
         console.error("Internal server error:", error.message);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.COMMON.SERVER_ERROR });
     }
 };
 
@@ -388,40 +398,38 @@ const changeOrderStatus = async (req, res) => {
     try {
         const { selectedStatus, currentStatus, _id } = req.body;
 
-        const validStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"];
-
         // Validate inputs
         if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
-            return res.status(400).json({ success: false, message: "Invalid order ID" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.INVALID_ID });
         }
 
         if (!selectedStatus) {
-            return res.status(400).json({ success: false, message: "Please select a valid status" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.STATUS_REQUIRED });
         }
 
-        if (!validStatuses.includes(selectedStatus)) {
-            return res.status(400).json({ success: false, message: "Invalid status" });
+        if (!VALID_ORDER_STATUSES.includes(selectedStatus)) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.INVALID_STATUS });
         }
 
         if (selectedStatus === currentStatus) {
-            return res.status(400).json({ success: false, message: "Cannot change to this status" });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.SAME_STATUS });
         }
 
         // Fetch the order
         const order = await Order.findOne({ _id });
         if (!order) {
-            return res.status(404).json({ success: false, message: "Order not found" });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.ORDER.NOT_FOUND });
         }
 
         // Update the status
         order.status = selectedStatus;
 
-        if (!["Cancelled", "Return Request", "Returned"].includes(order.status)) {
+        if (![ORDER_STATUS.CANCELLED, ORDER_STATUS.RETURN_REQUEST, ORDER_STATUS.RETURNED].includes(order.status)) {
             //change all status of products
             await Promise.all(
                 order.items.map(async (item) => {
-                    if (!["Cancelled", "Returned"].includes(item.status)) {
-                        item.status = "Active";
+                    if (![ITEM_STATUS.CANCELLED, ITEM_STATUS.RETURNED].includes(item.status)) {
+                        item.status = ITEM_STATUS.ACTIVE;
                     }
                 })
             );
@@ -429,14 +437,14 @@ const changeOrderStatus = async (req, res) => {
         await order.save();
 
         console.log("Order status changed successfully");
-        res.status(200).json({
+        res.status(HTTP_STATUS.OK).json({
             success: true,
-            message: "Status changed successfully",
+            message: MESSAGES.ORDER.STATUS_CHANGE_SUCCESS,
             order,
         });
     } catch (error) {
         console.error("Error changing order status:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.COMMON.SERVER_ERROR });
     }
 };
 
@@ -448,21 +456,21 @@ const loadOrderReqs = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const orderReturnRequests = await Order.find({
-            "returnRequest.status": "Pending",
+            "returnRequest.status": ORDER_STATUS.PENDING,
         })
             .sort("-returnRequest.requestDate")
             .skip(skip)
             .limit(limit);
         // Pagination info
         const totalRequests = await Order.countDocuments({
-            "returnRequest.status": "Pending",
+            "returnRequest.status": ORDER_STATUS.PENDING,
         });
         const totalPages = Math.ceil(totalRequests / limit);
 
         res.render("orderReturnRequests", { orderReturnRequests, currentPage: page, totalPages, totalRequests });
     } catch (error) {
         console.error("Error fetching return requests:", error);
-        res.status(500).send("Internal server error");
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.COMMON.SERVER_ERROR);
     }
 };
 
@@ -473,16 +481,16 @@ const orderApproveOrReject = async (req, res) => {
         const { status, note } = req.body;
 
         if (!orderId || !status) {
-            return res.status(400).json({ success: false, message: "Order ID and status are required." });
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.RETURN_ID_STATUS_REQUIRED });
         }
 
-        if (!["Approved", "Rejected"].includes(status)) {
-            return res.status(400).json({ success: false, message: "Invalid status. Must be 'Approved' or 'Rejected'." });
+        if (![RETURN_DECISION.APPROVED, RETURN_DECISION.REJECTED].includes(status)) {
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.ORDER.RETURN_INVALID_STATUS });
         }
 
         const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ success: false, message: "Order not found." });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.ORDER.NOT_FOUND });
         }
 
         // Update return request
@@ -494,17 +502,17 @@ const orderApproveOrReject = async (req, res) => {
         order.returnRequest.status = status;
 
         // Update order status
-        order.status = status === "Approved" ? "Return Request Approved" : "Return Request Rejected";
+        order.status = status === RETURN_DECISION.APPROVED ? ORDER_STATUS.RETURN_REQUEST_APPROVED : ORDER_STATUS.RETURN_REQUEST_REJECTED;
 
         // Update item statuses
-        const itemStatus = status === "Approved" ? "Return Approved" : "Return Rejected";
+        const itemStatus = status === RETURN_DECISION.APPROVED ? ITEM_STATUS.RETURN_APPROVED : ITEM_STATUS.RETURN_REJECTED;
         order.items.forEach((item) => {
             item.status = itemStatus;
             item.returnRequest.status = status;
         });
 
         // Refund to wallet if approved
-        if (status === "Approved") {
+        if (status === RETURN_DECISION.APPROVED) {
             let wallet = await Wallet.findOne({ userId: order.userId });
             if (!wallet) {
                 wallet = new Wallet({
@@ -530,10 +538,10 @@ const orderApproveOrReject = async (req, res) => {
 
         await order.save();
 
-        res.json({ success: true, message: "Return request updated successfully." });
+        res.json({ success: true, message: MESSAGES.ORDER.RETURN_UPDATE_SUCCESS });
     } catch (error) {
         console.error("Error updating return request:", error);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.COMMON.SERVER_ERROR + "." });
     }
 };
 
@@ -568,7 +576,7 @@ const loadItemReturnReqs = async (req, res) => {
             // Match only items with pending return requests
             {
                 $match: {
-                    "items.returnRequest.status": "Pending",
+                    "items.returnRequest.status": ORDER_STATUS.PENDING,
                 },
             },
 
@@ -625,7 +633,7 @@ const loadItemReturnReqs = async (req, res) => {
             { $unwind: "$items" },
             {
                 $match: {
-                    "items.returnRequest.status": "Pending",
+                    "items.returnRequest.status": ORDER_STATUS.PENDING,
                 },
             },
             {
@@ -648,7 +656,7 @@ const loadItemReturnReqs = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching return requests:", error);
-        res.status(500).send("Internal server error");
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.COMMON.SERVER_ERROR);
     }
 };
 
@@ -660,12 +668,12 @@ const itemApproveOrReject = async (req, res) => {
 
         const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ success: false, message: "Order not found" });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.ORDER.NOT_FOUND });
         }
 
         const item = order.items.id(itemId);
         if (!item) {
-            return res.status(404).json({ success: false, message: "Item not found" });
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.ORDER.ITEM_NOT_FOUND });
         }
 
         item.returnRequest.adminResponse = {
@@ -675,11 +683,11 @@ const itemApproveOrReject = async (req, res) => {
         };
 
         item.returnRequest.status = status;
-        item.status = status === "Approved" ? "Return Approved" : "Return Rejected";
+        item.status = status === RETURN_DECISION.APPROVED ? ITEM_STATUS.RETURN_APPROVED : ITEM_STATUS.RETURN_REJECTED;
 
         // **Process refund only if return is approved**
 
-        if (status === "Approved") {
+        if (status === RETURN_DECISION.APPROVED) {
             let refundAmount = 0;
             if (order.totalItems == 1) {
                 refundAmount = order.totalPrice - 10;
@@ -694,11 +702,11 @@ const itemApproveOrReject = async (req, res) => {
 
             // **Check if all items are returned**
             const activeItems = order.items.filter(
-                (i) => !["Cancelled", "Return Approved", "Returned", "Return Rejected"].includes(i.status)
+                (i) => ![ITEM_STATUS.CANCELLED, ITEM_STATUS.RETURN_APPROVED, ITEM_STATUS.RETURNED, ITEM_STATUS.RETURN_REJECTED].includes(i.status)
             );
 
             if (activeItems.length === 0) {
-                order.status = "Returned";
+                order.status = ORDER_STATUS.RETURNED;
                 order.paymentStatus = "Refunded";
             }
 
@@ -732,7 +740,7 @@ const itemApproveOrReject = async (req, res) => {
         res.json({ success: true, message: `Return request ${status.toLowerCase()} successfully` });
     } catch (error) {
         console.error("Error updating return request:", error.message);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.COMMON.SERVER_ERROR });
     }
 };
 
@@ -818,66 +826,6 @@ const calculateRefundAmount = async (orderId, returnedItemId) => {
         throw error;
     }
 };
-
-// const calculateRefundAmount = async (orderId, returnedItemId) => {
-//     try {
-//         // Fetch the complete order
-//         const order = await Order.findById(orderId);
-//         if (!order) throw new Error("Order not found");
-
-//         // Find the returned item in the order
-//         const returnedItem = order.items.find((item) => item._id.toString() === returnedItemId);
-//         if (!returnedItem) throw new Error("Item not found in order");
-
-//         // Calculate basic refund amount for the item
-//         const itemTotal = returnedItem.price * returnedItem.quantity;
-
-//         // If no coupon was applied, return the item total
-//         if (!order.couponApplied) return itemTotal;
-
-//         // Calculate remaining order total without the returned item
-//         let remainingItemsTotal = order.totalPrice - itemTotal;
-//         if (order.items.length === 1) {
-//             remainingItemsTotal = 10; // Assume minimum shipping charge remains
-//         }
-
-//         // Handle coupon adjustments
-//         const couponDetails = order.couponDetails;
-//         let refundAmount = itemTotal;
-
-//         if (couponDetails.discountType === "percentage") {
-//             console.log("Discount type is percentage");
-
-//             // Calculate discount on the returned item proportionally
-//             const percentageDiscount = (itemTotal * couponDetails.discountAmount) / 100;
-
-//             console.log("discount percentage is:",percentageDiscount)
-//             refundAmount = itemTotal - percentageDiscount;
-
-//         } else if (couponDetails.discountType === "flat") {
-//             console.log("Discount type is flat");
-
-//             // Calculate how much discount was applied per unit of total price
-//             const proportionalDiscount = (itemTotal / order.totalPrice) * couponDetails.discountAmount;
-//             refundAmount = itemTotal - proportionalDiscount;
-//         }
-
-//         // Fetch the coupon to check minimum order value
-//         const coupon = await mongoose.model("Coupon").findById(couponDetails.couponId);
-
-//         // If remaining items total is less than coupon minOrderValue, remove the coupon discount
-//         if (coupon && remainingItemsTotal < coupon.minOrderValue) {
-//             console.log("Remaining order value is below minimum for coupon. Refunding full item price.");
-//             refundAmount = itemTotal;
-//         }
-
-//         console.log("Final Refund Amount:", Math.round(refundAmount * 100) / 100);
-//         return Math.round(refundAmount * 100) / 100; // Round to 2 decimal places
-//     } catch (error) {
-//         console.error("Error calculating refund amount:", error);
-//         throw error;
-//     }
-// };
 
 // Helper function to get date filter based on selected time period
 function getDateFilter(timeFilter) {
